@@ -5,9 +5,9 @@ import time
 from collections import deque
 from collections.abc import Iterable
 
-from pyws.public import *
-from pyws.connector import Connector, ConnectManager
-from pyws.public import PublicConfig
+from pywss.public import *
+from pywss.connector import Connector, ConnectManager
+from pywss.public import PublicConfig
 
 logger = logging.getLogger(__name__)
 

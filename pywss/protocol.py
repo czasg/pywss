@@ -3,7 +3,7 @@ import struct
 import base64
 import hashlib
 
-from pyws.public import WebSocketProtocolError
+from pywss.public import WebSocketProtocolError
 
 MAGIC_STRING = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 REGEX = re.compile(r'GET\s+([^\s]+).*Sec-WebSocket-Key:\s*(.*?)\r\n', re.S)

@@ -2,7 +2,7 @@ import functools
 
 from importlib import import_module
 
-from pyws.public import InvalidPath
+from pywss.public import InvalidPath
 
 
 def route(path):

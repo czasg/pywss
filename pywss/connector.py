@@ -2,7 +2,7 @@ import logging
 
 from collections import defaultdict
 
-from pyws.snow_key import id_pool
+from pywss.snow_key import id_pool
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,10 @@ class ConnectManager:
     @classmethod
     def online(cls):
         return len(cls.connectors)
+
+    @classmethod
+    def exists(cls, name):
+        return name in cls.connectors and cls.connectors[name].values()
 
     @classmethod
     def clear(cls, name, key=None, clear_level=None):

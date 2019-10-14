@@ -10,7 +10,7 @@ setup(
     author='czaOrz',
     author_email='chenziangsg@163.com',
     url='https://github.com/CzaOrz/Pywss',
-    packages=find_packages(),
+    packages=find_packages('./pywss'),
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
