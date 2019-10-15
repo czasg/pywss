@@ -20,6 +20,11 @@ ws.onmessage = function (ev) {
 ws.onclose = function (ev) {
     console.log('Connect Closed')
 }
+ws.onopen = function() {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send('hello, pywss!')  // you will get 'hello, pywss! - data from pywss'
+    }
+}
 
 /* other */
 ws.send('hello, pywss!')  // you will get 'hello, pywss! - data from pywss'
