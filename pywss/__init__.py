@@ -2,6 +2,7 @@ import socketserver
 import json
 
 from socket import socket, getdefaulttimeout
+from _socket import AF_INET, SOCK_STREAM
 
 from pywss.protocol import WebSocketProtocol
 from pywss.middlewares import *
@@ -16,11 +17,18 @@ class WsSocket(socket):
     __slots__ = ["_io_refs", "_closed", "__route__"]
 
     def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
         super(WsSocket, self).__init__(family, type, proto, fileno)
 
     def accept(self):
         fd, addr = self._accept()
-        sock = WsSocket(self.family, self.type, self.proto, fileno=fd)  # 修改此处
+        sock = WsSocket(self.family, self.type, self.proto, fileno=fd)
         if getdefaulttimeout() is None and self.gettimeout():
             sock.setblocking(True)
         return sock, addr
