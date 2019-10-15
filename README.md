@@ -2,6 +2,8 @@
 
 一种类似Flask开发的WebSocket-Server服务端框架
 
+适用python版本3.7 (python3.6版本居然报错，我得好好研究研究下)
+
  ```安装: pip install pywss```
 
 ### [example1](https://github.com/CzaOrz/Pywss/blob/master/examples/example1.py)

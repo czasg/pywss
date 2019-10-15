@@ -4,7 +4,6 @@ import json
 from socket import socket, getdefaulttimeout
 
 from pywss.protocol import WebSocketProtocol
-from pywss.connector import Connector, ConnectManager
 from pywss.middlewares import *
 from pywss.public import *
 from pywss.route import *
