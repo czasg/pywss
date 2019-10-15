@@ -1,5 +1,4 @@
-from pywss import Pyws
-from pywss.route import route
+from pywss import Pyws, route
 
 
 @route('/test/example/1')
