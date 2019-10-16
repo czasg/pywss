@@ -124,6 +124,13 @@ ws.onopen = function() {
 #### [example4](https://github.com/CzaOrz/Pywss/blob/master/examples/example4.py): 数据中间件的实现
 #### [example5](https://github.com/CzaOrz/Pywss/blob/master/examples/example5.py): 点对点交流的实现
 
+---
+
 ### 框架流程图
+**1、基本框架图**
+![pywss](images/pywss1.png)
+
+**2、较详细框架图**
+
 *有水印，将就看下*
-![pywss](images/pywss.png)
+![pywss](images/pywss2.png)
