@@ -127,7 +127,7 @@ ws.onopen = function() {
 ---
 
 ### 框架流程图
-**1、基本框架图**
+**[1、基本框架图(简书文章)](https://www.jianshu.com/p/589022ee5f5c)**
 ![pywss](images/pywss1.png)
 
 **2、较详细框架图**
