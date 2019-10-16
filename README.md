@@ -14,7 +14,7 @@
    * request: socket句柄
    * data: 传递过来的数据
 * 功能简介
-   * 大致就是你发一句话，他立马回你原话+后缀的意思
+   * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
    * 服务端代码直接用浏览器的控制台就行
 ```
 from pywss import Pyws, route
@@ -50,7 +50,7 @@ ws.onopen = function() {
 * 参数简介
    * RadioMiddleware: 广播中间件，加载此中间件，则会挂起线程轮询发送数据
 * 功能简介
-   * 在建立连接后，广播数据给所有连接 (其实就是while+for一个一个遍历==僵硬)
+   * 在建立连接后，每隔一定之间，广播数据给所有连接
 ```
 from pywss import Pyws, route, RadioMiddleware
 
