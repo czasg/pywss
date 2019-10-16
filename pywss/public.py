@@ -1,3 +1,7 @@
+from queue import Queue
+
+radio_queue = Queue()
+RADIO_START = object()
 ERROR_FLAG = object()
 
 

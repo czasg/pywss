@@ -94,6 +94,8 @@ class SocketHandler:
             self.conn = Connector(self.request, self.client_address)
         ConnectManager.add_connector(self.conn.name, self.conn.client_address, self.conn)
         logger.info('New Connect {} From {}'.format(self.conn.name, self.conn.client_address))
+        if not radio_queue.qsize():
+            radio_queue.put(RADIO_START)
 
     def handle(self):
         error_count = 0
