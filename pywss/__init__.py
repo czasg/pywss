@@ -121,7 +121,7 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
 
     def __init__(self,
                  routes_module,
-                 address='127.0.0.1', port=8866,
+                 address='0.0.0.0', port=8866,
                  RequestHandlerClass=SocketHandler,
                  request_queue_size=5,
                  middleware=None,
