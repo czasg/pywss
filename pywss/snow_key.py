@@ -1,5 +1,7 @@
 import time
 
+"""雪花算法"""
+
 
 def get_current_timestamp(): return int(time.time() * 1000)
 

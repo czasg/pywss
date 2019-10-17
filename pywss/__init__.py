@@ -1,3 +1,6 @@
+__version__ = '0.0.6'
+__author__ = 'CzaOrz <https://github.com/CzaOrz>'
+
 import socketserver
 import json
 
@@ -14,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class WsSocket(socket):
+    """
+    继承并重写socket模块，新增ws_recv与ws_send方法
+    """
     __slots__ = ["_io_refs", "_closed", "__route__"]
 
     def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
@@ -54,7 +60,7 @@ class MyServerTCPServer(socketserver.TCPServer):
                 raise
 
     def serve_forever(self, poll_interval=0.5):
-        if mwManager.radio_middleware:
+        if mwManager.radio_middleware:  # radio中间件在此处作用
             mwManager.radio_process()
         super(MyServerTCPServer, self).serve_forever(poll_interval)
 
@@ -89,7 +95,7 @@ class SocketHandler:
             self.finish()
 
     def setup(self):
-        self.conn = mwManager.daemon_process(self, self.request)
+        self.conn = mwManager.daemon_process(self, self.request)  # daemon中间件在此处作用，处理且仅处理一次请求
         if not self.conn:
             self.conn = Connector(self.request, self.client_address)
         ConnectManager.add_connector(self.conn.name, self.conn.client_address, self.conn)
@@ -101,7 +107,7 @@ class SocketHandler:
         error_count = 0
         try:
             while error_count < PublicConfig.ERROR_COUNT_MAX:
-                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)
+                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)  # data中间件在此处作用
                 if info is ERROR_FLAG:
                     error_count += 1
                 elif info:
