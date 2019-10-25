@@ -43,7 +43,7 @@ class WsSocket(socket):
         return WebSocketProtocol.decode_msg(self.recv(bufsize))
 
     def ws_send(self, data, flags: int = ...):
-        self.send(WebSocketProtocol.encode_msg(json.dumps(data, ensure_ascii=False).encode('utf-8')))
+        self.sendall(WebSocketProtocol.encode_msg(json.dumps(data, ensure_ascii=False).encode('utf-8')))
 
 
 class MyServerTCPServer(socketserver.TCPServer):
