@@ -46,7 +46,7 @@ def example_2(request, data):
 
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, port=8866)
+    ws = Pyws(__name__, address='127.0.0.1', port=8866)
     ws.add_middleware([AuthenticationMiddleware, DataProcessMiddleware])
     ws.serve_forever()
 

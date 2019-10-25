@@ -7,7 +7,7 @@ def example_1(request, data):
 
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, port=8866)
+    ws = Pyws(__name__, address='127.0.0.1', port=8866)
     ws.serve_forever()
 
 """
