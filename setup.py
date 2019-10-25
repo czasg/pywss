@@ -4,6 +4,12 @@ import codecs
 
 from setuptools import setup, find_packages
 
+"""
+1、python setup check
+2、python setup sdist
+3、twine upload dist/__packages__-__version__.tar.gz
+"""
+
 
 def read(*parts):
     here = os.path.abspath(os.path.dirname(__file__))
