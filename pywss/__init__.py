@@ -39,8 +39,20 @@ class WsSocket(socket):
             sock.setblocking(True)
         return sock, addr
 
-    def ws_recv(self, bufsize: int, flags: int = ...):  # todo 数据接收被切片，为什么
-        return WebSocketProtocol.decode_msg(self.recv(bufsize))
+    def ws_recvall(self, bufsize: int, response=b''):
+        chunk = self.recv(bufsize)
+        self.setblocking(False)
+        while chunk:
+            response += chunk
+            try:
+                chunk = self.recv(bufsize)
+            except IOError:
+                break
+        self.setblocking(True)
+        return response
+
+    def ws_recv(self, bufsize: int, flags: int = ...):
+        return WebSocketProtocol.decode_msg(self.ws_recvall(bufsize))
 
     def ws_send(self, data, flags: int = ...):
         self.sendall(WebSocketProtocol.encode_msg(json.dumps(data, ensure_ascii=False).encode('utf-8')))
@@ -66,7 +78,7 @@ class MyServerTCPServer(socketserver.TCPServer):
 
     def verify_request(self, request, client_address):
         try:
-            path, key = WebSocketProtocol.parsing(request.recv(1024))
+            path, key = WebSocketProtocol.parsing(request.ws_recvall(1024))
             if path in Route.routes:
                 request.send(key)
                 request.__route__ = path
