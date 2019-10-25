@@ -39,7 +39,7 @@ class WsSocket(socket):
             sock.setblocking(True)
         return sock, addr
 
-    def ws_recv(self, bufsize: int, flags: int = ...):
+    def ws_recv(self, bufsize: int, flags: int = ...):  # todo 数据接收被切片，为什么
         return WebSocketProtocol.decode_msg(self.recv(bufsize))
 
     def ws_send(self, data, flags: int = ...):
