@@ -1,5 +1,5 @@
-__version__ = '0.0.7'
 __author__ = 'CzaOrz <https://github.com/CzaOrz>'
+from pywss.version import __version__
 
 import socketserver
 import json
