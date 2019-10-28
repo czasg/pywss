@@ -27,7 +27,7 @@ def find_version(*file_paths):
 
 setup(
     name='pywss',
-    version=find_version('pywss', '__init__.py'),
+    version=find_version('pywss', 'version.py'),
     description="This is a web-socket-server by python",
     long_description="see https://github.com/CzaOrz/Pywss",
     author='czaOrz',
