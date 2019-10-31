@@ -20,7 +20,7 @@ class WsSocket(socket):
     """
     继承并重写socket模块，新增ws_recv与ws_send方法
     """
-    __slots__ = ["_io_refs", "_closed", "__route__"]
+    __slots__ = ["_io_refs", "_closed", "__route__", "conn"]
 
     def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
         if fileno is None:
@@ -114,6 +114,7 @@ class SocketHandler:
         logger.info('New Connect {} From {}'.format(self.conn.name, self.conn.client_address))
         if not radio_queue.qsize():
             radio_queue.put(RADIO_START)
+        self.request.conn = self.conn
 
     def handle(self):
         error_count = 0
