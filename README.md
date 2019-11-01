@@ -4,6 +4,11 @@
 
 
  ```安装: pip install pywss```
+ 
+ ### 框架流程图
+**[1、流程框架图](https://www.jianshu.com/p/589022ee5f5c)**
+![pywss](images/pywss流程图.png)
+
 
 ### [example1](https://github.com/CzaOrz/Pywss/blob/master/examples/example1.py): 基本的交互实现
 **Server** (详情见example1.py)
@@ -123,14 +128,3 @@ ws.onopen = function() {
 ---
 #### [example4](https://github.com/CzaOrz/Pywss/blob/master/examples/example4.py): 数据中间件的实现
 #### [example5](https://github.com/CzaOrz/Pywss/blob/master/examples/example5.py): 点对点交流的实现
-
----
-
-### 框架流程图
-**[1、基本框架图(简书文章)](https://www.jianshu.com/p/589022ee5f5c)**
-![pywss](images/pywss1.png)
-
-**2、较详细框架图**
-
-*有水印，将就看下*
-![pywss](images/pywss2.png)
