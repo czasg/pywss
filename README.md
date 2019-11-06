@@ -8,7 +8,7 @@
  ### 框架流程图
 **[1、流程框架图](https://www.jianshu.com/p/589022ee5f5c)**
 
-![pywss](images/pywss3.png)
+![pywss](http://www.czasg.xyz/static/img/pywss3.png)
 
 
 ### [example1](https://github.com/CzaOrz/Pywss/blob/master/examples/example1.py): 基本的交互实现
