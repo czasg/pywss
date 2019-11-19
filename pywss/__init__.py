@@ -71,7 +71,7 @@ class MyServerTCPServer(socketserver.TCPServer):
                 self.server_close()
                 raise
 
-    def serve_forever(self, poll_interval=0.5):
+    def serve_forever(self, poll_interval=0.5):  # todo, 是否需要改写为异步形式? 效率会有所提升吗?
         if mwManager.radio_middleware:  # radio中间件在此处作用
             mwManager.radio_process()
         super(MyServerTCPServer, self).serve_forever(poll_interval)
