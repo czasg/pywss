@@ -1,4 +1,6 @@
-from pywss import Pyws, route, RadioMiddleware
+from pywss import Pyws, route, RadioMiddleware, PublicConfig
+
+PublicConfig.RADIO_TIME = 1  # 控制广播中间件间隔
 
 
 class Radio(RadioMiddleware):
