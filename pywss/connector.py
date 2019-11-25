@@ -22,7 +22,7 @@ class Connector:
 
 
 class ConnectManager:
-    connectors = defaultdict(dict)
+    connectors = defaultdict(dict)  # todo, weakref 弱字典似乎比想象中的好一些
 
     @classmethod
     def online(cls):
