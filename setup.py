@@ -4,7 +4,7 @@ import codecs
 
 from setuptools import setup, find_packages
 
-"""
+"""pip install twine
 1、python setup check
 2、python setup sdist
 3、twine upload dist/__packages__-__version__.tar.gz
