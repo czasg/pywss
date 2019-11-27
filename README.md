@@ -1,12 +1,12 @@
 ## Pywss - Web Socket Server By Python
 
-一种类似Flask开发的WebSocket-Server服务端框架
+A WebSocket-Server framework developed similar to Flask
 
 
- ```安装: pip install pywss```
+ ```how to install: pip install pywss```
  
- ### 框架流程图
-**[1、流程框架图](https://www.jianshu.com/p/589022ee5f5c)**
+ ### Frame flow chart
+**[1、frame flow chart](https://www.jianshu.com/p/589022ee5f5c)**
 
 ![pywss](http://www.czasg.xyz/static/img/pywss3.png)
 
