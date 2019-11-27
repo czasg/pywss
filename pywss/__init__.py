@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class WsSocket(socket):
-    """
-    继承并重写socket模块，新增ws_recv与ws_send方法
+    """WsSocket =>
+    add new way of ws_recv/ws_send for this class,
+    which has been adapted to web-socket-protocol,
+    so you can use those as same as recv/send.
     """
     __slots__ = ["_io_refs", "_closed", "__route__", "conn"]
 
@@ -71,8 +73,8 @@ class MyServerTCPServer(socketserver.TCPServer):
                 self.server_close()
                 raise
 
-    def serve_forever(self, poll_interval=0.5):  # todo, 是否需要改写为异步形式? 效率会有所提升吗?
-        if mwManager.radio_middleware:  # radio中间件在此处作用
+    def serve_forever(self, poll_interval=0.5):  # todo, amend server for asynchronous
+        if mwManager.radio_middleware:  # radio middleware work here
             mwManager.radio_process()
         super(MyServerTCPServer, self).serve_forever(poll_interval)
 
@@ -89,7 +91,7 @@ class MyServerTCPServer(socketserver.TCPServer):
 
 
 class MyServerThreadingMixIn(socketserver.ThreadingMixIn):
-    """开启新线程处理socket"""
+    block_on_close = False
 
 
 class SocketHandler:
@@ -103,11 +105,9 @@ class SocketHandler:
             self.handle()
         except:
             pass
-        finally:
-            self.finish()
 
     def setup(self):
-        self.conn = mwManager.daemon_process(self, self.request)  # daemon中间件在此处作用，处理且仅处理一次请求
+        self.conn = mwManager.daemon_process(self, self.request)  # daemon middleware work here
         if not self.conn:
             self.conn = Connector(self.request, self.client_address)
         ConnectManager.add_connector(self.conn.name, self.conn.client_address, self.conn)
@@ -127,13 +127,6 @@ class SocketHandler:
                     self.request.ws_send(info)
                 else:
                     error_count += 4
-        except:
-            pass
-
-    def finish(self):
-        logger.warning('%s:%s Connect Close' % self.client_address)
-        try:
-            ConnectManager.clear(self.conn.name, self.conn.client_address, self.conn.clear_level)
         except:
             pass
 
@@ -161,3 +154,6 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
 
     def add_middleware(self, middleware):
         mwManager.auto_add(middleware)
+
+
+class Pywss(Pyws): ...  # todo, adapter to wss protocol

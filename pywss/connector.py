@@ -1,6 +1,8 @@
 import logging
 
+from weakref import finalize
 from collections import defaultdict
+from threading import current_thread
 
 from pywss.snow_key import id_pool
 
@@ -22,7 +24,7 @@ class Connector:
 
 
 class ConnectManager:
-    connectors = defaultdict(dict)  # todo, weakref 弱字典似乎比想象中的好一些
+    connectors = defaultdict(dict)  # todo, amend default to WeakValueDictionary
 
     @classmethod
     def online(cls):
@@ -33,20 +35,23 @@ class ConnectManager:
         return name in cls.connectors and cls.connectors[name].values()
 
     @classmethod
-    def clear(cls, name, key=None, clear_level=None):
-        try:
-            if not key:
-                cls.connectors.pop(name)
-            if key in cls.connectors[name]:
-                if clear_level:
-                    cls.connectors.pop(name)
-                else:
-                    cls.connectors[name].pop(key)
-        except:
-            pass
-
-    @classmethod
     def add_connector(cls, name, key, value):
+
+        def remove_connectors(name=name, key=key, clear_level=value.clear_level):
+            try:
+                if not key:
+                    cls.connectors.pop(name)
+                if key in cls.connectors[name]:
+                    if clear_level:
+                        cls.connectors.pop(name)
+                    else:
+                        cls.connectors[name].pop(key)
+            except:
+                pass
+            finally:
+                logger.warning('{} Connect Close'.format(key))
+
+        finalize(current_thread(), remove_connectors)
         cls.connectors[name][key] = value
 
     @classmethod
@@ -54,7 +59,7 @@ class ConnectManager:
         try:
             for connector in cls.connectors[name].values():
                 connector.request.ws_send(msg)
-            logger.info('发送成功')
+            logger.info('send msg success')
             return True
         except:
             return False
@@ -64,7 +69,7 @@ class ConnectManager:
         try:
             for connector in cls.next_user():
                 connector.request.ws_send(msg)
-            logger.info('发送成功')
+            logger.info('send msg success')
             return True
         except:
             return False
