@@ -68,20 +68,19 @@ class ConnectManager:
     def send_to_all(cls, msg):
         try:
             for connector in cls.next_user():
-                connector.request.ws_send(msg)
+                try:
+                    connector.request.ws_send(msg)
+                except OSError:
+                    continue
             logger.info('send msg success')
             return True
         except:
-            """
-            when one connect is close, and the traverse is running,
-            it will raise an error "RuntimeError: dictionary changed size during iteration"
-            """# todo, how to solve this BUG?
             return False
 
     @classmethod
     def next_user(cls):
-        yield from (connector for connectors in cls.connectors.values()
-                    for connector in connectors.values())
+        return [connector for connectors in cls.connectors.values()
+                for connector in connectors.values()]
 
 
 send_to_connector = ConnectManager.send_to_connector
