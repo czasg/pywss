@@ -58,7 +58,10 @@ class ConnectManager:
     def send_to_connector(cls, name, msg):
         try:
             for connector in cls.connectors[name].values():
-                connector.request.ws_send(msg)
+                try:
+                    connector.request.ws_send(msg)
+                except OSError:
+                    continue
             logger.info('send msg success')
             return True
         except:
