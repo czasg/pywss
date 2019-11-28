@@ -72,6 +72,10 @@ class ConnectManager:
             logger.info('send msg success')
             return True
         except:
+            """
+            when one connect is close, and the traverse is running,
+            it will raise an error "RuntimeError: dictionary changed size during iteration"
+            """# todo, how to solve this BUG?
             return False
 
     @classmethod
