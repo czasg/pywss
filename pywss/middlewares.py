@@ -127,7 +127,7 @@ class MiddlewareManager:
     def radio_process(cls):
         t = threading.Thread(target=cls._process_radio)
         t.daemon = True
-        logger.info('开启广播模式')
+        logger.info('radio is enabled...')
         t.start()
 
     @classmethod
@@ -136,14 +136,14 @@ class MiddlewareManager:
             command = radio_queue.get()
             if command is RADIO_START and ConnectManager.online():
                 while ConnectManager.online():
-                    logger.info('广播轮询中...')
+                    logger.info('broadcasting...')
                     for middleware_func in cls.radio_middleware:
                         data = middleware_func()
                         if not data:
                             continue
                         ConnectManager.send_to_all(data)
                     time.sleep(PublicConfig.RADIO_TIME)
-                logger.info('广播停止轮询...')
+                logger.info('radio pause...')
 
 
 mwManager = MiddlewareManager()
