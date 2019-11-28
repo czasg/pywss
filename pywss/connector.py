@@ -24,7 +24,7 @@ class Connector:
 
 
 class ConnectManager:
-    connectors = defaultdict(dict)  # todo, amend default to WeakValueDictionary
+    connectors = defaultdict(dict)
 
     @classmethod
     def online(cls):
