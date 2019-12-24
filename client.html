@@ -72,7 +72,7 @@ $(function(){
             }
         },
         mounted(){
-            this.ws = new WebSocket("ws://47.101.42.79:8866/ws/chat");
+            this.ws = new WebSocket("ws://www.czasg.xyz:8866/ws/chat");
             this.ws.onmessage = (ev) => {
                 json_data = JSON.parse(ev.data);
                 if (json_data.sock_id) {  // 获取唯一sock_id
