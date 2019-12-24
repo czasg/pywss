@@ -56,12 +56,14 @@ ws.onopen = function() {
 * 功能简介
    * 在建立连接后，每隔一定之间，广播数据给所有连接
 ```
-from pywss import Pyws, route, RadioMiddleware
+from pywss import Pyws, route, RadioMiddleware, PublicConfig
+
+PublicConfig.RADIO_TIME = 10  # 控制广播中间件间隔为10s
 
 class Radio(RadioMiddleware):
     @classmethod
     def process_data(cls):
-        return 'Hello, Welcome To Pywss-Radio'
+        return 'Hello, Welcome To Pywss-Radio'  # 返回指定消息
 
 @route('/test/example/2')
 def example_2(request, data):
