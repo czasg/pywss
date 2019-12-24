@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <title>WebSocket-Client</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <style>
+        body { padding-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container" id="ws-chat" @keyup.ctrl.enter="ws_send">
+    <div class="row">
+        <div class="col-sm-offset-2 col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">公共频道&nbsp;&nbsp;&nbsp;<small>{{ `当前在线人数${online}` }}</small></h3>
+                </div>
+                <div class="panel-body" style="height: 400px;">
+                    <ul class="media-list" id="chat-content-list">
+                        <li class="media" v-for="message in messages">
+                            <div v-if="message.from === sock_id">
+                                <div class="media-body">
+                                    <h6 class="media-heading text-right"  v-text="message.from"></h6>
+                                    <div class="pull-right" style="max-width: 80%;">
+                                        <p class="bg-primary" v-text="message.msg" style="padding: 10px; margin: 0; white-space: pre-line; border-radius: 5px; word-break:break-all;"></p>
+                                    </div>
+                                </div>
+                                <div class="media-right">
+                                    <a><img style="width: 20px; height: 20px;" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gA7Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2ODApLCBxdWFsaXR5ID0gOTAK/9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/8AAEQgAeAB4AwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A+t80UYo70AFHFFFABRRRQAZooooAKO9FGKACjNFGKACgUUUAFFGKKACijFGKACijFGKACilVS7AKNxPAA716p4N+GEMEcd5rEYlmI3Lan7qf73qfbp9aAPONO0TUNWOLOymuB3ZEJUfU9K1v+FceIyu7+zWx/wBdY8/lur3SOJIY1SNVRFGAqjAFOoA+dNS0LUdJ/wCPyynt1/vOh2n8elUK+mXjSVCjqroRgqwyDXn3jH4YQXcUl3pCCC4GWa2H3H/3fQ+3T6UAeT0U542jZkdSrKcEEYINNxQAUCjFGKACijFFABmijFGKADNFFGKAPQPhP4bS/vZNUuFDRWx2xA9DJ1z+A/Uj0r1quc+Hlmtl4Q08AYaRTKx9SxJ/lj8q6OgBaSiigBaSiigDyn4s+G0tLmLVoFCpO2yYDpvxw34gH8vevO6988eWQvvCOpIRkpF5oPoV+b+leB0AFFGMUYoAKKMUUAFFFFABRRSUAe++BLhbnwjpjKchYtn4qSP6VvV5r8INeUw3GkythwTNDnuP4h/X8TXpXSgBaSiigBaSiigDG8Z3C23hTVXY4Bt2T8WG0fzr5+r1X4va8sVlDpMbDzZWEsoHZR0B+p5/CvKaAFopKMUALRSUUAL+NH40c0c0AFH40c0c0AT2V7Np13Fc28hinibcrDsa9u8IeOLTxPbrGzLBqCj54Cfve6+o/lXk/hnwfqHiib/R0EVspw9xIPlHsPU+1ereH/h5pWg7JPK+2XS8+dMM4PsOg/n70AdPRS80c0AJmud8W+NrPwvbspYT3zD93bg8/VvQfzro+a5jxD8PdK18vL5f2S6bJM0PGT7jof5+9AHieoahPqt7Nd3MhknlbczH/PSq9bvifwfqHhebFwgktmOEuIx8rex9D7Vhc0AFFHNHNABRRzRQAUYo/Gj8aACup8C+CpPFF2ZZt0enxH9444Ln+6P6ntWHoukza5qlvZQf6yVsZ7KO5P0FfQWlaXBo2nwWdsoWKJcD1J7k+5oAmtLSGxt44LeJYYYxtVFGABU1JRQAYooo/GgAo/Cij8aAIru0hv7aS3uIlmhkG1kcZBFeJ+OvBUnhe7EsIaTT5j+7c8lD/dP9D3r3H8aqatpcGtafNZ3K7opVwfUHsR7jrQB84UVd1rSZtD1S4sp/vxNjPZh2I+o5ql+NABRR+NFABRRiigD1P4P6GI7a51WRfmkPkxE9lHLH8Tgfga9HrM8MacNK8P2FqBgxwru/3jy36k1p0AKKKKSgBaKKSgBaSlxSUALSUUtAHm/xf0MSW1tqsa/PGfJlx/dPKn8DkfiK8sr6H8T6cNW8P39qRkyQtt/3hyv6gV88UAFFFFABVrSrcXep2cBAIlmRPzYCiigD6QxRRRQAoooooAKKKKAEooooAWkxRRQAV836rb/ZNTvIAMCKZ0x9GIoooAq4ooooA//Z"></a>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <div class="media-left">
+                                    <a><img style="width: 20px; height: 20px;" src="data:image/jpeg;base64,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"></a>
+                                </div>
+                                <div class="media-body">
+                                    <h6 class="media-heading text-left"  v-text="message.from"></h6>
+                                    <div class="pull-left" style="max-width: 80%;">
+                                        <p class="bg-info" v-text="message.msg" style="padding: 10px; margin: 0; white-space: pre-line; border-radius: 5px; word-break:break-all;"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="panel-footer" style="background: #fff; padding: 0px;">
+                    <div class="form-group" style="margin: 0;">
+                        <textarea class="form-control" rows="3" v-model="content"></textarea>
+                    </div>
+                    <div class="list-group" style="margin: 0;">
+                        <a href="javascript:void(0)" class="list-group-item text-center" @click="ws_send">Send</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(function(){
+    new Vue({
+        el: '#ws-chat',
+        data(){
+            return{
+                sock_id: '',
+                content: '',
+                online: 0,
+                messages: [],
+            }
+        },
+        mounted(){
+            this.ws = new WebSocket("ws://127.0.0.1:8868/ws/chat");
+            this.ws.onmessage = (ev) => {
+                json_data = JSON.parse(ev.data);
+                if (json_data.sock_id) {  // 获取唯一sock_id
+                    this.sock_id = json_data.sock_id;
+                } else if (json_data.online) {  // 更新当前在线人数
+                    this.online = json_data.online;
+                } else if (json_data.from) {
+                    this.messages.push(json_data);  // 推送聊天消息至容器，交由Vue更新DOM
+                    $('#chat-content-list').parent().animate({
+                        scrollTop: $('#chat-content-list').height()
+                    }, 1000);
+                }
+            };
+            this.ws.onclose = (ev) => {
+                this.messages.push({from: 'WebSocket', msg: 'WebSocket后台服务已关闭!'});
+            };
+            this.ws.onopen = (ev) => {
+                this.messages.push({from: 'WebSocket', msg: '欢迎来到WebSocket聊天室！'});
+                this.ws.send(JSON.stringify({'start': true}));
+            };
+        },
+        methods: {
+            ws_send: function(){
+                if (this.content) {
+                    this.ws.send(JSON.stringify({msg: this.content}));
+                    this.content = '';
+                }
+            },
+        },
+    });
+})
+</script>
+</body>
+</html>
