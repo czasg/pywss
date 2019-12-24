@@ -174,3 +174,4 @@ ws.onopen = function() {
 ```
 
 #### [example5](https://github.com/CzaOrz/Pywss/blob/master/examples/example5.py): 点对点交流的实现
+参考：https://github.com/CzaOrz/ioco/tree/master/open_source_project/web_socket_chat
