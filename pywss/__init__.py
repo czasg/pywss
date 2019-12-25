@@ -3,9 +3,11 @@ from pywss.version import __version__
 
 import socketserver
 import json
+import ssl
 
 from socket import socket, getdefaulttimeout
 from _socket import AF_INET, SOCK_STREAM
+from ssl import SSLContext, SSLSocket
 
 from pywss.protocol import WebSocketProtocol
 from pywss.middlewares import *
@@ -14,6 +16,18 @@ from pywss.route import *
 
 logging.basicConfig(format="%(asctime)s %(funcName)s[lines-%(lineno)d]: %(message)s")
 logger = logging.getLogger(__name__)
+
+
+class WssSSLContext(SSLContext):
+
+    def wrap_socket(self, sock, server_side=False, **kwargs):
+        return WssSocket(sock=sock, server_side=server_side, _context=self, **kwargs)
+
+
+def load_ssl_context(pem, key, version=None):
+    ssl_context = WssSSLContext(version or ssl.PROTOCOL_TLSv1)
+    ssl_context.load_cert_chain(pem, key)
+    return ssl_context
 
 
 class WsSocket(socket):
@@ -60,11 +74,22 @@ class WsSocket(socket):
         self.sendall(WebSocketProtocol.encode_msg(json.dumps(data, ensure_ascii=False).encode('utf-8')))
 
 
+class WssSocket(SSLSocket, WsSocket):
+
+    def __init__(self, *args, **kwargs):
+        if hasattr(self, "_create"):
+            kwargs["context"] = kwargs.pop("_context")
+            self = self._create(*args, **kwargs)
+        else:
+            super(WssSocket, self).__init__(*args, **kwargs)
+
+
 class MyServerTCPServer(socketserver.TCPServer):
 
-    def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True):
+    def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True, ssl_context=None, **kwargs):
         socketserver.BaseServer.__init__(self, server_address, RequestHandlerClass)
         self.socket = WsSocket(self.address_family, self.socket_type)
+        self.ssl_context = ssl_context
         if bind_and_activate:
             try:
                 self.server_bind()
@@ -77,6 +102,12 @@ class MyServerTCPServer(socketserver.TCPServer):
         if mwManager.radio_middleware:  # radio middleware work here
             mwManager.radio_process()
         super(MyServerTCPServer, self).serve_forever(poll_interval)
+
+    def get_request(self):
+        request, address = self.socket.accept()
+        if self.ssl_context:
+            request = self.ssl_context.wrap_socket(request, server_side=True)
+        return request, address
 
     def verify_request(self, request, client_address):
         try:
@@ -139,7 +170,7 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
                  RequestHandlerClass=SocketHandler,
                  request_queue_size=5,
                  middleware=None,
-                 logging_level=logging.INFO):
+                 logging_level=logging.INFO, **kwargs):
         logger.setLevel(logging_level)
         logger.info('Server Start ...')
         logger.info('Server Address is %s:%d' % (address, port))
@@ -147,7 +178,7 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
         self.add_routes(routes_module)
         self.add_middleware(middleware)
         self.request_queue_size = request_queue_size
-        super(Pyws, self).__init__(server_address, RequestHandlerClass)
+        super(Pyws, self).__init__(server_address, RequestHandlerClass, **kwargs)
 
     def add_routes(self, module):
         Route.add_routes(module)
@@ -156,4 +187,13 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
         mwManager.auto_add(middleware)
 
 
-class Pywss(Pyws): ...  # todo, adapter to wss protocol
+class Pywss(Pyws):
+
+    def __init__(self, routes_module, ssl_pem=None, ssl_key=None, ssl_context=None, ssl_version=None, **kwargs):
+        if ssl_context:
+            pass
+        elif ssl_pem and ssl_key:
+            ssl_context = load_ssl_context(ssl_pem, ssl_key, ssl_version)
+        else:
+            raise Exception("you should define ssl file path")
+        super(Pywss, self).__init__(routes_module, ssl_context=ssl_context, **kwargs)
