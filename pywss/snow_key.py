@@ -1,11 +1,7 @@
 import time
 
-"""雪花算法"""
 
-
-def get_current_timestamp(): return int(time.time() * 1000)
-
-
+# SnowFlake
 class SnowKey:
     def __init__(self, workerId, datacenterId):
         self.workerId = workerId
@@ -22,13 +18,14 @@ class SnowKey:
         self.timestampLeftShift = self.sequenceBits + self.workerIdBits + self.datacenterIdBits
         self.sequenceMask = -1 ^ (-1 << self.sequenceBits)
         self.lastTimestamp = -1
+        self.get_current_timestamp = lambda: int(time.time() * 1000)
 
     @classmethod
     def from_node(cls, workerId=0, datacenterId=0):
         return cls(workerId, datacenterId)
 
     def next_id(self):
-        timestamp = get_current_timestamp()
+        timestamp = self.get_current_timestamp()
         if self.lastTimestamp > timestamp:
             raise Exception()
         if self.lastTimestamp == timestamp:
@@ -44,7 +41,7 @@ class SnowKey:
                self.sequence
 
     def next_timestamp(self, timestamp, next_timestamp=0):
-        while timestamp >= next_timestamp: next_timestamp = get_current_timestamp()
+        while timestamp >= next_timestamp: next_timestamp = self.get_current_timestamp()
         return next_timestamp
 
 
