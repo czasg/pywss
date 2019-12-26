@@ -8,7 +8,7 @@ from pywss.public import WebSocketProtocolError
 MAGIC_STRING = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 REGEX = re.compile(r'GET\s+([^\s]+).*Sec-WebSocket-Key:\s*(.*?)\r\n', re.S)
 RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
-                    "Upgrade:websocket\r\n" \
+                    "Upgrade: websocket\r\n" \
                     "Connection: Upgrade\r\n" \
                     "Sec-WebSocket-Accept: %s\r\n\r\n"
 

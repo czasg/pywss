@@ -25,18 +25,17 @@ class BaseMiddleware:
 
 
 class RadioMiddleware(BaseMiddleware):
-    """广播中间件，从此处继承，并重写process_data方法"""
 
     @classmethod
     def process_data(cls): raise MiddlewareError
 
 
 class DaemonMiddleware(BaseMiddleware):
-    """在新连接建立后仅起一次作用"""
+    """each conn, just work once"""
 
 
 class DataMiddleware(BaseMiddleware):
-    """在新连接建立后，每次数据交互时均起作用"""
+    """each data transform, it will works"""
 
 
 class MiddlewareManager:
@@ -132,8 +131,14 @@ class MiddlewareManager:
 
     @classmethod
     def _process_radio(cls):
+        """
+        each conn, will push `RADIO_START` into `radio_queue` if the queue is empty.
+        so this queue size will never exceed two.
+        after push, this thread will execute radio middleware as you see.
+        :return:
+        """
         while True:
-            command = radio_queue.get()
+            command = radio_queue.get()  # if there is no conn, the radio middleware will blocking
             if command is RADIO_START and ConnectManager.online():
                 while ConnectManager.online():
                     logger.info('broadcasting...')

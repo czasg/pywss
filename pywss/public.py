@@ -12,20 +12,20 @@ class PublicConfig:
 
 
 class AuthenticationError(Exception):
-    """Cookie认证失败"""
+    """Cookie Auth fail"""
 
 
 class WebSocketProtocolError(Exception):
-    """协议认证失败"""
+    """Protocol Auth fail"""
 
 
 class OutputTypeError(Exception):
-    """输出类型错误"""
+    """Output error"""
 
 
 class InvalidPath(Exception):
-    """路径错误"""
+    """path error"""
 
 
 class MiddlewareError(Exception):
-    """中间件错误"""
+    """middleware error"""

@@ -17,8 +17,8 @@ def route(path):
 
 
 class Route:
-    routes = {}
-    finish = []
+    routes = {}  # all routes for server
+    finish = []  # this will work in SocketHandler.finish
 
     @classmethod
     def add_routes(cls, module_name):
