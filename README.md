@@ -3,7 +3,7 @@
 A WebSocket-Server framework developed similar to Flask
 
 
- ```how to install: pip install pywss```
+ ```how to install: pip install pywss (lasted version is 0.0.11)```
  
  ### Frame flow chart
 **[1、frame flow chart](https://www.jianshu.com/p/589022ee5f5c)**
@@ -23,14 +23,15 @@ A WebSocket-Server framework developed similar to Flask
    * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
    * 服务端代码直接用浏览器的控制台就行
 ```
-from pywss import Pyws, route
+from pywss import Pyws
 
-@route('/test/example/1')
+ws = Pyws(__name__)
+
+@ws.route('/test/example/1')
 def example_1(request, data):
     return data + ' - data from pywss'
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
     ws.serve_forever()
 ```
 **Client (运行平台: Chrome -> F12 -> console)**
@@ -56,21 +57,21 @@ ws.onopen = function() {
 * 功能简介
    * 在建立连接后，每隔一定之间，广播数据给所有连接
 ```
-from pywss import Pyws, route, RadioMiddleware, PublicConfig
+from pywss import Pyws, RadioMiddleware, PublicConfig
 
 PublicConfig.RADIO_TIME = 10  # 控制广播中间件间隔为10s
+ws = Pyws(__name__)
 
 class Radio(RadioMiddleware):
     @classmethod
     def process_data(cls):
         return 'Hello, Welcome To Pywss-Radio'  # 返回指定消息
 
-@route('/test/example/2')
+@ws.route('/test/example/2')
 def example_2(request, data):
     """There Nothing To Do"""
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
     ws.add_middleware(Radio)
     ws.serve_forever()
 ```
@@ -94,7 +95,9 @@ ws.onclose = function (ev) {
     * 实现基本的验证功能。即建立连接后，客户端仍需发送一次请求数据，来通过对应验证
 ```
 import json
-from pywss import Pyws, route, DaemonMiddleware, AuthenticationError
+from pywss import Pyws, DaemonMiddleware, AuthenticationError
+
+ws = Pyws(__name__)
 
 class AuthenticationMiddleware(DaemonMiddleware):
     @classmethod
@@ -104,12 +107,11 @@ class AuthenticationMiddleware(DaemonMiddleware):
             return str(json_data['name']), 1
         raise AuthenticationError
 
-@route('/test/example/3')
+@ws.route('/test/example/3')
 def example_3(request, data):
     """There Nothing To Do"""
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
     ws.add_middleware(AuthenticationMiddleware)
     ws.serve_forever()
 ```
