@@ -1,7 +1,6 @@
 import functools
 
 from importlib import import_module
-
 from pywss.public import InvalidPath
 
 
@@ -19,6 +18,7 @@ def route(path):
 
 class Route:
     routes = {}
+    finish = []
 
     @classmethod
     def add_routes(cls, module_name):
@@ -33,7 +33,15 @@ class Route:
             func = getattr(mod, attr)
             path = getattr(func, '__route__', None)
             if path and callable(func):
-                cls.routes.setdefault(path, func)
+                cls.add_route(path, func)
+
+    @classmethod
+    def add_route(cls, path, func):
+        cls.routes.setdefault(path, func)
+
+    @classmethod
+    def add_finish(cls, func):
+        cls.finish.append(func)
 
     @classmethod
     def get(cls, path):

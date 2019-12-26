@@ -106,7 +106,7 @@ class MyServerTCPServer(socketserver.TCPServer):
     def get_request(self):
         request, address = self.socket.accept()
         if self.ssl_context:
-            request = self.ssl_context.wrap_socket(request, server_side=True)
+            request = self.ssl_context.wrap_socket(request, server_side=True)  # type: WssSocket
         return request, address
 
     def verify_request(self, request, client_address):
@@ -136,9 +136,11 @@ class SocketHandler:
             self.handle()
         except:
             pass
+        finally:
+            self.finish()
 
     def setup(self):
-        self.conn = mwManager.daemon_process(self, self.request)  # daemon middleware work here
+        self.conn = mwManager.daemon_process(self, self.request)  # type: Connector
         if not self.conn:
             self.conn = Connector(self.request, self.client_address)
         ConnectManager.add_connector(self.conn.name, self.conn.client_address, self.conn)
@@ -151,13 +153,20 @@ class SocketHandler:
         error_count = 0
         try:
             while error_count < PublicConfig.ERROR_COUNT_MAX:
-                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)  # data中间件在此处作用
+                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)  # main process
                 if info is ERROR_FLAG:
                     error_count += 1
                 elif info:
                     self.request.ws_send(info)
                 else:
                     error_count += 4
+        except:
+            pass
+
+    def finish(self):
+        try:
+            for func in Route.finish:
+                func()
         except:
             pass
 
@@ -185,6 +194,24 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer):
 
     def add_middleware(self, middleware):
         mwManager.auto_add(middleware)
+
+    @staticmethod
+    def route(path):
+        def wrapper(func):
+            Route.add_route(path, func)
+            return func
+
+        return wrapper
+
+    @staticmethod
+    def after_request(func=None):
+        def wrapper(func):
+            Route.add_finish(func)
+            return func
+
+        if func:
+            return wrapper(func)
+        return wrapper
 
 
 class Pywss(Pyws):
