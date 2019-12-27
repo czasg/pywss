@@ -3,177 +3,31 @@
 A WebSocket-Server framework developed similar to Flask
 
 
- ```how to install: pip install pywss (lasted version is 0.0.11)```
- 
- ### Frame flow chart
-**[1、frame flow chart](https://www.jianshu.com/p/589022ee5f5c)**
-
-![pywss](http://www.czasg.xyz/static/img/pywss3.png)
+ ```how to install: pip install pywss```
 
 
-### [example1](https://github.com/CzaOrz/Pywss/blob/master/examples/example1.py): 基本的交互实现
-**Server** (详情见example1.py)
-* 参数简介
-    * /test/example/1: 请求路径path
-    * request: socket句柄，包括发送和接受数据。 
-        * 接受数据 request.ws_recv(1024)
-        * 发送数据 request.ws_send(data) 
-    * data: 传递过来的数据
-* 功能简介
-   * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
-   * 服务端代码直接用浏览器的控制台就行
+Server code: 
 ```
-from pywss import Pyws
+from pywss import Pywss, json, ConnectManager
 
-ws = Pyws(__name__)
+ws = Pywss(__name__, ssl_pem="www.czasg.xyz.pem", ssl_key="www.czasg.xyz.key")
 
-@ws.route('/test/example/1')
-def example_1(request, data):
-    return data + ' - data from pywss'
+
+@ws.route('/ws/chat')
+def ws_chat(request, data):
+    json_data = json.loads(data)
+    if json_data.get('start') == True:
+        request.conn.send_to_all({'online': ConnectManager.online()})
+        return {'sock_id': request.conn.name}
+    msg = json_data.get('msg')
+    if msg:
+        request.conn.send_to_all({'from': request.conn.name, 'msg': msg})
+
+
+@ws.after_request
+def broadcast(): ConnectManager.send_to_all({'online': (ConnectManager.online() or 1) - 1})
+
 
 if __name__ == '__main__':
     ws.serve_forever()
 ```
-**Client (运行平台: Chrome -> F12 -> console)**
-```
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/1");
-ws.onmessage = function (ev) {
-    console.log(JSON.parse(ev.data));
-}
-ws.onclose = function (ev) {
-    console.log('Connect Closed')
-}
-ws.onopen = function() {
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send('hello, pywss!')  // you will get 'hello, pywss! - data from pywss'
-    }
-}
-```
----
-### [example2](https://github.com/CzaOrz/Pywss/blob/master/examples/example2.py): 广播中间件的实现
-**Server**
-* 参数简介
-   * RadioMiddleware: 广播中间件，加载此中间件，每当有新的连接建立，都会对其进行广播
-* 功能简介
-   * 在建立连接后，每隔一定之间，广播数据给所有连接
-```
-from pywss import Pyws, RadioMiddleware, PublicConfig
-
-PublicConfig.RADIO_TIME = 10  # 控制广播中间件间隔为10s
-ws = Pyws(__name__)
-
-class Radio(RadioMiddleware):
-    @classmethod
-    def process_data(cls):
-        return 'Hello, Welcome To Pywss-Radio'  # 返回指定消息
-
-@ws.route('/test/example/2')
-def example_2(request, data):
-    """There Nothing To Do"""
-
-if __name__ == '__main__':
-    ws.add_middleware(Radio)
-    ws.serve_forever()
-```
-**Client**
-```
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/2");
-ws.onmessage = function (ev) {
-    console.log(JSON.parse(ev.data));
-}
-ws.onclose = function (ev) {
-    console.log('Connect Closed')
-}
-```
----
-#### [example3](https://github.com/CzaOrz/Pywss/blob/master/examples/example3.py): 认证中间件的实现
-**Server**
-* 参数简介
-    * DaemonMiddleware: 每当连接建立后，会执行且仅执行一次此中间件，可用于对连接的验证等情况
-        * 在此example3中，连接建立后，客户端需要发送一次数据进行验证，数据中需要携带 'name'关键字作用用户名，否则此连接无实际作用
-* 功能简介
-    * 实现基本的验证功能。即建立连接后，客户端仍需发送一次请求数据，来通过对应验证
-```
-import json
-from pywss import Pyws, DaemonMiddleware, AuthenticationError
-
-ws = Pyws(__name__)
-
-class AuthenticationMiddleware(DaemonMiddleware):
-    @classmethod
-    def process_input(self, request, input_msg):
-        json_data = json.loads(input_msg)
-        if 'name' in json_data:
-            return str(json_data['name']), 1
-        raise AuthenticationError
-
-@ws.route('/test/example/3')
-def example_3(request, data):
-    """There Nothing To Do"""
-
-if __name__ == '__main__':
-    ws.add_middleware(AuthenticationMiddleware)
-    ws.serve_forever()
-```
-**Client**
-```
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/3");
-ws.onmessage = function (ev) {
-    console.log(JSON.parse(ev.data));
-}
-ws.onclose = function (ev) {
-    console.log('Connect Closed')
-}
-ws.onopen = function() {
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({'name': 'example3'}))  // you will get enter the AuthenticationMiddleware first
-    }
-}
-```
----
-#### [example4](https://github.com/CzaOrz/Pywss/blob/master/examples/example4.py): 数据中间件的实现
-**Server**
-* 参数简介
-    * DataMiddleware: 每一次数据传进来时都会进行处理, 可以用作对常见数据进行预处理
-* 功能简介
-    * 实现每次连接后，对待传递数据的预处理
-```
-import json
-from pywss import Pyws, route, DataMiddleware
-
-class DataProcessMiddleware(DataMiddleware):
-    """
-    每一次数据传进来时都会进行处理
-    可以用作对常见数据进行预处理
-    """
-    @classmethod
-    def process_input(cls, request, input_msg):
-        return json.loads(input_msg)
-
-@route('/test/example/4')
-def example_4(request, data):
-    print(type(data))
-
-if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
-    ws.add_middleware(DataProcessMiddleware)
-    ws.serve_forever()
-```
-**Client**
-```
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/4");
-ws.onmessage = function (ev) {
-    console.log(JSON.parse(ev.data));
-}
-ws.onclose = function (ev) {
-    console.log('Connect Closed')
-}
-ws.onopen = function() {
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({'name': 'example4'}))
-    }
-}
-```
-
-#### [example5](https://github.com/CzaOrz/Pywss/blob/master/examples/example5.py): 点对点交流的实现
-参考：https://github.com/CzaOrz/ioco/tree/master/open_source_project/web_socket_chat
