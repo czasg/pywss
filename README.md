@@ -179,3 +179,10 @@ ws.onopen = function() {
 
 #### [example5](https://github.com/CzaOrz/Pywss/blob/master/examples/example5.py): 点对点交流的实现
 参考：https://github.com/CzaOrz/ioco/tree/master/open_source_project/web_socket_chat
+
+#### [example6](https://github.com/CzaOrz/Pywss/blob/master/examples/example6.py): wss认证
+```
+from pywss import Pywss
+
+ws = Pywss(__name__, ssl_key="key", ssl_pem="pem")
+```
