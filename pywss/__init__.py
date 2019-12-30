@@ -224,3 +224,6 @@ class Pywss(Pyws):
         else:
             raise Exception("you should define ssl file path")
         super(Pywss, self).__init__(routes_module, ssl_context=ssl_context, **kwargs)
+
+
+class AsyncPyws: ...  # todo, add async for pywss
