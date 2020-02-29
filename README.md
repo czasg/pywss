@@ -10,7 +10,7 @@ A WebSocket-Server framework developed similar to Flask
  ### Frame flow chart
 **[1、frame flow chart](https://www.jianshu.com/p/589022ee5f5c)**
 
-![pywss](http://www.czasg.xyz/static/img/pywss3.png)
+![pywss](https://ae01.alicdn.com/kf/H9aa635519da043209fbd51fe04ad342a1.png)
 
 
 ### [example1](https://github.com/CzaOrz/Pywss/blob/master/examples/example1.py): 基本的交互实现
