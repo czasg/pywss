@@ -24,7 +24,7 @@ A WebSocket-Server framework developed similar to Flask
 * 功能简介
    * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
    * 服务端代码直接用浏览器的控制台就行
-```
+```python
 from pywss import Pyws
 
 ws = Pyws(__name__)
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client (运行平台: Chrome -> F12 -> console)**
-```
+```html
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/1");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -58,7 +58,7 @@ ws.onopen = function() {
    * RadioMiddleware: 广播中间件，加载此中间件，每当有新的连接建立，都会对其进行广播
 * 功能简介
    * 在建立连接后，每隔一定之间，广播数据给所有连接
-```
+```python
 from pywss import Pyws, RadioMiddleware, PublicConfig
 
 PublicConfig.RADIO_TIME = 10  # 控制广播中间件间隔为10s
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```
+```html
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/2");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -95,7 +95,7 @@ ws.onclose = function (ev) {
         * 在此example3中，连接建立后，客户端需要发送一次数据进行验证，数据中需要携带 'name'关键字作用用户名，否则此连接无实际作用
 * 功能简介
     * 实现基本的验证功能。即建立连接后，客户端仍需发送一次请求数据，来通过对应验证
-```
+```python
 import json
 from pywss import Pyws, DaemonMiddleware, AuthenticationError
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```
+```html
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/3");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -139,7 +139,7 @@ ws.onopen = function() {
     * DataMiddleware: 每一次数据传进来时都会进行处理, 可以用作对常见数据进行预处理
 * 功能简介
     * 实现每次连接后，对待传递数据的预处理
-```
+```python
 import json
 from pywss import Pyws, route, DataMiddleware
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```
+```html
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/4");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
