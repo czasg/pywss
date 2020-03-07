@@ -183,7 +183,8 @@ ws.onopen = function() {
 #### [example6](https://github.com/CzaOrz/Pywss/blob/master/examples/example6.py): wss认证
 ssl证书一般是第三方提供的，以阿里云服务器为例，可以直接在官网申请下载证书，得到 .pem 和 .key 文件。  
 使用前确保证书的可用性。以下举例：    
-其中，这里的 "www.czasg.xyz.pem" 是指pem文件的路径，此处表示与当前py文件同目录！
+其中，这里的 "www.czasg.xyz.pem" 是指pem文件的路径，此处表示与当前py文件同目录！  
+examples目录已提供过期证书....可以尝试下。
 ```python
 import logging
 from pywss import Pywss, json, ConnectManager
