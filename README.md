@@ -181,8 +181,35 @@ ws.onopen = function() {
 参考：https://github.com/CzaOrz/ioco/tree/master/open_source_project/web_socket_chat
 
 #### [example6](https://github.com/CzaOrz/Pywss/blob/master/examples/example6.py): wss认证
-```
-from pywss import Pywss
+ssl证书一般是第三方提供的，以阿里云服务器为例，可以直接在官网申请下载证书，得到 .pem 和 .key 文件。  
+使用前确保证书的可用性。以下举例：
+```python
+import logging
+from pywss import Pywss, json, ConnectManager
 
-ws = Pywss(__name__, ssl_key="key", ssl_pem="pem")
+ws = Pywss(
+    __name__, 
+    ssl_pem="www.czasg.xyz.pem", 
+    ssl_key="www.czasg.xyz.key", 
+    logging_level=logging.WARNING
+)
+
+@ws.route('/ws/chat')
+def ws_chat(request, data):
+    json_data = json.loads(data)
+    if json_data.get('start') == True:  # 接收start指令
+        # 更新所有已建立连接的socket的当前在线人数
+        request.conn.send_to_all({'online': ConnectManager.online()})
+        return {'sock_id': request.conn.name}  # 返回自身唯一sock_id
+    msg = json_data.get('msg')
+    if msg:  # 获取聊天消息，发送给所有已建立连接的socket
+        request.conn.send_to_all({'from': request.conn.name, 'msg': msg})
+
+@ws.after_request
+def broadcast(): 
+    ConnectManager.send_to_all({'online': (ConnectManager.online() or 1) - 1})
+
+
+if __name__ == '__main__':
+    ws.serve_forever()
 ```
