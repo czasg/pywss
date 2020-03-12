@@ -18,7 +18,7 @@ class WebSocketProtocol:
     @classmethod
     def check_header(cls, headers):
         try:
-            path, key = REGEX.search(headers).groups()
+            path, key = REGEX.search(headers).groups()  # todo, this error, TCP packets and subcontracting
             if all((path, key)):
                 return path, key
         except:
