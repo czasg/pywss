@@ -24,21 +24,34 @@ A WebSocket-Server framework developed similar to Flask
 * 功能简介
    * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
    * 服务端代码直接用浏览器的控制台就行
+
+**提供两种方法交互**
+1、request.ws_send    
+2、request.conn.send_to_all   
+
 ```python
 from pywss import Pyws
 
 ws = Pyws(__name__)
 
-@ws.route('/test/example/1')
+@ws.route('/test/example/1/1')
 def example_1(request, data):
     return data + ' - data from pywss'
+
+@ws.route('/test/example/1/2')
+def example_1(request, data):
+    request.ws_send(data + ' - data from pywss')  # 调用ws_send发送消息
+
+@ws.route('/test/example/1/3')
+def example_1(request, data):
+    request.conn.send_to_all(data + ' - data from pywss')  # 调用send_to_all发送给所有用户
 
 if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client (运行平台: Chrome -> F12 -> console)**
 ```html
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/1");
+ws = new WebSocket("ws://127.0.0.1:8866/test/example/1/1");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
 }
