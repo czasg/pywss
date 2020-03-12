@@ -3,7 +3,7 @@
 A WebSocket-Server framework developed similar to Flask
 
 
- ```how to install: pip install pywss (lasted version is 0.0.11)```
+ ```how to install: pip install pywss (lasted version is 0.0.12)```
  
 ##### Demo: [Web-Socket-Client-Page](https://czaorz.github.io/Pywss/client)
  
@@ -25,7 +25,7 @@ A WebSocket-Server framework developed similar to Flask
    * 客户端发送数据，服务端立即响应并回复，原数据+指定后缀' - data from pywss'
    * 服务端代码直接用浏览器的控制台就行
 
-**提供两种方法交互**
+**提供两种方法交互**  
 1、request.ws_send    
 2、request.conn.send_to_all   
 
