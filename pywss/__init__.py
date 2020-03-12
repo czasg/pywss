@@ -2,7 +2,7 @@ __author__ = 'CzaOrz <https://github.com/CzaOrz>'
 from pywss.version import __version__
 
 import socketserver
-import json
+import traceback
 import ssl
 
 from socket import socket, getdefaulttimeout
@@ -14,7 +14,7 @@ from pywss.middlewares import *
 from pywss.public import *
 from pywss.route import *
 
-logging.basicConfig(format="%(asctime)s %(funcName)s[lines-%(lineno)d]: %(message)s")
+logging.basicConfig(format="[%(asctime)s] %(levelname)s %(module)s[lines-%(lineno)d]: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,8 @@ class WsSocket(socket):
         return WebSocketProtocol.decode_msg(self.ws_recvall(bufsize))
 
     def ws_send(self, data, flags: int = ...):
-        self.sendall(WebSocketProtocol.encode_msg(json.dumps(data, ensure_ascii=False).encode('utf-8')))
+        self.sendall(WebSocketProtocol.encode_msg(
+            json.dumps(data, ensure_ascii=False, cls=DateEncoder).encode('utf-8')))
 
 
 class WssSocket(SSLSocket, WsSocket):
@@ -151,17 +152,23 @@ class SocketHandler:
 
     def handle(self):
         error_count = 0
-        try:
-            while error_count < PublicConfig.ERROR_COUNT_MAX:
-                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)  # main process
+        while error_count < PublicConfig.ERROR_COUNT_MAX:
+            try:
+                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)
                 if info is ERROR_FLAG:
                     error_count += 1
                 elif info:
                     self.request.ws_send(info)
                 else:
                     error_count += 4
-        except:
-            pass
+            except TypeError:
+                logger.error("transmit data error \n{}".format(traceback.format_exc()))
+                continue
+            except UnicodeDecodeError:
+                break
+            except:
+                logger.error("there exists some mistakes in pywss \n{}".format(traceback.format_exc()))
+                break
 
     def finish(self):
         try:
