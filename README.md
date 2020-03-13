@@ -5,7 +5,7 @@ A WebSocket-Server framework developed similar to Flask
 
  ```how to install: pip install pywss (lasted version is 0.0.12)```
  
-##### Demo: [Web-Socket-Client-Page](https://czaorz.github.io/Pywss/client)
+#### [在线聊天室demo1](http://czaorz.gitee.io/static/html/pywss-demo1.html)
  
  ### Frame flow chart
 **[1、frame flow chart](https://www.jianshu.com/p/589022ee5f5c)**
