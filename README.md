@@ -50,7 +50,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client (运行平台: Chrome -> F12 -> console)**
-```html
+```javascript
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/1/1");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```html
+```javascript
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/2");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```html
+```javascript
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/3");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 ```
 **Client**
-```html
+```javascript
 ws = new WebSocket("ws://127.0.0.1:8866/test/example/4");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
