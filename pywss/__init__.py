@@ -9,7 +9,7 @@ from socket import socket, getdefaulttimeout
 from _socket import AF_INET, SOCK_STREAM
 from ssl import SSLContext, SSLSocket
 
-from pywss.protocol import WebSocketProtocol
+from pywss.protocol import WebSocketEncryption
 from pywss.middlewares import *
 from pywss.public import *
 from pywss.route import *
@@ -68,10 +68,10 @@ class WsSocket(socket):
         return response
 
     def ws_recv(self, bufsize: int, flags: int = ...):
-        return WebSocketProtocol.decode_msg(self.ws_recvall(bufsize))
+        return WebSocketEncryption.decode_msg(self.ws_recvall(bufsize))
 
     def ws_send(self, data, flags: int = ...):
-        self.sendall(WebSocketProtocol.encode_msg(
+        self.sendall(WebSocketEncryption.encode_msg(
             json.dumps(data, ensure_ascii=False, cls=DateEncoder).encode('utf-8')))
 
 
@@ -112,7 +112,7 @@ class MyServerTCPServer(socketserver.TCPServer):
 
     def verify_request(self, request, client_address):
         try:
-            path, key = WebSocketProtocol.parsing(request.ws_recvall(1024))
+            path, key = WebSocketEncryption.parsing(request.ws_recvall(1024))
             if path in Route.routes:
                 request.send(key)
                 request.__route__ = path

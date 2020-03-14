@@ -13,7 +13,7 @@ RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
                     "Sec-WebSocket-Accept: %s\r\n\r\n"
 
 
-class WebSocketProtocol:
+class WebSocketEncryption:
 
     @classmethod
     def check_header(cls, headers):
