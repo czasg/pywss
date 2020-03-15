@@ -112,7 +112,7 @@ class MiddlewareManager:
     def daemon_process(cls, handler, request):
         try:
             if cls.daemon_middleware_count:
-                data = request.ws_recv(1024)
+                data = request.ws_recv_safe()
                 for process_input in cls.daemon_middleware['process_input']:
                     data = process_input(request, data)
                 for process_output in cls.daemon_middleware['process_output']:

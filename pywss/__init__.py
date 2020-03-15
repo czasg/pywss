@@ -4,6 +4,7 @@ from pywss.version import __version__
 import socketserver
 import traceback
 import ssl
+import struct
 
 from socket import socket, getdefaulttimeout
 from _socket import AF_INET, SOCK_STREAM
@@ -69,6 +70,30 @@ class WsSocket(socket):
 
     def ws_recv(self, bufsize: int, flags: int = ...):
         return WebSocketEncryption.decode_msg(self.ws_recvall(bufsize))
+
+    def _ws_recv_safe(self, bufsize: int, response: bytes = b''):
+        loop = bufsize // 1024
+        remain = bufsize % 1024
+        while loop:
+            response += self.recv(1024)
+            loop -= 1
+        response += self.recv(remain)
+        return response
+
+    def ws_recv_safe(self):
+        response = self.recv(2)
+        length = response[1] & 0b1111111
+        if length is 0b1111110:
+            response += self.recv(2)
+            _, data_length = struct.unpack('!BH', response[1:4])
+        elif length is 0b1111111:
+            response += self.recv(8)
+            _, data_length = struct.unpack('!BQ', response[1:10])
+        else:
+            data_length = length
+        data_length += 4
+        response = self._ws_recv_safe(data_length, response)
+        return WebSocketEncryption.decode_msg(response)
 
     def ws_send(self, data, flags: int = ...):
         self.sendall(WebSocketEncryption.encode_msg(
@@ -154,7 +179,7 @@ class SocketHandler:
         error_count = 0
         while error_count < PublicConfig.ERROR_COUNT_MAX:
             try:
-                info = mwManager.process(self.request, self.request.ws_recv(1024), self.func)
+                info = mwManager.process(self.request, self.request.ws_recv_safe(), self.func)
                 if info is ERROR_FLAG:
                     error_count += 1
                 elif info:
