@@ -31,10 +31,11 @@ setup(
     description="This is a web-socket-server by python",
     long_description="see https://github.com/CzaOrz/Pywss",
     author='czaOrz',
-    author_email='chenziangsg@163.com',
+    author_email='972542644@qq.com',
     url='https://github.com/CzaOrz/Pywss',
     packages=find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
 )
