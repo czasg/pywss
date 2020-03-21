@@ -1,27 +1,22 @@
-import json
+from pywss import AsyncPyws, AsyncRadioMiddleware
 
-from pywss import Pyws, route, DataMiddleware
-
-
-class DataProcessMiddleware(DataMiddleware):
-    """
-    每一次数据传进来时都会进行处理
-    可以用作对常见数据进行处理
-    """
-
-    @classmethod
-    def process_input(cls, request, input_msg):
-        return json.loads(input_msg)
+ws = AsyncPyws(__name__)
 
 
-@route('/test/example/4')
+class Radio(AsyncRadioMiddleware):
+    RADIO_TIME = 0.5
+
+    def process_data(self):
+        return "you can also use async here"
+
+
+@ws.route('/test/example/4')
 def example_4(request, data):
-    print(type(data))
+    """There Nothing To Do"""
 
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
-    ws.add_middleware(DataProcessMiddleware)
+    ws.add_middleware(Radio)
     ws.serve_forever()
 
 """
@@ -35,7 +30,7 @@ ws.onclose = function (ev) {
 }
 ws.onopen = function() {
     if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({'name': 'example4'}))
+        ws.send(JSON.stringify({'name': 'example4'}))  // you will get enter the AuthenticationMiddleware first
     }
 }
 """

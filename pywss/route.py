@@ -1,7 +1,7 @@
 import functools
 
 from importlib import import_module
-from pywss.public import InvalidPath
+from pywss.errors import RouteMissError
 
 
 def route(path):
@@ -15,10 +15,9 @@ def route(path):
 
     return wrapper
 
-
 class Route:
     routes = {}  # all routes for server
-    finish = []  # this will work in SocketHandler.finish
+    after_list = []
 
     @classmethod
     def add_routes(cls, module_name):
@@ -40,12 +39,12 @@ class Route:
         cls.routes.setdefault(path, func)
 
     @classmethod
-    def add_finish(cls, func):
-        cls.finish.append(func)
+    def add_after_request(cls, func):
+        cls.after_list.append(func)
 
     @classmethod
     def get(cls, path):
         func = cls.routes.get(path)
         if not func:
-            raise InvalidPath
+            raise RouteMissError
         return func

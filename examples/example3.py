@@ -1,32 +1,22 @@
-import json
+from pywss import Pyws, RadioMiddleware
 
-from pywss import Pyws, route, DaemonMiddleware, AuthenticationError
-
-
-class AuthenticationMiddleware(DaemonMiddleware):
-    """
-    该中间件仅一次起作用，可以用于首次连接时的验证
-    返回值有两种类型:
-    第一种: string，用于作为连接者的名字
-    第二种: tuple，第二参数用于指定用户退出时的清除级别
-    """
-
-    @classmethod
-    def process_input(self, request, input_msg):
-        json_data = json.loads(input_msg)
-        if 'name' in json_data:
-            return str(json_data['name']), 1
-        raise AuthenticationError
+ws = Pyws(__name__)
 
 
-@route('/test/example/3')
+class Radio(RadioMiddleware):
+    RADIO_TIME = 0.5
+
+    def process_data(self):
+        return "this is a radio data"
+
+
+@ws.route('/test/example/3')
 def example_3(request, data):
     """There Nothing To Do"""
 
 
 if __name__ == '__main__':
-    ws = Pyws(__name__, address='127.0.0.1', port=8866)
-    ws.add_middleware(AuthenticationMiddleware)
+    ws.add_middleware(Radio)
     ws.serve_forever()
 
 """
