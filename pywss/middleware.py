@@ -32,9 +32,6 @@ class RadioMiddleware(MiddlewareProtocol):
     def put(self, data=None):
         self.queue.put(data or True)
 
-    def process_data(self):
-        raise NotImplementedError
-
     def _run(self):
         while True:
             self.queue.get()  # wait until queue is not empty
@@ -83,12 +80,14 @@ class MiddlewareManager:
 
     def __init__(self):
         self.radios = []  # type: List[RadioMiddleware]
-        self.before_requests = []
-        self.after_requests = []
+        self.before_first_requests = []
 
     def add_middleware(self, middleware):
         if isinstance(middleware, RadioMiddleware):
             self.radios.append(middleware)
+
+    def add_before_first_request(self, func):
+        self.before_first_requests.append(func)
 
     def run(self):
         for radio in self.radios:

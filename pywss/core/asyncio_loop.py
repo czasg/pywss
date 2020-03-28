@@ -68,6 +68,7 @@ class WebSocketLoop(BaseSelectorEventLoop):
 class WebSocketProtocol(asyncio.Protocol):
 
     def connection_made(self, transport: WebSocketTransport):
+        self.first_request = True
         self.transport = transport
         logger.info(f"{transport.get_extra_info('peername')} connect")
 
@@ -76,14 +77,23 @@ class WebSocketProtocol(asyncio.Protocol):
             if radio.is_empty():
                 radio.put(True)
 
-        res = self.transport.func(self.transport, data)
+        if self.first_request:
+            for first_func in middleware_manager.before_first_requests:
+                res = first_func(self.transport, data)
+                self._send_result(res)
+            self.first_request = False
+        else:
+            res = self.transport.func(self.transport, data)
+            self._send_result(res)
+
+    def _send_result(self, res):
         if asyncio.coroutines.iscoroutine(res):
             def task_cb(future):
                 self.transport.ws_send(future.result() or "hello Pywss")
 
             task = self.transport._loop.create_task(res)  # type: asyncio.tasks.Task
             task.add_done_callback(task_cb)
-        else:
+        elif res:
             self.transport.ws_send(res)
 
     def connection_lost(self, exc):

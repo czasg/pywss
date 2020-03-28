@@ -56,6 +56,7 @@ class SocketHandler:
         self.func = Route.get(self.request.__route__)
         try:
             self.setup()
+            self.first_request()
             self.handle()
         except:
             pass
@@ -68,15 +69,23 @@ class SocketHandler:
                 radio.put(True)
         logger.info("{} connect".format(self.client_address))
 
+    def first_request(self):
+        data = self.request.ws_recv()
+        for first_func in middleware_manager.before_first_requests:
+            res = first_func(self.request, data)
+            if res:
+                self.request.ws_send(res)
+
     def handle(self):
         while True:
             try:
                 info = self.func(self.request, self.request.ws_recv())
-                self.request.ws_send(info or "hello pywss")
+                if info:
+                    self.request.ws_send(info)
             except TypeError:
                 logger.error("transmit data error \n{}".format(traceback.format_exc()))
                 continue
-            except DisconnectError:
+            except (DisconnectError, OSError):
                 break
             except:
                 logger.error("there exists some mistakes in pywss \n{}".format(traceback.format_exc()))
