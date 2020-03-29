@@ -70,11 +70,12 @@ class SocketHandler:
         logger.info("{} connect".format(self.client_address))
 
     def first_request(self):
-        data = self.request.ws_recv()
-        for first_func in middleware_manager.before_first_requests:
-            res = first_func(self.request, data)
-            if res:
-                self.request.ws_send(res)
+        if middleware_manager.before_first_requests:
+            data = self.request.ws_recv()
+            for first_func in middleware_manager.before_first_requests:
+                res = first_func(self.request, data)
+                if res:
+                    self.request.ws_send(res)
 
     def handle(self):
         while True:

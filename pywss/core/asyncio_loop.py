@@ -68,7 +68,7 @@ class WebSocketLoop(BaseSelectorEventLoop):
 class WebSocketProtocol(asyncio.Protocol):
 
     def connection_made(self, transport: WebSocketTransport):
-        self.first_request = True
+        self.first_request = True if middleware_manager.before_first_requests else False
         self.transport = transport
         logger.info(f"{transport.get_extra_info('peername')} connect")
 
