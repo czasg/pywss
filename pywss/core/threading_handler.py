@@ -8,7 +8,6 @@ from pywss.request import WebSocketRequest
 from pywss.errors import DisconnectError
 from pywss.route import Route
 
-logging.basicConfig(format="[%(asctime)s] %(levelname)s %(module)s[lines-%(lineno)d]: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -80,9 +79,15 @@ class SocketHandler:
     def handle(self):
         while True:
             try:
-                info = self.func(self.request, self.request.ws_recv())
-                if info:
-                    self.request.ws_send(info)
+                data = self.request.ws_recv()
+                for func in middleware_manager.before_requests:
+                    data = func(self.request, data)
+                    if data:
+                        break
+                if not data:
+                    data = self.func(self.request, data)
+                if data:
+                    self.request.ws_send(data)
             except TypeError:
                 logger.error("transmit data error \n{}".format(traceback.format_exc()))
                 continue

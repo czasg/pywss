@@ -48,6 +48,10 @@ class Server:
     def before_first_request(func):
         middleware_manager.add_before_first_request(func)
 
+    @staticmethod
+    def before_request(func):
+        middleware_manager.add_before_request(func)
+
     def serve_forever(self, poll_interval=0.5):
         raise NotImplementedError
 

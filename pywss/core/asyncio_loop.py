@@ -83,6 +83,10 @@ class WebSocketProtocol(asyncio.Protocol):
                 self._send_result(res)
             self.first_request = False
         else:
+            for func in middleware_manager.before_requests:
+                res = func(self.transport, data)
+                if res:
+                    return self._send_result(res)
             res = self.transport.func(self.transport, data)
             self._send_result(res)
 
