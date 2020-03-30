@@ -121,3 +121,45 @@ if __name__ == '__main__':
                ssl_pem="www.czasg.xyz.pem")
     ws.serve_forever()
 ```
+
+## History
+* 0.0.14
+    * 添加`before_first_request`，首次建立连接后，仅起一次作用。即可理解为处理首次连接传递的数据。  
+    一般可用作某些认证机制。
+    ```python
+    from pywss import AsyncPyws
+  
+    ws = AsyncPyws(__name__)
+  
+    @ws.before_first_request
+    def first_connect_process(request, data):
+      if data != "password":
+          request.close()
+      return "from before_first_request"
+  
+    @ws.route('/test')
+    def test(request, data):
+      return data
+    ```
+    * 添加`before_reuqest`，每次接收数据时，会先执行此处所注册的函数。  
+    **若某个函数返回非空，则不继续往后执行，而是直接返回**  
+    可以用作心跳的响应等。
+    ```python
+    from pywss import AsyncPyws
+    
+    ws = AsyncPyws(__name__)
+    
+    @ws.before_request
+    def before_process(request, data):
+      if data == "ping":
+          return "pong"
+    
+    @ws.route('/test')
+    def test(request, data):
+      return data
+    ```
+* 0.0.13
+    * 引入asyncio异步模块，保留threading版本
+    * 移除中间件模块，仅保留radio
+    * 移除公共配置模块
+    * 修复TCP粘包与拆包
