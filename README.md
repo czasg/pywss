@@ -8,7 +8,8 @@ if server want to send msg to client by polling, you can use `radio` middleware.
 
 
 > pip install:   
-> ```pip install pywss (lasted version is 0.0.13)```  
+> ```pip install pywss (lasted version is 0.0.14)```  
+> v0.0.14 add before_first_request & before_request  
 > v0.0.13 add asyncio support
  
 #### [chatting-room-demo](http://czaorz.gitee.io/static/html/pywss-demo1.html)
