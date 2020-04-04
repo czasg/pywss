@@ -79,13 +79,14 @@ class SocketHandler:
     def handle(self):
         while True:
             try:
-                data = self.request.ws_recv()
+                recv = self.request.ws_recv()
+                data = None
                 for func in middleware_manager.before_requests:
-                    data = func(self.request, data)
+                    data = func(self.request, recv)
                     if data:
                         break
                 if not data:
-                    data = self.func(self.request, data)
+                    data = self.func(self.request, recv)
                 if data:
                     self.request.ws_send(data)
             except TypeError:

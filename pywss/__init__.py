@@ -97,6 +97,10 @@ class AsyncPyws(Server):
         middleware = middleware_cls.from_transports(self.loop._transports)
         super(AsyncPyws, self).add_middleware(middleware)
 
+    @staticmethod
+    def after_last_request(func):
+        middleware_manager.add_after_last_request(func)
+
     async def _server_forever(self):
         server = await self.loop.create_server(lambda: WebSocketProtocol(), self.address, self.port)
         async with server:

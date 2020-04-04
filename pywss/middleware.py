@@ -82,6 +82,7 @@ class MiddlewareManager:
         self.radios = []  # type: List[RadioMiddleware]
         self.before_first_requests = []
         self.before_requests = []
+        self.after_last_requests = []
 
     def add_middleware(self, middleware):
         if isinstance(middleware, RadioMiddleware):
@@ -92,6 +93,9 @@ class MiddlewareManager:
 
     def add_before_first_request(self, func):
         self.before_first_requests.append(func)
+
+    def add_after_last_request(self, func):
+        self.after_last_requests.append(func)
 
     def run(self):
         for radio in self.radios:

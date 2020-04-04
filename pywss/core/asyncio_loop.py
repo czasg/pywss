@@ -53,12 +53,22 @@ class WebSocketTransport(_SelectorSocketTransport, WebSocketRequest):
     def ws_send_to_all(self, data):
         for transport in self._loop._transports.values():
             try:
+                if transport is self: continue
                 transport.ws_send(data)
             except:
                 continue
 
+    def ws_send_by_fileno(self, data, fileno=None):
+        try:
+            self._loop._transports.get(fileno).ws_send(data)
+        except:
+            pass
+
 
 class WebSocketLoop(BaseSelectorEventLoop):
+    def __init__(self, selector=None):
+        super(WebSocketLoop, self).__init__(selector)
+
     def _make_socket_transport(self, sock, protocol, waiter=None, *,
                                extra=None, server=None):
         return WebSocketTransport(self, sock, protocol, waiter,
@@ -101,5 +111,13 @@ class WebSocketProtocol(asyncio.Protocol):
             self.transport.ws_send(res)
 
     def connection_lost(self, exc):
+        for last_func in middleware_manager.after_last_requests:
+            try:
+                res = last_func(self.transport)
+                if res and asyncio.coroutines.iscoroutine(res):
+                    self.transport._loop.create_task(res)
+            except Exception as e:
+                logger.error(e.__repr__())
+                break
         self.transport._loop._transports.pop(self.transport._sock_fd, None)
         logger.warning(f'{self.transport.get_extra_info("peername")} disconnect!')

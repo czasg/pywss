@@ -56,6 +56,7 @@ class WebSocketRequest:
     def ws_send_to_all(self, data):
         for sock in self._sockets_refs.values():
             try:
+                if sock is self: continue
                 sock.ws_send(data)
             except:
                 continue
