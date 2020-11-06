@@ -1,5 +1,7 @@
+# coding: utf-8
+import loggus
 import asyncio
-import logging
+
 from pywss.encryption import Encryption
 from pywss.route import Route
 from pywss.request import WebSocketRequest
@@ -7,8 +9,6 @@ from pywss.middleware import middleware_manager
 from pywss.errors import DisconnectError, RouteMissError
 from asyncio.selector_events import _SelectorSocketTransport
 from asyncio.selector_events import BaseSelectorEventLoop
-
-logger = logging.getLogger(__name__)
 
 
 class WebSocketTransport(_SelectorSocketTransport, WebSocketRequest):
@@ -80,7 +80,7 @@ class WebSocketProtocol(asyncio.Protocol):
     def connection_made(self, transport: WebSocketTransport):
         self.first_request = True if middleware_manager.before_first_requests else False
         self.transport = transport
-        logger.info(f"{transport.get_extra_info('peername')} connect")
+        loggus.WithField("address", transport.get_extra_info('peername')).Info("connect")
 
     def data_received(self, data):
         for radio in middleware_manager.radios:
@@ -117,7 +117,7 @@ class WebSocketProtocol(asyncio.Protocol):
                 if res and asyncio.coroutines.iscoroutine(res):
                     self.transport._loop.create_task(res)
             except Exception as e:
-                logger.error(e.__repr__())
+                loggus.WithException(e).error("connect error!")
                 break
         self.transport._loop._transports.pop(self.transport._sock_fd, None)
-        logger.warning(f'{self.transport.get_extra_info("peername")} disconnect!')
+        loggus.WithField("address", self.transport.get_extra_info("peername")).Warning("disconnect!")

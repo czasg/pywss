@@ -1,6 +1,8 @@
+# coding: utf-8
 __author__ = 'CzaOrz <https://github.com/CzaOrz>'
+
 import ssl
-import logging
+import loggus
 import asyncio
 from pywss.route import Route, route
 from pywss.middleware import RadioMiddleware, AsyncRadioMiddleware
@@ -8,9 +10,6 @@ from pywss.middleware import RadioMiddleware, AsyncRadioMiddleware
 from pywss.core.asyncio_loop import WebSocketProtocol, WebSocketLoop
 from pywss.core.threading_handler import MyServerThreadingMixIn, MyServerTCPServer, SocketHandler
 from pywss.middleware import middleware_manager
-
-logging.basicConfig(format="[%(asctime)s] %(levelname)s %(module)s[lines-%(lineno)d]: %(message)s")
-logger = logging.getLogger(__name__)
 
 
 def load_ssl_context(pem, key, version=None):
@@ -21,10 +20,10 @@ def load_ssl_context(pem, key, version=None):
 
 class Server:
     def __init__(self, routes_module, address='0.0.0.0', port=8866,
-                 logging_level=logging.INFO):
-        logger.setLevel(logging_level)
-        logger.info('Server Start ...')
-        logger.info('Server Address is %s:%d' % (address, port))
+                 logging_level=loggus.INFO):
+        loggus.SetLevel(logging_level)
+        loggus.info('Server Start ...')
+        loggus.info('Server Address is %s:%d' % (address, port))
         self.address = address
         self.port = port
         self.middleware_manager = middleware_manager
@@ -61,7 +60,7 @@ class Pyws(MyServerThreadingMixIn, MyServerTCPServer, Server):
     def __init__(self, routes_module,
                  address='0.0.0.0', port=8866,
                  RequestHandlerClass=SocketHandler,
-                 logging_level=logging.INFO, **kwargs):
+                 logging_level=loggus.INFO, **kwargs):
         Server.__init__(self, routes_module, address, port, logging_level)
         MyServerTCPServer.__init__(self, (address, port), RequestHandlerClass, **kwargs)
 
@@ -88,7 +87,7 @@ class Pywss(Pyws):
 
 class AsyncPyws(Server):
     def __init__(self, routes_module, address='0.0.0.0', port=8866,
-                 logging_level=logging.INFO):
+                 logging_level=loggus.INFO):
         super(AsyncPyws, self).__init__(routes_module, address, port, logging_level)
         asyncio.set_event_loop(WebSocketLoop())
         self.loop = asyncio.get_event_loop()

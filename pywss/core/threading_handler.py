@@ -1,14 +1,12 @@
 import socketserver
-import traceback
 import weakref
-import logging
+import loggus
+
 from pywss.middleware import middleware_manager
 from pywss.encryption import Encryption
 from pywss.request import WebSocketRequest
 from pywss.errors import DisconnectError
 from pywss.route import Route
-
-logger = logging.getLogger(__name__)
 
 
 class MyServerTCPServer(socketserver.TCPServer):
@@ -66,7 +64,7 @@ class SocketHandler:
         for radio in middleware_manager.radios:
             if radio.is_empty():
                 radio.put(True)
-        logger.info("{} connect".format(self.client_address))
+        loggus.WithField("address", self.client_address).Info("connect")
 
     def first_request(self):
         if middleware_manager.before_first_requests:
@@ -90,14 +88,14 @@ class SocketHandler:
                 if data:
                     self.request.ws_send(data)
             except TypeError:
-                logger.error("transmit data error \n{}".format(traceback.format_exc()))
+                loggus.WithTraceback().error("TypeError")
                 continue
             except (DisconnectError, OSError):
                 break
             except:
-                logger.error("there exists some mistakes in pywss \n{}".format(traceback.format_exc()))
+                loggus.WithTraceback().error("UnknownError")
                 break
 
     def finish(self):
         self.server.sockets_refs.pop(self.request._sock_id, None)
-        logger.warning('{} disconnect!'.format(self.client_address))
+        loggus.WithField("address", self.client_address).Warning("disconnect!")
