@@ -17,14 +17,14 @@ def createWebSocketResponse(secKey):
     return bytes(RESPONSE_TEMPLATE % secKey, encoding='utf-8')
 
 
-def websocketRecv(sock) -> bytes:
-    response = sock.recv(2)
+def websocketRead(sock) -> bytes:
+    response = sock.read(2)
     length = response[1] & 0b1111111
     if length is 0b1111110:
-        response += sock.recv(2)
+        response += sock.read(2)
         _, data_length = struct.unpack('!BH', response[1:4])
     elif length is 0b1111111:
-        response += sock.recv(8)
+        response += sock.read(8)
         _, data_length = struct.unpack('!BQ', response[1:10])
     else:
         data_length = length
@@ -32,9 +32,9 @@ def websocketRecv(sock) -> bytes:
     loop = data_length // 4096
     remain = data_length % 4096
     while loop:
-        response += sock.recv(4096)
+        response += sock.read(4096)
         loop -= 1
-    response += sock.recv(remain)
+    response += sock.read(remain)
     return decodeMsg(response)
 
 

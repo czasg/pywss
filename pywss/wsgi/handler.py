@@ -9,6 +9,7 @@ class ServerHandler(SimpleHandler):
         env = self.environ = self.os_environ.copy()
         self.add_cgi_vars()
 
+        env['wsgi.output'] = self.stdout
         env['wsgi.input'] = self.get_stdin()
         env['wsgi.errors'] = self.get_stderr()
         env['wsgi.version'] = self.wsgi_version
