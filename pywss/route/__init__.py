@@ -3,6 +3,7 @@ import re
 import loggus
 
 from pywss.handlers.static import newStaticHandler
+from pywss.handlers.websocket import WebSocketHandler
 
 
 class _RouteMap:
@@ -100,3 +101,9 @@ class Route:
 
     def patch(self, route, *handlers):
         self.__register("PATCH", route, *handlers)
+
+    def websocket(self, route, *handlers):
+        route = route.strip().strip("/")
+        route = f"GET{self.route}/{route}"
+        handlers = [WebSocketHandler] + self.handlers + list(handlers)
+        RouteMap.register(route, *handlers)

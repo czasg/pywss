@@ -14,7 +14,7 @@ if __name__ == '__main__':
     ws.serve_forever()
 
 """
-ws = new WebSocket("ws://127.0.0.1:8866/test/example/1/1");
+ws = new WebSocket("ws://127.0.0.1:8080/test/example/1/1");
 ws.onmessage = function (ev) {
     console.log(JSON.parse(ev.data));
 }

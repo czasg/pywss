@@ -4,6 +4,7 @@ import json
 from _io import _IOBase
 from collections import defaultdict
 from pywss.statuscode import StatusOK, StatusFound
+from pywss.websocket import encodeMsg, websocketRead
 
 
 class Ctx:
@@ -21,7 +22,8 @@ class Ctx:
         self.__responseBody = []
         self.__responseHeaders = {"Content-Type": "text/html"}
 
-        self.wsgiInput = environ["wsgi.input"]
+        self.__wsgiInput = environ.get("wsgi.input")
+        self.__wsgiOutput = environ.get("wsgi.output")
 
         urlParams = defaultdict(list)
         for query in environ["QUERY_STRING"].split("&"):
@@ -39,7 +41,7 @@ class Ctx:
         self.__headers = headers
 
         if self.contentLength():
-            self.__body = self.streamWriter().read(self.contentLength())
+            self.__body = self.streamReader().read(self.contentLength())
             self.__bodyString = self.__body.decode("utf-8")
 
     def next(self):
@@ -51,6 +53,12 @@ class Ctx:
 
     def isDone(self):
         return self.__handlerIndex >= len(self.__handlers)
+
+    def handler(self):
+        return self.__handlers[-1]
+
+    def middleware(self):
+        return self.__handlers[:-1]
 
     def queryParams(self):
         return self.__queryParams
@@ -121,8 +129,11 @@ class Ctx:
     def setHeaders(self, headers):
         self.__responseHeaders.update(headers)
 
+    def streamReader(self):
+        return self.__wsgiInput
+
     def streamWriter(self):
-        return self.wsgiInput
+        return self.__wsgiOutput
 
     def write(self, body, statusCode=StatusOK):
         if isinstance(body, bytes):
@@ -155,9 +166,19 @@ class Ctx:
         self.__handlerIndex = len(self.__handlers)
         self.next()
 
+    def ws(self, body):
+        if isinstance(body, bytes):
+            self.streamWriter().write(encodeMsg(body))
+        elif isinstance(body, str):
+            self.streamWriter().write(encodeMsg(body.encode("utf-8")))
+        elif isinstance(body, (dict, list)):
+            self.streamWriter().write(encodeMsg(json.dumps(body, ensure_ascii=False).encode("utf-8")))
+        else:
+            pass
+        self.streamWriter().flush()
 
-if __name__ == '__main__':
-    from _io import TextIOWrapper
-
-    a = open("cza.txt", "w")
-    print(type(a), a)
+    def wsFill(self):
+        self.__body = websocketRead(self.streamReader())
+        self.__bodyString = self.__body.decode("utf-8")
+        self.__bodyJson = None
+        self.__bodyForm = None
