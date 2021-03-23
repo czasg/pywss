@@ -143,7 +143,6 @@ class Ctx:
         elif isinstance(body, (dict, list)):
             self.__responseBody.append(json.dumps(body, ensure_ascii=False).encode("utf-8"))
         elif isinstance(body, _IOBase):
-            print(self.__environ['wsgi.file_wrapper'], body)
             self.__responseBody = self.__environ['wsgi.file_wrapper'](body)
         else:
             pass

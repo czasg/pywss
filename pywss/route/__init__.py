@@ -74,7 +74,7 @@ class Route:
         handlers = self.handlers + list(handlers)
         RouteMap.register(route, *handlers)
 
-    def handleDir(self, route, root=".", method="GET", *handlers):
+    def handleDir(self, route, *handlers, root=".", method="GET"):
         route = route.strip().strip("/")
         route = f"{method}{self.route}/{route}"
         handlers = self.handlers + list(handlers)
