@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 
+from _io import _IOBase
 from collections import defaultdict
 from pywss.statuscode import StatusOK, StatusFound
 
@@ -130,6 +131,9 @@ class Ctx:
             self.__responseBody.append(body.encode("utf-8"))
         elif isinstance(body, (dict, list)):
             self.__responseBody.append(json.dumps(body, ensure_ascii=False).encode("utf-8"))
+        elif isinstance(body, _IOBase):
+            print(self.__environ['wsgi.file_wrapper'], body)
+            self.__responseBody = self.__environ['wsgi.file_wrapper'](body)
         else:
             pass
         self.setStatusCode(statusCode)
@@ -150,3 +154,10 @@ class Ctx:
 
         self.__handlerIndex = len(self.__handlers)
         self.next()
+
+
+if __name__ == '__main__':
+    from _io import TextIOWrapper
+
+    a = open("cza.txt", "w")
+    print(type(a), a)

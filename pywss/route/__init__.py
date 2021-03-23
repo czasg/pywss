@@ -2,12 +2,15 @@
 import re
 import loggus
 
+from pywss.handlers.static import newStaticHandler
+
 
 class _RouteMap:
 
     def __init__(self):
         self.__staticRouteMap = {}
         self.__dynamicRouteList = []
+        self.__staticDirRouteList = []
 
     def register(self, route, *handlers):
         if "(?P<" in route:
@@ -18,10 +21,16 @@ class _RouteMap:
         else:
             self.__staticRouteMap[route] = handlers
 
+    def registerDir(self, route, *handlers):
+        self.__staticDirRouteList.append((route, handlers))
+
     def search(self, route):
         inPath = f"{route.strip('/')}"
         if inPath in self.__staticRouteMap:
             return {}, self.__staticRouteMap[inPath], None
+        for dirRoute, handlers in self.__staticDirRouteList:
+            if inPath.startswith(dirRoute):
+                return {"path": inPath.strip(dirRoute)}, handlers, None
         inLength = inPath.count("/")
         for index in range(len(self.__dynamicRouteList)):
             prefix, length, match, handlers = self.__dynamicRouteList[index]
@@ -56,14 +65,20 @@ class Route:
 
     def __register(self, method, route, *handlers):
         if not handlers:
-            return
+            return self.log.warning(f"undefined handlers")
         if not route:
-            self.log.warning(f"undefined route")
-            return
+            return self.log.warning(f"undefined route")
         route = route.strip().strip("/")
         route = f"{method}{self.route}/{route}"
         handlers = self.handlers + list(handlers)
         RouteMap.register(route, *handlers)
+
+    def handleDir(self, route, root=".", method="GET", *handlers):
+        route = route.strip().strip("/")
+        route = f"{method}{self.route}/{route}"
+        handlers = self.handlers + list(handlers)
+        handlers.append(newStaticHandler(root))
+        RouteMap.registerDir(route, *handlers)
 
     def get(self, route, *handlers):
         self.__register("GET", route, *handlers)
