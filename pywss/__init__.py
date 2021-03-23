@@ -16,4 +16,7 @@ if __name__ == '__main__':
     app.get("/baidu", lambda ctx: print(ctx.redirect("/api/fos-internal-api/v1/query")))
     app.post("/baidu", lambda ctx: print(ctx.redirect("/api/fos-internal-api/v1/query")))
     app.handleDir("/download")
+    app.websocket("/test/example/1/1", lambda ctx: print(ctx.body()))
     app.run()
+
+    import _io.BufferedReader

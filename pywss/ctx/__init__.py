@@ -4,6 +4,7 @@ import json
 from _io import _IOBase
 from collections import defaultdict
 from pywss.statuscode import StatusOK, StatusFound
+from pywss.websocket import encodeMsg, websocketRecv
 
 
 class Ctx:
@@ -51,6 +52,12 @@ class Ctx:
 
     def isDone(self):
         return self.__handlerIndex >= len(self.__handlers)
+
+    def handler(self):
+        return self.__handlers[-1]
+
+    def middleware(self):
+        return self.__handlers[:-1]
 
     def queryParams(self):
         return self.__queryParams
@@ -155,9 +162,18 @@ class Ctx:
         self.__handlerIndex = len(self.__handlers)
         self.next()
 
+    def ws(self, body):
+        if isinstance(body, bytes):
+            self.streamWriter().write(encodeMsg(body))
+        elif isinstance(body, str):
+            self.streamWriter().write(encodeMsg(body.encode("utf-8")))
+        elif isinstance(body, (dict, list)):
+            self.streamWriter().write(encodeMsg(json.dumps(body, ensure_ascii=False).encode("utf-8")))
+        else:
+            pass
 
-if __name__ == '__main__':
-    from _io import TextIOWrapper
-
-    a = open("cza.txt", "w")
-    print(type(a), a)
+    def wsFill(self):
+        self.__body = websocketRecv(self.streamWriter())
+        self.__bodyString = self.__body.decode("utf-8")
+        self.__bodyJson = None
+        self.__bodyForm = None
