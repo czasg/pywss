@@ -42,16 +42,16 @@ class Route:
         self.handlers = []
         self.log = loggus.withFields({"module": "Route", "route": route})
 
-    def Use(self, *handlers):
+    def use(self, *handlers):
         self.handlers += list(handlers)
 
-    def Party(self, route, *handlers):
+    def party(self, route, *handlers):
         if not route:
-            self.Use(*handlers)
+            self.use(*handlers)
             return self
         route = Route(f"{self.route}/{route.strip().strip('/')}")
         handlers = self.handlers + list(handlers)
-        route.Use(*handlers)
+        route.use(*handlers)
         return route
 
     def __register(self, method, route, *handlers):
@@ -65,23 +65,23 @@ class Route:
         handlers = self.handlers + list(handlers)
         RouteMap.register(route, *handlers)
 
-    def Get(self, route, *handlers):
+    def get(self, route, *handlers):
         self.__register("GET", route, *handlers)
 
-    def Head(self, route, *handlers):
+    def head(self, route, *handlers):
         self.__register("HEAD", route, *handlers)
 
-    def Post(self, route, *handlers):
+    def post(self, route, *handlers):
         self.__register("POST", route, *handlers)
 
-    def Put(self, route, *handlers):
+    def put(self, route, *handlers):
         self.__register("PUT", route, *handlers)
 
-    def Delete(self, route, *handlers):
+    def delete(self, route, *handlers):
         self.__register("DELETE", route, *handlers)
 
-    def Options(self, route, *handlers):
+    def options(self, route, *handlers):
         self.__register("OPTIONS", route, *handlers)
 
-    def Patch(self, route, *handlers):
+    def patch(self, route, *handlers):
         self.__register("PATCH", route, *handlers)
