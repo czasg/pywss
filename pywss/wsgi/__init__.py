@@ -15,7 +15,7 @@ def application(environ, start_response):
 
 
 def run(host="0.0.0.0", port=8080):
-    from pywss.wsgi.handler import WithLogHandler
     from wsgiref.simple_server import make_server
+    from pywss.wsgi.handler import WithoutLogHandler
 
-    make_server(host, port, application, handler_class=WithLogHandler).serve_forever()
+    make_server(host, port, application, handler_class=WithoutLogHandler).serve_forever()

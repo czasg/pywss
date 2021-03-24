@@ -11,7 +11,7 @@ def middleware(ctx):
     start = time.time()
     # 中间件调用 next 函数则会进入下一阶段的 handler 处理
     ctx.next()
-    print(f"cost: {time.time() - start}")
+    ctx.log().withField("cost", time.time() - start).info()
 
 
 def run():

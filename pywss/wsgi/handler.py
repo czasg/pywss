@@ -28,7 +28,7 @@ class ServerHandler(SimpleHandler):
         SimpleHandler.close(self)
 
 
-class WithLogHandler(WSGIRequestHandler):
+class WithoutLogHandler(WSGIRequestHandler):
 
     def log_error(self, *args, **kwargs) -> None:
         pass

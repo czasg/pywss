@@ -1,22 +1,14 @@
 # coding: utf-8
+import loggus
+
 from pywss.route import Route
 from pywss.wsgi import run
 
 
 class Pywss(Route):
 
-    def run(self, host="0.0.0.0", port=8080):
-        run(host, port)
-
-
-if __name__ == '__main__':
-    app = Pywss()
-    app.get("/api/fos-internal-api/v1/query", lambda ctx: print(ctx.body(), ctx.write("Get hello world")))
-    app.post("/api/fos-internal-api/v1/query", lambda ctx: print(ctx.body(), ctx.write("Post hello world")))
-    app.get("/baidu", lambda ctx: print(ctx.redirect("/api/fos-internal-api/v1/query")))
-    app.post("/baidu", lambda ctx: print(ctx.redirect("/api/fos-internal-api/v1/query")))
-    app.handleDir("/download")
-    app.websocket("/test/example/1/1", lambda ctx: print(ctx.body()))
-    app.run()
-
-    import _io.BufferedReader
+    def run(self, host="localhost", port=8080):
+        log = loggus.withFields({"host": host, "port": port})
+        with log.withTraceback():
+            log.info("server start")
+            run(host, port)
