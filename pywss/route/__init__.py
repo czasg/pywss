@@ -2,6 +2,7 @@
 import re
 import loggus
 
+from typing import Union
 from pywss.handlers.static import newStaticHandler
 from pywss.handlers.websocket import WebSocketHandler
 
@@ -31,7 +32,7 @@ class _RouteMap:
             return {}, self.__staticRouteMap[inPath], None
         for dirRoute, handlers in self.__staticDirRouteList:
             if inPath.startswith(dirRoute):
-                return {"path": inPath.strip(dirRoute)}, handlers, None
+                return {"path": inPath.replace(dirRoute, "", 1)}, handlers, None
         inLength = inPath.count("/")
         for index in range(len(self.__dynamicRouteList)):
             prefix, length, match, handlers = self.__dynamicRouteList[index]
@@ -74,11 +75,16 @@ class Route:
         handlers = self.handlers + list(handlers)
         RouteMap.register(route, *handlers)
 
-    def handleDir(self, route, *handlers, root=".", method="GET"):
+    def handleDir(
+            self, route, *handlers, root=".", method="GET",
+            text_html: Union[str, list, tuple] = "html,js,css",
+            application_json: Union[str, list, tuple] = "json",
+            default="application/octet-stream",
+    ):
         route = route.strip().strip("/")
         route = f"{method}{self.route}/{route}"
         handlers = self.handlers + list(handlers)
-        handlers.append(newStaticHandler(root))
+        handlers.append(newStaticHandler(root, text_html=text_html, application_json=application_json, default=default))
         RouteMap.registerDir(route, *handlers)
 
     def get(self, route, *handlers):
