@@ -77,14 +77,16 @@ class Route:
 
     def handleDir(
             self, route, *handlers, root=".", method="GET",
-            text_html: Union[str, list, tuple] = "html,js,css",
-            application_json: Union[str, list, tuple] = "json",
+            textHtml: Union[str, list, tuple] = "html,js,css",
+            applicationJson: Union[str, list, tuple] = "json",
+            imageGif="jpg,jpeg,png",
             default="application/octet-stream",
     ):
         route = route.strip().strip("/")
         route = f"{method}{self.route}/{route}"
         handlers = self.handlers + list(handlers)
-        handlers.append(newStaticHandler(root, text_html=text_html, application_json=application_json, default=default))
+        handlers.append(newStaticHandler(
+            root, textHtml=textHtml, applicationJson=applicationJson, imageGif=imageGif, default=default))
         RouteMap.registerDir(route, *handlers)
 
     def get(self, route, *handlers):
