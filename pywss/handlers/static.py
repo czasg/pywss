@@ -14,10 +14,20 @@ def _ensureToTuple(value):
     return ()
 
 
-def newStaticHandler(root, textHtml, applicationJson, imageGif, default="application/octet-stream"):
+def newStaticHandler(
+        root,
+        textHtml,
+        textCss,
+        applicationXJavascript,
+        applicationJson,
+        imagePng,
+        default="application/octet-stream"
+):
     textHtml = _ensureToTuple(textHtml)
+    textCss = _ensureToTuple(textCss)
+    applicationXJavascript = _ensureToTuple(applicationXJavascript)
     applicationJson = _ensureToTuple(applicationJson)
-    imageGif = _ensureToTuple(imageGif)
+    imagePng = _ensureToTuple(imagePng)
 
     def staticHandler(ctx):
         path = ctx.urlParams()["path"]
@@ -25,10 +35,14 @@ def newStaticHandler(root, textHtml, applicationJson, imageGif, default="applica
         if os.path.exists(file):
             if file.endswith(textHtml):
                 ctx.setContentType("text/html")
+            elif file.endswith(textCss):
+                ctx.setContentType("text/css")
+            elif file.endswith(applicationXJavascript):
+                ctx.setContentType("application/x-javascript")
             elif file.endswith(applicationJson):
                 ctx.setContentType("application/json")
-            elif file.endswith(imageGif):
-                ctx.setContentType("image/gif")
+            elif file.endswith(imagePng):
+                ctx.setContentType("image/png")
             else:
                 ctx.setContentType(default)
             ctx.write(open(file, "rb"))
