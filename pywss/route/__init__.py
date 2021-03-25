@@ -2,7 +2,6 @@
 import re
 import loggus
 
-from typing import Union
 from pywss.handlers.static import newStaticHandler
 from pywss.handlers.websocket import WebSocketHandler
 
@@ -77,10 +76,11 @@ class Route:
 
     def handleDir(
             self, route, *handlers, root=".", method="GET",
-            textHtml = "html,txt",
-            textCss = "css",
-            applicationXJavascript = "js",
-            applicationJson = "json",
+            textHtml="html,txt",
+            textCss="css",
+            applicationXJavascript="js",
+            applicationJson="json,yml,yaml",
+            applicationXml="xml",
             imagePng="jpg,jpeg,png,gif",
             default="application/octet-stream",
     ):
@@ -93,6 +93,7 @@ class Route:
             textCss=textCss,
             applicationXJavascript=applicationXJavascript,
             applicationJson=applicationJson,
+            applicationXml=applicationXml,
             imagePng=imagePng,
             default=default))
         RouteMap.registerDir(route, *handlers)

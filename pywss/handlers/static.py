@@ -20,6 +20,7 @@ def newStaticHandler(
         textCss,
         applicationXJavascript,
         applicationJson,
+        applicationXml,
         imagePng,
         default="application/octet-stream"
 ):
@@ -27,6 +28,7 @@ def newStaticHandler(
     textCss = _ensureToTuple(textCss)
     applicationXJavascript = _ensureToTuple(applicationXJavascript)
     applicationJson = _ensureToTuple(applicationJson)
+    applicationXml = _ensureToTuple(applicationXml)
     imagePng = _ensureToTuple(imagePng)
 
     def staticHandler(ctx):
@@ -41,6 +43,8 @@ def newStaticHandler(
                 ctx.setContentType("application/x-javascript")
             elif file.endswith(applicationJson):
                 ctx.setContentType("application/json")
+            elif file.endswith(applicationXml):
+                ctx.setContentType("application/xml")
             elif file.endswith(imagePng):
                 ctx.setContentType("image/png")
             else:
