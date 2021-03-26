@@ -50,7 +50,7 @@ class Route:
     def __init__(self, route=""):
         self.route = f"/{route.strip().strip('/')}" if route else route
         self.handlers = []
-        self.log = loggus.withFields({"module": "Route", "route": route})
+        self.log = loggus.withFields({"module": "Route", "party": route})
 
     def use(self, *handlers):
         self.handlers += list(handlers)
@@ -66,9 +66,9 @@ class Route:
 
     def __register(self, method, route, *handlers):
         if not handlers:
-            return self.log.warning(f"undefined handlers")
+            return self.log.withFields({"route": route}).warning(f"undefined handlers, ignore!")
         if not route:
-            return self.log.warning(f"undefined route")
+            return self.log.withFields({"route": route}).warning(f"undefined route, ignore!")
         route = route.strip().strip("/")
         route = f"{method}{self.route}/{route}"
         handlers = self.handlers + list(handlers)
