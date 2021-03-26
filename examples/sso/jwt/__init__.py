@@ -9,6 +9,7 @@ import hashlib
 secret = os.environ.get("JWT_SECRET", str(uuid.uuid4()))
 Authorization = "Authorization"
 Bearer = "Bearer "
+PAYLOAD = "payload"
 
 
 class JWT:
@@ -24,13 +25,23 @@ class JWT:
     def fromBase64(self, obj):
         return json.loads(base64.b64decode(obj.encode()).decode())
 
-    def create(self, uid, una):
+    def exp(self, payload):
+        return payload["exp"] < time.time()
+
+    def iat(self, payload):
+        return payload["iat"] > time.time()
+
+    def adm(self, payload):
+        return payload["adm"]
+
+    def create(self, uid, una, adm):
         iat = time.time()
         payload = {
             "uid": uid,  # 用户ID
             "una": una,  # 用户Name
             "iat": iat,  # jwt签发时间
             "exp": iat + 1800,  # jwt过期时间
+            "adm": adm,
         }
         payload = self.toBase64(payload)
         sha256 = hashlib.sha256(self.secret)
@@ -51,10 +62,9 @@ class JWT:
         if sha256.hexdigest() != validSecret:
             return None, False
         payload = self.fromBase64(payload)
-        now = time.time()
-        if payload["iat"] > now:
+        if self.iat(payload):
             return None, False
-        if payload["exp"] < now:
+        if self.exp(payload):
             return None, False
         return payload, True
 
@@ -64,6 +74,6 @@ jwt = JWT(secret)
 if __name__ == '__main__':
     print(jwt.headerBase64)
     print(jwt.fromBase64(jwt.headerBase64))
-    token = jwt.create(1, "cza")
+    token = jwt.create(1, "cza", True)
     print(token)
     print(jwt.valid(f"{Bearer}{token}"))
