@@ -18,6 +18,7 @@ class Ctx:
     __responseStatusCode = StatusOK
 
     def __init__(self, environ: dict, handlers: tuple, urlParams: dict):
+        self.__ctxValues = {}
         self.__environ = environ
         self.__handlers = handlers
         self.__urlParams = urlParams
@@ -194,3 +195,9 @@ class Ctx:
 
     def setLog(self, log: loggus.Entry):
         self.__log = log
+
+    def setCtxValue(self, key, value):
+        self.__ctxValues[key] = value
+
+    def getCtxValue(self, key, default=None):
+        return self.__ctxValues.get(key, default)
