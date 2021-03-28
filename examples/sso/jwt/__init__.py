@@ -34,6 +34,9 @@ class JWT:
     def adm(self, payload):
         return payload["adm"]
 
+    def uid(self, payload):
+        return payload["uid"]
+
     def create(self, uid, una, adm):
         iat = time.time()
         payload = {

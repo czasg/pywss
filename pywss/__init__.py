@@ -1,6 +1,7 @@
 # coding: utf-8
 import loggus
 
+from pywss.statuscode import *
 from pywss.route import Route
 from pywss.wsgi import run
 

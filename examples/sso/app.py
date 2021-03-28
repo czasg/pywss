@@ -14,6 +14,7 @@ def main():
     app.get("/liveness", lambda ctx: ctx.setStatusCode(StatusNoContent))
     # prometheus支持
     app.get("/metrics", lambda ctx: ctx.setStatusCode(StatusNoContent))
+    # 注册路由
     registerAPI(app)
     app.run()
 
