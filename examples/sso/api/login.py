@@ -2,7 +2,8 @@
 import pywss
 
 from pywss.ctx import Ctx
-from service.login import login as sLogin
+from service.login import login as sLogin, logout as sLogout
+from middleware.jwt import jwt, PAYLOAD
 
 
 def login(ctx: Ctx):
@@ -18,3 +19,9 @@ def login(ctx: Ctx):
         ctx.setStatusCode(pywss.StatusBadRequest)
         return
     ctx.write(token)
+
+
+def logout(ctx: Ctx):
+    payload = ctx.getCtxValue(PAYLOAD)
+    sLogout(jwt.uid(payload))
+    return

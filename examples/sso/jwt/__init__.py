@@ -31,20 +31,23 @@ class JWT:
     def iat(self, payload):
         return payload["iat"] > time.time()
 
+    def rid(self, payload):
+        return payload["rid"]
+
     def adm(self, payload):
-        return payload["adm"]
+        return self.rid(payload) == 0
 
     def uid(self, payload):
         return payload["uid"]
 
-    def create(self, uid, una, adm):
+    def create(self, uid, una, rid):
         iat = time.time()
         payload = {
             "uid": uid,  # 用户ID
             "una": una,  # 用户Name
             "iat": iat,  # jwt签发时间
             "exp": iat + 1800,  # jwt过期时间
-            "adm": adm,
+            "rid": rid,
         }
         payload = self.toBase64(payload)
         sha256 = hashlib.sha256(self.secret)
@@ -73,10 +76,3 @@ class JWT:
 
 
 jwt = JWT(secret)
-
-if __name__ == '__main__':
-    print(jwt.headerBase64)
-    print(jwt.fromBase64(jwt.headerBase64))
-    token = jwt.create(1, "cza", True)
-    print(token)
-    print(jwt.valid(f"{Bearer}{token}"))
