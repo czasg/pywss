@@ -10,9 +10,9 @@ def jwtCheck(ctx: Ctx):
     if not token:
         ctx.setStatusCode(pywss.StatusUnauthorized)
         return
-    plyload, ok = jwt.valid(token)
+    payload, ok = jwt.valid(token)
     if not ok:
         ctx.setStatusCode(pywss.StatusUnauthorized)
         return
-    ctx.setCtxValue(PAYLOAD, plyload)
+    ctx.setCtxValue(PAYLOAD, payload)
     ctx.next()

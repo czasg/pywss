@@ -9,6 +9,7 @@ from middleware.jwt import jwtCheck
 
 def registerAPI(app: Route):
     app.post("/user/login", login)  # 用户登录
+
     registerJWT(app.party("", jwtCheck))  # 注册JWT中间件
 
 
