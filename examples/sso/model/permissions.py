@@ -3,8 +3,8 @@ from sqlalchemy import Column, String, Integer, Text
 from .base import Base
 
 
-class User(Base):
-    __tablename__ = 'users'
+class Permissions(Base):
+    __tablename__ = 'permissions'
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)  # 主键
     name = Column(String(20))  # 用户名称
@@ -13,5 +13,5 @@ class User(Base):
     update_at = Column(Integer)  # 用户信息更新时间
     status = Column(Integer, default=0)
     login_at = Column(Integer)
-    role_id = Column(Integer, default=1)  # 角色ID
-    meta = Column(Text)  # 元数据
+    role_id = Column(Integer, default=1)  # 角色信息
+    meta = Column(Text)
