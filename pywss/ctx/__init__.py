@@ -24,6 +24,7 @@ class Ctx:
         self.__urlParams = urlParams
         self.__responseBody = []
         self.__responseHeaders = {"Content-Type": "text/html"}
+        self.__responseCookies = []
 
         self.__wsgiInput = environ.get("wsgi.input")
         self.__wsgiOutput = environ.get("wsgi.output")
@@ -137,6 +138,9 @@ class Ctx:
     def setHeaders(self, headers) -> None:
         self.__responseHeaders.update(headers)
 
+    def setCookie(self, k, v):
+        self.__responseCookies.append(("Set-Cookie", f"{k}={v}"))
+
     def streamReader(self) -> BufferedReader:
         return self.__wsgiInput
 
@@ -160,7 +164,7 @@ class Ctx:
         return self.__responseBody
 
     def responseHeaders(self) -> list:
-        return list(self.__responseHeaders.items())
+        return list(self.__responseHeaders.items()) + self.__responseCookies
 
     def redirect(self, url: str, statusCode=StatusFound) -> None:
         if url.startswith("http"):

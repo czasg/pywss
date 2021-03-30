@@ -11,7 +11,7 @@ class User(Base):
     password = Column(String(64))  # 用户密码，sha256加密
     create_at = Column(Integer)  # 创建时间
     update_at = Column(Integer)  # 用户信息更新时间
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=0)  # 用户状态 0/离线，1/在线
     login_at = Column(Integer)
     role_id = Column(Integer, default=1)  # 角色ID
     meta = Column(Text)  # 元数据
