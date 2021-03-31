@@ -1,6 +1,28 @@
 # coding: utf-8
-from dao.user import *
+import dao
 
 
 def getUserList():
-    return getAllUsers()
+    users = []
+    for user in dao.getUserList():
+        users.append(dict(
+            name=user.name,
+            rid=user.role_id,
+            createAt=user.create_at,
+            updateAt=user.update_at,
+        ))
+    return users
+
+
+def getUserInfo(uid: int):
+    user = dao.getUserByID(uid)
+    if not user:
+        return None
+
+    return dict(
+        name=user.name,
+        rid=user.role_id,
+        createAt=user.create_at,
+        updateAt=user.update_at,
+        meta=user.meta,
+    )

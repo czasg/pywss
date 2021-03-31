@@ -2,5 +2,5 @@
 from pywss.ctx import Ctx
 
 
-def checkLogin(ctx: Ctx):
+def loginCheck(ctx: Ctx):
     ctx.next()

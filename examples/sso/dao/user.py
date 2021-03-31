@@ -7,12 +7,12 @@ from model import DBSession
 from model.user import User
 
 
-def getAllUsers() -> List[User]:
+def getUserList() -> List[User]:
     session = DBSession()
     try:
         return session.query(User).all()
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("GetAllUsersErr")
     finally:
         session.close()
 
@@ -22,7 +22,7 @@ def getUserByID(uid: int) -> User:
     try:
         return session.query(User).filter_by(id=uid).one()
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("GetUserByIDErr")
     finally:
         session.close()
 
@@ -32,7 +32,7 @@ def getUserByName(name: str) -> User:
     try:
         return session.query(User).filter_by(name=name).one()
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("GetUserByIDErr")
     finally:
         session.close()
 
@@ -47,7 +47,7 @@ def addUser(name, pwd, meta) -> User:
         session.commit()
         return user
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("AddUserErr")
     finally:
         session.close()
 
@@ -60,7 +60,7 @@ def delUserByID(uid: int) -> User:
         session.commit()
         return user
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("DelUserByIDErr")
     finally:
         session.close()
 
@@ -71,6 +71,6 @@ def updateUser(uid: int, **kwargs):
         session.query(User).filter_by(id=uid).update(kwargs)
         session.commit()
     except:
-        loggus.withFieldTrace().error("Add User Err")
+        loggus.withFieldTrace().error("UpdateUserErr")
     finally:
         session.close()

@@ -15,7 +15,7 @@ def main():
     # prometheus支持
     app.get("/metrics", lambda ctx: ctx.setStatusCode(StatusNoContent))
     # 注册路由
-    registerAPI(app)
+    registerAPI(app.party("/api"))
     app.run()
 
 

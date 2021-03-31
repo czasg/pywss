@@ -1,12 +1,23 @@
 # coding: utf-8
 import os
 import json
-import uuid
 import time
 import base64
 import hashlib
 
-secret = os.environ.get("JWT_SECRET", str(uuid.uuid4()))
+from model.user import ROLE_ADMIN
+
+"""
+定制JWT组件，荷载包含：
+|-> sig: 签发者
+|-> uid: 用户ID
+|-> una: 用户姓名
+|-> rid: 用户角色ID
+|-> iat: 签发时间
+|-> exp: 过期时间
+"""
+
+secret = os.environ.get("JWT_SECRET", "pywss")
 Authorization = "Authorization"
 Bearer = "Bearer "
 PAYLOAD = "payload"
@@ -14,7 +25,7 @@ PAYLOAD = "payload"
 
 class JWT:
 
-    def __init__(self, secret: str = str(uuid.uuid4())):
+    def __init__(self, secret):
         self.header = {"alg": "HS256", "typ": "JWT"}
         self.headerBase64 = self.toBase64(self.header)
         self.secret = secret.encode()
@@ -35,7 +46,7 @@ class JWT:
         return payload["rid"]
 
     def adm(self, payload):
-        return self.rid(payload) == 0
+        return self.rid(payload) == ROLE_ADMIN
 
     def uid(self, payload):
         return payload["uid"]
@@ -43,11 +54,12 @@ class JWT:
     def create(self, uid, una, rid):
         iat = time.time()
         payload = {
+            "sig": "pywss",
             "uid": uid,  # 用户ID
             "una": una,  # 用户Name
+            "rid": rid,  # 角色ID
             "iat": iat,  # jwt签发时间
             "exp": iat + 1800,  # jwt过期时间
-            "rid": rid,
         }
         payload = self.toBase64(payload)
         sha256 = hashlib.sha256(self.secret)

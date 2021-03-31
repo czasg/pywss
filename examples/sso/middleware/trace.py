@@ -4,7 +4,7 @@ import time
 
 from pywss.ctx import Ctx
 
-X_TRACE_ID = "X-Trace-Id"
+X_TRACE_ID = "X-PY-Trace-Id"
 
 
 def trace(ctx: Ctx):

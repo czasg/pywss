@@ -14,7 +14,7 @@ def respOK(ctx: Ctx, data, msg=""):
     })
 
 
-def respErr(ctx: Ctx, msg, data):
+def respErr(ctx: Ctx, msg, data=None):
     ctx.write({
         "code": 99999,
         "msg": msg,

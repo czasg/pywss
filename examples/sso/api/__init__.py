@@ -1,27 +1,51 @@
 # coding: utf-8
+from pywss.route import Route
+
+from middleware.jwt import *
 from .user import *
 from .login import *
 from .auth import *
-from pywss.route import Route
-from middleware.just_admin import justAdmin
-from middleware.jwt import jwtCheck
+
+"""
+v1:
+|-> GET/user 获取用户列表
+|-> POST/user 创建新用户
+|-> GET/user/(?P<userID>) 获取用户详情
+|-> PUT/user/(?P<userID>) 更新用户信息
+|-> PATCH/user/(?P<userID>) 更新用户局部信息
+|-> DELETE/user/(?P<userID>) 删除用户
+
+v2:
+|-> POST/user/login 用户登录，发放token
+|-> POST/user/logout 用户注销，调用回调接口
+
+v3:
+|-> GET/secret 获取秘钥列表
+|-> GET/secret/(?P<secretID>) 获取秘钥详情
+|-> POST/secret 创建秘钥（用户秘钥、接口秘钥）
+|-> POST/oauth2 用户凭证、秘钥认证
+"""
 
 
 def registerAPI(app: Route):
-    app.post("/user/login", login)  # 用户登录
-
-    registerJWT(app.party("", jwtCheck))  # 注册JWT中间件
-
-
-def registerJWT(app: Route):
-    app.post("/user/logout", logout)  # 用户注销
-    app.post("/user/auth")  # 用户认证
-    app.get("/user/(?P<userID>)")  # 用户详情信息
-    registerAdmin(app.party("", justAdmin))  # 注册Admin中间件
+    registerV1(app.party("/v1", jwtCheck))
+    registerV2(app.party("/v2"))
+    registerV3(app.party("/v3"))
 
 
-def registerAdmin(app: Route):
-    app.get("/user", getUserList)  # 用户列表
-    app.post("/user")  # 用户注册
-    app.post("/user/(?P<userID>)")  # 编辑用户
-    app.delete("/user/(?P<userID>)")  # 用户删除
+def registerV1(app: Route):
+    app.get("/user", justAdmin, getUserList)
+    app.post("/user", justAdmin)
+    app.get("/user/(?P<userID>)", justAdminOrUserSelf)
+    app.put("/user/(?P<userID>)", justAdminOrUserSelf)
+    app.patch("/user/(?P<userID>)", justAdminOrUserSelf)
+    app.delete("/user/(?P<userID>)", justAdmin)
+
+
+def registerV2(app: Route):
+    app.post("/user/login", login)
+    app.post("/user/logout", jwtCheck)
+
+
+def registerV3(app: Route):
+    pass

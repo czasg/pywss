@@ -1,11 +1,12 @@
 # coding: utf-8
+import dao
 import hashlib
-from dao.user import *
+
 from jwt import jwt
 
 
 def login(name, password):
-    user = getUserByName(name)
+    user = dao.getUserByName(name)
     if not user:
         return
 
@@ -16,8 +17,4 @@ def login(name, password):
 
 
 def logout(uid):
-    user = getUserByID(uid)
-    if not user:
-        return
-
-    updateUser(uid, login_at=0)
+    pass
