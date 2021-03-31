@@ -1,4 +1,5 @@
 # coding: utf-8
+import service
 from .base import *
 from pywss.ctx import Ctx
 from service.login import *
@@ -18,10 +19,14 @@ def login(ctx: Ctx):
         respErr(ctx, "未指定用户/密码")
         return
 
-    token = loginService(name, password)
+    token = service.login(name, password)
+    if not token:
+        respErr(ctx, "验证失败")
+        return
+
+    ctx.setCookie("token", token)
 
     if callback:
-        ctx.setCookie("Cookie", token)
         ctx.redirect(f"{callback}?token={token}")
     else:
         respOK(ctx, {"token": token})

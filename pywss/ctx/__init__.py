@@ -44,6 +44,14 @@ class Ctx:
                 headers[k] = v
         self.__headers = headers
 
+        cookies = {}
+        for value in headers.get("Cookie", "").split(";"):
+            values = value.strip().split("=", 1)
+            if len(values) != 2:
+                continue
+            cookies[values[0]] = values[1]
+        self.__cookies = cookies
+
         if self.contentLength():
             self.__body = self.streamReader().read(self.contentLength())
             self.__bodyString = self.__body.decode("utf-8")
@@ -129,6 +137,9 @@ class Ctx:
         elif returnType == str:
             return self.__bodyString
 
+    def cookies(self):
+        return self.__cookies
+
     def headers(self) -> dict:
         return self.__headers
 
@@ -153,6 +164,7 @@ class Ctx:
         elif isinstance(body, str):
             self.__responseBody.append(body.encode("utf-8"))
         elif isinstance(body, (dict, list)):
+            self.setHeader("Content-Type", "application/json")
             self.__responseBody.append(json.dumps(body, ensure_ascii=False).encode("utf-8"))
         elif isinstance(body, _IOBase):
             self.__responseBody = self.__environ['wsgi.file_wrapper'](body)

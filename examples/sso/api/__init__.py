@@ -38,7 +38,6 @@ def registerV1(app: Route):
     app.post("/user", justAdmin)
     app.get("/user/(?P<userID>)", justAdminOrUserSelf)
     app.put("/user/(?P<userID>)", justAdminOrUserSelf)
-    app.patch("/user/(?P<userID>)", justAdminOrUserSelf)
     app.delete("/user/(?P<userID>)", justAdmin)
 
 
