@@ -1,7 +1,9 @@
 # coding: utf-8
 import json
+import time
 import loggus
 
+from datetime import timedelta
 from typing import Union
 from _io import _IOBase, BufferedReader, BufferedWriter
 from collections import defaultdict
@@ -149,8 +151,65 @@ class Ctx:
     def setHeaders(self, headers) -> None:
         self.__responseHeaders.update(headers)
 
-    def setCookie(self, k, v):
-        self.__responseCookies.append(("Set-Cookie", f"{k}={v}"))
+    def setCookie(
+            self, key, value,
+            maxAge: int = None,
+            expires: int = None,
+            path: str = "/",
+            domain: str = None,
+            secure: bool = False,
+            httpOnly: bool = False,
+    ):
+        buf = [f"{key}={value}"]
+        if isinstance(maxAge, timedelta):
+            maxAge = (maxAge.days * 60 * 60 * 24) + maxAge.seconds
+        if expires is not None:
+            expires = time.gmtime(expires)
+        elif maxAge is not None:
+            expires = time.gmtime(time.time() + maxAge)
+        if expires:
+            d = expires
+            expires = "%s, %02d%s%s%s%04d %02d:%02d:%02d GMT" % (
+                ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[d.tm_wday],
+                d.tm_mday,
+                "-",
+                (
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                )[d.tm_mon - 1],
+                "-",
+                d.tm_year,
+                d.tm_hour,
+                d.tm_min,
+                d.tm_sec,
+            )
+
+        for k, v, q in (
+                ("Domain", domain, True),
+                ("Expires", expires, False),
+                ("Max-Age", maxAge, False),
+                ("Secure", secure, None),
+                ("HttpOnly", httpOnly, None),
+                ("Path", path, False),
+        ):
+            if q is None:
+                if v:
+                    buf.append(k)
+                continue
+            if v is None:
+                continue
+            buf.append(f"{k}={v}")
+        self.__responseCookies.append(("Set-Cookie", "; ".join(buf)))
 
     def streamReader(self) -> BufferedReader:
         return self.__wsgiInput
