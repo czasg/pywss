@@ -39,6 +39,6 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     install_requires=[
-        "loggus >= 0.0.10",
+        "loggus >= 0.0.20",
     ],
 )
