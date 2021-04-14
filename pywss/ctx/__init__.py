@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import json
 import time
 import loggus
@@ -216,6 +217,12 @@ class Ctx:
 
     def streamWriter(self) -> BufferedWriter:
         return self.__wsgiOutput
+
+    def htmlText(self, filePath):
+        if not os.path.exists(filePath):
+            self.log().withFieldsAuto(filePath).warning("file not exists")
+            return
+        self.write(open(filePath, "rb"))
 
     def write(self, body, statusCode=StatusOK) -> None:
         if isinstance(body, bytes):
