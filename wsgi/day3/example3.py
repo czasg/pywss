@@ -23,12 +23,6 @@ class _RouteMap:
 
 RouteMap = _RouteMap()
 
-"""WSGI应用模块
-
-主要作用: 基于wsgiref标准库搭建WSGI服务
-具体作用: 配合使用路由和上下文板块，完成业务需求
-"""
-
 
 class Route:
 
@@ -36,6 +30,13 @@ class Route:
         route = route.strip().strip("/")
         route = f"GET/{route}"
         RouteMap.register(route, handler)
+
+
+"""WSGI应用模块
+
+主要作用: 基于wsgiref标准库搭建WSGI服务
+具体作用: 配合使用路由和上下文板块，完成业务需求
+"""
 
 
 class Pywss(Route):
@@ -56,5 +57,5 @@ def application(environ, start_response):
 
 if __name__ == '__main__':
     app = Pywss()
-    app.get("/hello", lambda: ())
+    app.get("/hello", lambda ctx: ctx.write("Hello, Pywss!"))
     app.run()
