@@ -22,7 +22,7 @@ class _RouteMap:
         else:
             self.__staticRouteMap[route] = handlers
 
-    def registerDir(self, route, *handlers):
+    def registerStaticDir(self, route, *handlers):
         self.__staticDirRouteList.append((route, handlers))
 
     def search(self, route):
@@ -74,7 +74,7 @@ class Route:
         handlers = self.handlers + list(handlers)
         RouteMap.register(route, *handlers)
 
-    def handleDir(
+    def static(
             self, route, *handlers, root=".", method="GET",
             textHtml="html,txt",
             textCss="css",
@@ -96,7 +96,7 @@ class Route:
             applicationXml=applicationXml,
             imagePng=imagePng,
             default=default))
-        RouteMap.registerDir(route, *handlers)
+        RouteMap.registerStaticDir(route, *handlers)
 
     def get(self, route, *handlers):
         self.__register("GET", route, *handlers)
