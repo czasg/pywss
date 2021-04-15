@@ -9,7 +9,7 @@ from pywss.wsgi import run
 class Pywss(Route):
 
     def run(self, host="0.0.0.0", port=8080):
-        log = loggus.withFields({"host": host, "port": port})
+        log = loggus.withVariables(host, port)
         with log.withTraceback():
             log.info("server start")
             run(host, port)

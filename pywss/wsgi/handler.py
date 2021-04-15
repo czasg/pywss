@@ -5,6 +5,9 @@ from wsgiref.simple_server import WSGIRequestHandler, SimpleHandler
 class ServerHandler(SimpleHandler):
     os_environ = {}
 
+    def handle_error(self):
+        pass
+
     def setup_environ(self):
         env = self.environ = self.os_environ.copy()
         self.add_cgi_vars()
