@@ -11,8 +11,15 @@ def WebSocketHandler(ctx):
     secResp = createWebSocketResponse(secKey)
     ctx.streamWriter().write(secResp)
     ctx.streamWriter().flush()
-    ctx.wsFill()
-    ctx.next()
-    while True:
+    cid = ctx.streamWriterFileno()
+    wsPool.add(cid, ctx)
+    try:
         ctx.wsFill()
-        ctx.handler()(ctx)
+        ctx.next()
+        while True:
+            if not ctx.wsFill():
+                continue
+            ctx.handler()(ctx)
+    except:
+        pass
+    wsPool.delete(cid)

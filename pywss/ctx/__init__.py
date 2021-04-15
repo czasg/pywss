@@ -4,12 +4,12 @@ import json
 import time
 import loggus
 
+from pywss.websocket import *
 from datetime import timedelta
 from typing import Union
 from _io import _IOBase, BufferedReader, BufferedWriter
 from collections import defaultdict
 from pywss.statuscode import StatusOK, StatusFound
-from pywss.websocket import encodeMsg, websocketRead
 
 
 class Ctx:
@@ -30,7 +30,9 @@ class Ctx:
         self.__responseCookies = []
 
         self.__wsgiInput = environ.get("wsgi.input")
+        self.__wsgiInputFileNo = self.__wsgiInput.fileno()
         self.__wsgiOutput = environ.get("wsgi.output")
+        self.__wsgiOutputFileNo = self.__wsgiOutput.fileno()
 
         urlParams = defaultdict(list)
         for query in environ["QUERY_STRING"].split("&"):
@@ -215,8 +217,14 @@ class Ctx:
     def streamReader(self) -> BufferedReader:
         return self.__wsgiInput
 
+    def streamReaderFileno(self) -> BufferedReader:
+        return self.__wsgiInputFileNo
+
     def streamWriter(self) -> BufferedWriter:
         return self.__wsgiOutput
+
+    def streamWriterFileno(self) -> BufferedWriter:
+        return self.__wsgiOutputFileNo
 
     def htmlText(self, filePath):
         if not os.path.exists(filePath):
@@ -266,11 +274,32 @@ class Ctx:
             pass
         self.streamWriter().flush()
 
-    def wsFill(self) -> None:
-        self.__body = websocketRead(self.streamReader())
-        self.__bodyString = self.__body.decode("utf-8")
-        self.__bodyJson = None
-        self.__bodyForm = None
+    def wsAll(self, body):
+        for cid, ref in wsPool.all():
+            ctx = ref()
+            if not ctx:
+                wsPool.delete(cid)
+                continue
+            if ctx is self:
+                continue
+            try:
+                ctx.ws(body)
+            except:
+                pass
+
+    def wsFill(self) -> bool:
+        try:
+            self.__body = websocketRead(self.streamReader())
+            self.__bodyJson = None
+            self.__bodyForm = None
+            self.__bodyString = self.__body.decode("utf-8")
+            if not self.__body:
+                self.ws(b"are you closed?")
+                return False
+            return True
+        except:
+            self.ws(b"are you closed?")
+            return False
 
     def log(self) -> loggus.Entry:
         return self.__log

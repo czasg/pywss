@@ -2,12 +2,38 @@
 import struct
 import base64
 import hashlib
+import weakref
+import threading
 
 MAGIC_STRING = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
                     "Upgrade: websocket\r\n" \
                     "Connection: Upgrade\r\n" \
                     "Sec-WebSocket-Accept: %s\r\n\r\n"
+
+
+class WebSocketPool:
+
+    def __init__(self):
+        self.pool = {}
+        self.lock = threading.Lock()
+
+    def add(self, cid, ctx):
+        with self.lock:
+            self.pool[cid] = weakref.ref(ctx)
+
+    def delete(self, cid):
+        with self.lock:
+            self.pool.pop(cid, None)
+
+    def getByCid(self, cid):
+        return self.pool.get(cid)
+
+    def all(self):
+        return self.pool.items()
+
+
+wsPool = WebSocketPool()
 
 
 def createWebSocketResponse(secKey):
@@ -19,6 +45,8 @@ def createWebSocketResponse(secKey):
 
 def websocketRead(sock) -> bytes:
     response = sock.read(2)
+    if len(response) != 2:
+        return b""
     length = response[1] & 0b1111111
     if length is 0b1111110:
         response += sock.read(2)
