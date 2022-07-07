@@ -5,8 +5,8 @@ import codecs
 from setuptools import setup, find_packages
 
 """pip install twine
-1、python setup check
-2、python setup sdist
+1、python setup.py check
+2、python setup.py sdist
 3、twine upload dist/__packages__-__version__.tar.gz
 """
 
@@ -27,18 +27,18 @@ def find_version(*file_paths):
 
 setup(
     name='pywss',
-    version=find_version('pywss', 'version.py'),
-    description="This is a web-socket-server by python",
-    long_description="see https://github.com/CzaOrz/Pywss",
-    author='czaOrz',
+    version=find_version('pywss', '__init__.py'),
+    description="This Is A Web/WebSocket Server By Python",
+    long_description="see https://github.com/czasg/Pywss",
+    author='czasg',
     author_email='972542644@qq.com',
-    url='https://github.com/CzaOrz/Pywss',
+    url='https://github.com/czasg/Pywss',
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
     install_requires=[
-        "loggus >= 0.0.20",
+        "loggus >= 0.1.1",
     ],
 )

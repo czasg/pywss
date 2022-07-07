@@ -1,9 +1,8 @@
 # coding: utf-8
+import json
 import struct
 import base64
 import hashlib
-import weakref
-import threading
 
 MAGIC_STRING = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
@@ -12,38 +11,36 @@ RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
                     "Sec-WebSocket-Accept: %s\r\n\r\n"
 
 
-class WebSocketPool:
+def WebsocketContextWrap(ctx):
+    if ctx.headers.get("Upgrade") != "websocket":
+        return "invalid websocket request"
+    secKey = ctx.headers.get("Sec-WebSocket-Key")
+    if not secKey:
+        return "invalid websocket key"
+    secResp = _createWebSocketResponse(secKey)
+    ctx.fd.sendall(secResp)
 
-    def __init__(self):
-        self.pool = {}
-        self.lock = threading.Lock()
+    def ws_write(body):
+        if isinstance(body, bytes):
+            ctx.fd.sendall(_websocketEncodeMsg(body))
+        elif isinstance(body, str):
+            ctx.fd.sendall(_websocketEncodeMsg(body.encode("utf-8")))
+        elif isinstance(body, (dict, list)):
+            ctx.fd.sendall(_websocketEncodeMsg(json.dumps(body, ensure_ascii=False).encode("utf-8")))
 
-    def add(self, cid, ctx):
-        with self.lock:
-            self.pool[cid] = weakref.ref(ctx)
-
-    def delete(self, cid):
-        with self.lock:
-            self.pool.pop(cid, None)
-
-    def getByCid(self, cid):
-        return self.pool.get(cid)
-
-    def all(self):
-        return self.pool.items()
-
-
-wsPool = WebSocketPool()
+    ctx.ws_read = lambda: _websocketRead(ctx.rfd)
+    ctx.ws_write = ws_write
+    return None
 
 
-def createWebSocketResponse(secKey):
+def _createWebSocketResponse(secKey):
     secKey = secKey + MAGIC_STRING
     secKey = hashlib.sha1((secKey).encode('utf-8')).digest()
     secKey = base64.b64encode(secKey).decode('utf-8')
     return bytes(RESPONSE_TEMPLATE % secKey, encoding='utf-8')
 
 
-def websocketRead(sock) -> bytes:
+def _websocketRead(sock) -> bytes:
     response = sock.read(2)
     if len(response) != 2:
         return b""
@@ -63,10 +60,10 @@ def websocketRead(sock) -> bytes:
         response += sock.read(4096)
         loop -= 1
     response += sock.read(remain)
-    return decodeMsg(response)
+    return _websocketDecodeMsg(response)
 
 
-def decodeMsg(data) -> bytes:
+def _websocketDecodeMsg(data) -> bytes:
     payload_len = data[1] & 0b1111111
     if payload_len is 0b1111110:
         mask = data[4:8]
@@ -80,7 +77,7 @@ def decodeMsg(data) -> bytes:
     return bytes(bytearray([decoded[i] ^ mask[i % 4] for i in range(len(decoded))]))
 
 
-def encodeMsg(msg_bytes, token=b"\x81") -> bytes:
+def _websocketEncodeMsg(msg_bytes, token=b"\x81") -> bytes:
     length = len(msg_bytes)
     if length <= 125:
         token += struct.pack("B", length)

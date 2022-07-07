@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel='stylesheet' href='/static/css/pluginsCss.css'/>
+    <link rel='stylesheet' href='/static/css/plugins.css'/>
+    <link rel='stylesheet' href='/static/css/luckysheet.css'/>
+    <link rel='stylesheet' href='/static/css/iconfont.css'/>
+    <script src="/static/js/plugin.js"></script>
+    <script src="/static/js/luckysheet.umd.js"></script>
+</head>
+<body>
+<div id="lucky" style="margin:0px;padding:0px;position:absolute;width:100%;height:100%;left: 0px;top: 20px;"></div>
+</body>
+<script>
+options = {
+  container: 'lucky',
+  title: "test",
+  lang: 'zh',
+  allowUpdate: true,
+  loadUrl: "/luckysheet/api/loadUrl",
+  updateUrl: `ws://${document.location.host}/luckysheet/api/updateUrl`,
+}
+window.luckysheet.create(options);
+</script>
+</html>
