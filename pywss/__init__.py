@@ -16,7 +16,7 @@ from pywss.statuscode import *
 from pywss.websocket import WebsocketContextWrap
 from pywss.static import NewStaticHandler
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 class _Run:
