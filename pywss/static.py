@@ -32,6 +32,6 @@ def NewStaticHandler(root, default="application/octet-stream"):
             ctx.set_content_type("image/png")
         else:
             ctx.set_content_type(default)
-        ctx.write(open(file, "rb"))
+        ctx.write_file(open(file, "rb"))
 
     return staticHandler

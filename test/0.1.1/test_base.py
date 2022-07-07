@@ -14,6 +14,7 @@ class TestBase(unittest.TestCase):
         resp = pywss.test.HttpRequest(app).get("/text")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "test")
+        self.assertEqual(int(resp.headers.get("Content-Length")), 4)
 
         resp = pywss.test.HttpRequest(app).get("/NoFound")
         self.assertEqual(resp.status_code, 404)
@@ -50,6 +51,7 @@ class TestBase(unittest.TestCase):
         resp = pywss.test.HttpRequest(app).get(f"/test/{__name__}.py")
         self.assertEqual(resp.status_code, 200)
         self.assertTrue("test_static" in resp.body)
+        self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
 
     def test_middleware(self):
         def auth(ctx: pywss.Context):

@@ -114,6 +114,9 @@ class Context:
             header.append(key[0].upper() + key[1:].lower())
         self.response_headers["-".join(header)] = v
 
+    def set_content_length(self, size: int):
+        self.response_headers["Content-Length"] = self.response_headers.get("Content-Length", 0) + size
+
     def set_content_type(self, v):
         self.response_headers.setdefault("Content-Type", v)
 
@@ -185,18 +188,25 @@ class Context:
             self.write_file(body)
 
     def write_text(self, data: str):
+        if isinstance(data, str):
+            data = data.encode()
+        self.set_content_length(len(data))
         self.set_content_type("text/html; charset=utf-8")
         self.response_body.append(data)
 
     def write_json(self, data):
+        data = json.dumps(data, ensure_ascii=False).encode()
+        self.set_content_length(len(data))
         self.set_content_type("application/json")
-        self.response_body.append(json.dumps(data, ensure_ascii=False))
+        self.response_body.append(data)
 
     def write_file(self, file):
         if isinstance(file, str) and os.path.exists(file):
-            self.response_body.append(open(file, "rb"))
-        elif isinstance(file, BufferedReader):
-            self.response_body.append(file)
+            file = open(file, "rb")
+        if not isinstance(file, BufferedReader):
+            raise Exception("invalid file type")
+        self.set_content_length(os.stat(file.fileno())[6])
+        self.response_body.append(file)
 
     def ws_read(self):
         raise NotImplementedError
