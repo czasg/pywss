@@ -33,8 +33,8 @@ class Pool:
 def load(ctx: pywss.Context):
     data = json.dumps([
         {
-            "name": "Pywss",
-            "index": "sheet_1",
+            "name": "Cell",
+            "index": "sheet_01",
             "order": 0,
             "status": 1,
             "celldata": [],
