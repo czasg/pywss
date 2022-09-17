@@ -15,6 +15,7 @@ from pywss.headers import *
 from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
 from pywss.static import NewStaticHandler
+from pywss.routing import Route
 
 __version__ = '0.1.2'
 
@@ -37,7 +38,8 @@ class Context:
     _handler_index = 0
     _flush_header = False
 
-    def __init__(self, fd, r, method, path, version, headers, route, handlers, address):
+    def __init__(self, app, fd, r, method, path, paths, version, headers, route, handlers, address):
+        self.app = app
         self.fd = fd
         self.rfd = r
         self.method = method
@@ -45,6 +47,7 @@ class Context:
         self.headers = headers
         self.cookies = parse_cookies(headers)
         self.path = path
+        self.paths = paths
         self.params = parse_params(path)
         self.route = route
         self._handlers = handlers
@@ -241,7 +244,9 @@ class App:
     def __init__(self, base_route="", base_handlers=None):
         self.base_route = f"/{base_route.strip().strip('/')}" if base_route else base_route
         self.base_handlers = list(base_handlers) if base_handlers else []
+        # self.temp_match_routes = {}
         self.head_match_routes = []
+        self.parse_match_routes = []
         self.full_match_routes = {}
         self.log = loggus.GetLogger()
 
@@ -256,6 +261,16 @@ class App:
                 v.build()
                 routes.update(v.full_match_routes)
                 self.head_match_routes += v.head_match_routes
+                self.parse_match_routes += v.parse_match_routes
+            elif "{" in route and "}" in route:
+                self.parse_match_routes.append(
+                    (Route.from_route(route), v)
+                )
+                self.log.update({
+                    "type": "parsermatch",
+                    "route": route,
+                    "handlers": [handler.__name__ for handler in v],
+                }).info(f"bind route")
             elif route.endswith("*"):
                 match = route.strip().rstrip("/*").rstrip("*")
                 self.head_match_routes.append((match, v))
@@ -325,28 +340,39 @@ class App:
             r = request.makefile("rb", -1)
             method, path, version, err = parse_request_line(r)
             if err:
-                request.sendall(b"HTTP/1.1 404 Pywss\r\n")
+                request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                 return
             log = log.update(method=method, path=path)
             hes, err = parse_headers(r)
             if err:
-                request.sendall(b"HTTP/1.1 404 Pywss\r\n")
+                request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                 log.error(err)
                 return
             # full match
+            paths = {}
             route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
             handlers = self.full_match_routes.get(route, None)
+            # parser match
+            if not handlers:
+                for r, v in self.parse_match_routes:
+                    fix, ps = r.match(route)
+                    if fix:
+                        route = r.route
+                        handlers = v
+                        paths = ps
+                        break
             # head match
             if not handlers:
                 for r, v in self.head_match_routes:
                     if route.startswith(r):
                         route = r
                         handlers = v
+                        break
             if not handlers:
-                request.sendall(b"HTTP/1.1 404 Pywss\r\n")
+                request.sendall(b"HTTP/1.1 404 NotFound\r\n")
                 log.error("No Handler")
                 return
-            ctx = Context(request, r, method, path, version, hes, route, handlers, address)
+            ctx = Context(self, request, r, method, path, paths, version, hes, route, handlers, address)
             ctx.log = log
             ctx.next()
             ctx.flush()
