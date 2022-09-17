@@ -20,20 +20,6 @@ from pywss.routing import Route
 __version__ = '0.1.2'
 
 
-class _Run:
-    running = True
-
-    @classmethod
-    def stop(cls):
-        cls.running = False
-
-
-signal.signal(signal.SIGTERM, lambda *args: _Run.stop())
-signal.signal(signal.SIGINT, lambda *args: _Run.stop())
-signal.signal(signal.SIGILL, lambda *args: _Run.stop())
-atexit.register(lambda: _Run.stop())
-
-
 class Context:
     _handler_index = 0
     _flush_header = False
@@ -381,7 +367,21 @@ class App:
         finally:
             request.close()
 
-    def run(self, host="0.0.0.0", port=8080, grace=3, request_queue_size=5, poll_interval=0.5):
+    def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5):
+        class Switch:
+
+            def __init__(self):
+                self.running = True
+
+            def stop(self):
+                self.running = False
+
+        switch = Switch()
+        signal.signal(signal.SIGTERM, lambda *args: switch.stop())
+        signal.signal(signal.SIGINT, lambda *args: switch.stop())
+        signal.signal(signal.SIGILL, lambda *args: switch.stop())
+        atexit.register(lambda *args: switch.stop())
+
         self.build()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((host, port))
@@ -394,7 +394,7 @@ class App:
                     update(version=__version__). \
                     variables(host, port, grace). \
                     info("server start")
-                while _Run.running:
+                while switch.running:
                     ready = _selector.select(poll_interval)
                     if not ready:
                         continue
