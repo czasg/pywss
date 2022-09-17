@@ -13,7 +13,7 @@ from _io import BufferedReader
 from datetime import timedelta
 from pywss.headers import *
 from pywss.statuscode import *
-from pywss.websocket import WebsocketContextWrap
+from pywss.websocket import WebSocketContextWrap
 from pywss.static import NewStaticHandler
 
 __version__ = '0.1.2'
