@@ -230,7 +230,6 @@ class App:
     def __init__(self, base_route="", base_handlers=None):
         self.base_route = f"/{base_route.strip().strip('/')}" if base_route else base_route
         self.base_handlers = list(base_handlers) if base_handlers else []
-        # self.temp_match_routes = {}
         self.head_match_routes = []
         self.parse_match_routes = []
         self.full_match_routes = {}
