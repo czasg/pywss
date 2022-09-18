@@ -11,6 +11,7 @@ import selectors
 
 from _io import BufferedReader
 from datetime import timedelta
+from collections import defaultdict
 from pywss.headers import *
 from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
@@ -24,10 +25,10 @@ class Context:
     _handler_index = 0
     _flush_header = False
 
-    def __init__(self, app, fd, r, method, path, paths, version, headers, route, handlers, address):
+    def __init__(self, app, fd, rfd, method, path, paths, version, headers, route, handlers, address):
         self.app = app
         self.fd = fd
-        self.rfd = r
+        self.rfd = rfd
         self.method = method
         self.version = version
         self.headers = headers
@@ -43,7 +44,7 @@ class Context:
         self.content_length = int(headers.get("Content-Length", 0))
         self.content = b""
         if self.content_length:
-            self.content = r.read(self.content_length)
+            self.content = rfd.read(self.content_length)
 
         self.response_status_code = 200
         self.response_headers = {
@@ -234,6 +235,14 @@ class App:
         self.parse_match_routes = []
         self.full_match_routes = {}
         self.log = loggus.GetLogger()
+        self.openapi_data = {
+            "openapi": "3.0.2",
+            "info": {
+                "title": "FastAPI",
+                "version": "0.1.0"
+            },
+            "paths": defaultdict(dict),
+        }
 
     def register(self, method, route, handlers):
         route = f"/{route.strip().strip('/')}" if route else route
@@ -248,9 +257,24 @@ class App:
                 self.head_match_routes += v.head_match_routes
                 self.parse_match_routes += v.parse_match_routes
             elif "{" in route and "}" in route:
+                r = Route.from_route(route)
                 self.parse_match_routes.append(
-                    (Route.from_route(route), v)
+                    (r, v)
                 )
+                if hasattr(v[-1], "__openapi_path__"):
+                    i = route.index("/")
+                    _method, _route = route[:i], route[i:]
+                    path = v[-1].__openapi_path__
+                    for node in r.route_list:
+                        if not node.name:
+                            continue
+                        if f"{node.name}:in:path" in path["_parameters_filter"]:
+                            continue
+                        path["parameters"].append({
+                            "name": node.name,
+                            "in": "path"
+                        })
+                    self.openapi_data["paths"][_route][_method.lower()] = path
                 self.log.update({
                     "type": "parsermatch",
                     "route": route,
@@ -266,6 +290,10 @@ class App:
                 }).info(f"bind route")
             else:
                 routes[route] = v
+                if hasattr(v[-1], "__openapi_path__"):
+                    i = route.index("/")
+                    _method, _route = route[:i], route[i:]
+                    self.openapi_data["paths"][_route][_method.lower()] = v[-1].__openapi_path__
                 self.log.update({
                     "type": "fullmatch",
                     "route": route,
@@ -322,13 +350,13 @@ class App:
     def _(self, request, address):
         log = self.log
         try:
-            r = request.makefile("rb", -1)
-            method, path, version, err = parse_request_line(r)
+            rfd = request.makefile("rb", -1)
+            method, path, version, err = parse_request_line(rfd)
             if err:
                 request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                 return
             log = log.update(method=method, path=path)
-            hes, err = parse_headers(r)
+            hes, err = parse_headers(rfd)
             if err:
                 request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                 log.error(err)
@@ -355,9 +383,9 @@ class App:
                         break
             if not handlers:
                 request.sendall(b"HTTP/1.1 404 NotFound\r\n")
-                log.error("No Handler")
+                log.warning("No Handler")
                 return
-            ctx = Context(self, request, r, method, path, paths, version, hes, route, handlers, address)
+            ctx = Context(self, request, rfd, method, path, paths, version, hes, route, handlers, address)
             ctx.log = log
             ctx.next()
             ctx.flush()
