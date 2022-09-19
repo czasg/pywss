@@ -17,6 +17,7 @@ from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
 from pywss.static import NewStaticHandler
 from pywss.routing import Route
+from pywss.openapi import openapi_ui_template, merge_dict
 
 __version__ = '0.1.2'
 
@@ -39,7 +40,7 @@ class Context:
         self.route = route
         self._handlers = handlers
         self.address = address
-        self.log: loggus.Entry = None
+        self.log: loggus.Entry
 
         self.content_length = int(headers.get("Content-Length", 0))
         self.content = b""
@@ -235,12 +236,7 @@ class App:
         self.parse_match_routes = []
         self.full_match_routes = {}
         self.log = loggus.GetLogger()
-        self.openapi_data = {
-            "openapi": "3.0.2",
-            "info": {
-                "title": "FastAPI",
-                "version": "0.1.0"
-            },
+        self.openapi_data = self.openapi_data = {
             "paths": defaultdict(dict),
         }
 
@@ -256,6 +252,7 @@ class App:
                 routes.update(v.full_match_routes)
                 self.head_match_routes += v.head_match_routes
                 self.parse_match_routes += v.parse_match_routes
+                self.openapi_data = merge_dict(self.openapi_data, v.openapi_data)
             elif "{" in route and "}" in route:
                 r = Route.from_route(route)
                 self.parse_match_routes.append(
@@ -346,6 +343,31 @@ class App:
         self.delete(route, *handlers)
         self.patch(route, *handlers)
         self.options(route, *handlers)
+
+    def openapi(
+            self,
+            title="OpenAPI",
+            version="0.0.1",
+            openapi_json_route="/openapi.json",
+            openapi_ui_route="/docs",
+            openapi_ui_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui-bundle.js",
+            openapi_ui_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui.css",
+    ):
+        self.openapi_data = {
+            "openapi": "3.0.2",
+            "info": {
+                "title": title,
+                "version": version
+            },
+            "paths": defaultdict(dict),
+        }
+        self.get(openapi_json_route, lambda ctx: ctx.write(self.openapi_data))
+        self.get(openapi_ui_route, lambda ctx: ctx.write(openapi_ui_template(
+            title,
+            f"{self.base_route}/{openapi_json_route.strip('/')}",
+            openapi_ui_js_url,
+            openapi_ui_css_url,
+        )))
 
     def _(self, request, address):
         log = self.log

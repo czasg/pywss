@@ -1,50 +1,4 @@
 # coding: utf-8
-
-
-# def transfer(object, properties=False):
-#     resp = {}
-#     if isinstance(object, dict):
-#         for k, v in object.items():
-#             description = None
-#             if isinstance(v, tuple):
-#                 v, description, = v
-#             if not v:
-#                 resp[k] = {
-#                     "example": v
-#                 }
-#             elif isinstance(v, dict):
-#                 resp[k] = transfer(v, True)
-#             elif isinstance(v, list) and isinstance(v[0], tuple):
-#                 v0, description, = v[0]
-#                 resp[k] = {
-#                     "items": transfer(v0, True)
-#                 }
-#             elif isinstance(v, list) and isinstance(v[0], (dict, list)):
-#                 resp[k] = {
-#                     "items": transfer(v[0], True),
-#                 }
-#             else:
-#                 resp[k] = {
-#                     "example": v
-#                 }
-#             if description:
-#                 resp[k]["description"] = description
-#         if properties:
-#             return {"properties": resp}
-#         return resp
-#     elif isinstance(object, list):
-#         # if isinstance(object[0], tuple):
-#         #     object0, description = object
-#         #     return {
-#         #         "description": description,
-#         #     }
-#         if isinstance(object[0], list):
-#             return {"items": transfer(object[0])}
-#         if isinstance(object[0], dict):
-#             return transfer(object[0], True)
-#         return {"example": object}
-#     return resp
-
 def transfer(object):
     if isinstance(object, dict):
         return transfer_dict(object)
@@ -82,7 +36,6 @@ def transfer_list(object: list):
     if isinstance(object[0], tuple):
         object0, description, = object[0]
         items = transfer(object0)
-        # if isinstance(items, dict):
         items["description"] = description
         return {"items": items}
     if isinstance(object[0], list):
@@ -100,13 +53,35 @@ def mid_split(param, split, default):
     return params[-1]
 
 
+def get_object_content_type(object):
+    if isinstance(object, (dict, list)):
+        return "application/json"
+    return "application/octet-stream"
+
+
+def get_object_type(object):
+    if isinstance(object, dict):
+        return "object"
+    if isinstance(object, list):
+        return "array"
+    return "string"
+
+
+def get_schema(object):
+    resp = transfer(object)
+    resp["type"] = get_object_type(object)
+    return resp
+
+
 def docs(
         summary: str = None,
         description: str = None,
         tags: list = None,
         params: dict = None,
-        request=None,
-        response=None,
+        request: dict or str = None,
+        request_type: str = None,
+        response: dict or list or str = None,
+        responses_type: str = None,
         responses: dict = None,
 ):
     if not responses:
@@ -129,11 +104,8 @@ def docs(
         },
         "requestBody": {
             "content": {
-                "application/json": {
-                    "schema": {
-                        "type": "object",
-                        "properties": transfer(request).pop("properties", {})
-                    },
+                request_type or get_object_content_type(request): {
+                    "schema": get_schema(request),
                 }
             }
         },
@@ -141,11 +113,8 @@ def docs(
             f"{code.split(':desc:', 1)[0]}": {
                 "description": mid_split(code, ":desc:", "No Response Description"),
                 "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": transfer(resp).pop("properties", {})
-                        },
+                    responses_type or get_object_content_type(resp): {
+                        "schema": get_schema(resp),
                     }
                 }
             }
@@ -158,3 +127,60 @@ def docs(
         return func
 
     return wrap
+
+
+def merge_dict(dict1: dict, dict2: dict):
+    resp = {}
+    for k, v in dict1.items():
+        if k not in dict2:
+            resp[k] = v
+            continue
+        if isinstance(v, dict) and isinstance(dict2[k], dict):
+            resp[k] = merge_dict(v, dict2[k])
+            continue
+        resp[k] = v
+    for k, v in dict2.items():
+        if k not in dict1:
+            resp[k] = v
+            continue
+        if isinstance(v, dict) and isinstance(dict1[k], dict):
+            resp[k] = merge_dict(v, dict1[k])
+            continue
+    return resp
+
+
+def openapi_ui_template(
+        title,
+        openapi_json,
+        openapi_ui_js_url,
+        openapi_ui_css_url,
+):
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <link type="text/css" rel="stylesheet" href="{openapi_ui_css_url}">
+    <title>{title}</title>
+    </head>
+    <body>
+    <div id="swagger-ui">
+    </div>
+    <script src="{openapi_ui_js_url}"></script>
+    <!-- `SwaggerUIBundle` is now available on the page -->
+    <script>
+    const ui = SwaggerUIBundle({{
+        url: '{openapi_json}',
+        dom_id: '#swagger-ui',
+        layout: 'BaseLayout',
+        deepLinking: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset
+            ],
+        }})
+    </script>
+        </body>
+        </html>
+    """
