@@ -1,42 +1,95 @@
 # coding: utf-8
 
 
+# def transfer(object, properties=False):
+#     resp = {}
+#     if isinstance(object, dict):
+#         for k, v in object.items():
+#             description = None
+#             if isinstance(v, tuple):
+#                 v, description, = v
+#             if not v:
+#                 resp[k] = {
+#                     "example": v
+#                 }
+#             elif isinstance(v, dict):
+#                 resp[k] = transfer(v, True)
+#             elif isinstance(v, list) and isinstance(v[0], tuple):
+#                 v0, description, = v[0]
+#                 resp[k] = {
+#                     "items": transfer(v0, True)
+#                 }
+#             elif isinstance(v, list) and isinstance(v[0], (dict, list)):
+#                 resp[k] = {
+#                     "items": transfer(v[0], True),
+#                 }
+#             else:
+#                 resp[k] = {
+#                     "example": v
+#                 }
+#             if description:
+#                 resp[k]["description"] = description
+#         if properties:
+#             return {"properties": resp}
+#         return resp
+#     elif isinstance(object, list):
+#         # if isinstance(object[0], tuple):
+#         #     object0, description = object
+#         #     return {
+#         #         "description": description,
+#         #     }
+#         if isinstance(object[0], list):
+#             return {"items": transfer(object[0])}
+#         if isinstance(object[0], dict):
+#             return transfer(object[0], True)
+#         return {"example": object}
+#     return resp
+
 def transfer(object):
-    if not object:
-        return {}
     if isinstance(object, dict):
-        resp = {}
-        for k, v in object.items():
-            description = None
-            if isinstance(v, tuple):
-                v, description, = v
-            if isinstance(v, dict):
-                resp[k] = {
-                    "properties": transfer(v),
-                }
-            elif isinstance(v, list) and v and isinstance(v[0], (dict, list)):
-                if isinstance(v[0], dict):
-                    resp[k] = {
-                        "items": {
-                            "properties": transfer(v[0])
-                        },
-                    }
-                if isinstance(v[0], list):
-                    resp[k] = {
-                        "items": transfer(v[0]),
-                    }
-            else:
-                resp[k] = {
-                    "example": v,
-                }
-            if description:
-                resp[k]["description"] = description
-        return resp
+        return transfer_dict(object)
     if isinstance(object, list):
-        if isinstance(object[0], list):
-            return {"items": transfer(object[0])}
-        if isinstance(object[0], dict):
-            return {"properties": transfer(object[0])}
+        return transfer_list(object)
+    return {}
+
+
+def transfer_dict(object: dict):
+    data = {}
+    for k, v in object.items():
+        description = None
+        if isinstance(v, tuple):
+            v, description, = v
+        if not v:
+            data[k] = {
+                "example": v
+            }
+        elif isinstance(v, dict):
+            data[k] = transfer_dict(v)
+        elif isinstance(v, list):
+            data[k] = transfer_list(v)
+        else:
+            data[k] = {
+                "example": v
+            }
+        if description:
+            data[k]["description"] = description
+    return {"properties": data}
+
+
+def transfer_list(object: list):
+    if not object:
+        return {"example": object}
+    if isinstance(object[0], tuple):
+        object0, description, = object[0]
+        items = transfer(object0)
+        # if isinstance(items, dict):
+        items["description"] = description
+        return {"items": items}
+    if isinstance(object[0], list):
+        return {"items": transfer_list(object[0])}
+    elif isinstance(object[0], dict):
+        return {"items": transfer_dict(object[0])}
+    else:
         return {"example": object}
 
 
@@ -79,7 +132,7 @@ def docs(
                 "application/json": {
                     "schema": {
                         "type": "object",
-                        "properties": transfer(request)
+                        "properties": transfer(request).pop("properties", {})
                     },
                 }
             }
@@ -91,7 +144,7 @@ def docs(
                     "application/json": {
                         "schema": {
                             "type": "object",
-                            "properties": transfer(resp)
+                            "properties": transfer(resp).pop("properties", {})
                         },
                     }
                 }
