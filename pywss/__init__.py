@@ -40,7 +40,7 @@ class Context:
         self.route = route
         self._handlers = handlers
         self.address = address
-        self.log: loggus.Entry
+        self.log: loggus.Entry = None
 
         self.content_length = int(headers.get("Content-Length", 0))
         self.content = b""
