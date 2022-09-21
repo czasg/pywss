@@ -3,7 +3,6 @@ import os, re
 import json
 import time
 import signal
-import atexit
 import loggus
 import socket
 import threading
@@ -17,7 +16,7 @@ from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
 from pywss.static import NewStaticHandler
 from pywss.routing import Route
-from pywss.openapi import openapi_ui_template, merge_dict
+from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
 __version__ = '0.1.2'
 
@@ -230,6 +229,7 @@ class Context:
 class App:
 
     def __init__(self, base_route="", base_handlers=None):
+        self.running = True
         self.base_route = f"/{base_route.strip().strip('/')}" if base_route else base_route
         self.base_handlers = list(base_handlers) if base_handlers else []
         self.head_match_routes = []
@@ -240,11 +240,11 @@ class App:
             "paths": defaultdict(dict),
         }
 
-    def register(self, method, route, handlers):
+    def register(self, method, route, handlers) -> None:
         route = f"/{route.strip().strip('/')}" if route else route
         self.full_match_routes[f"{method}{self.base_route}{route}"] = list(self.base_handlers) + list(handlers)
 
-    def build(self):
+    def build(self) -> None:
         routes = {}
         for route, v in self.full_match_routes.items():
             if isinstance(v, App):
@@ -265,11 +265,12 @@ class App:
                     for node in r.route_list:
                         if not node.name:
                             continue
-                        if f"{node.name}:in:path" in path["_parameters_filter"]:
+                        if parameters_filter(node.name, path["parameters"]):
                             continue
                         path["parameters"].append({
                             "name": node.name,
-                            "in": "path"
+                            "in": "path",
+                            "required": True,
                         })
                     if _route not in self.openapi_data["paths"]:
                         self.openapi_data["paths"][_route] = {}
@@ -302,16 +303,16 @@ class App:
                 }).info(f"bind route")
         self.full_match_routes = routes
 
-    def party(self, route, *handlers):
+    def party(self, route, *handlers) -> 'App':
         route = f"{self.base_route}/{route.strip().strip('/')}"
         if route not in self.full_match_routes:
             self.full_match_routes[route] = App(route, list(self.base_handlers) + list(handlers))
         return self.full_match_routes[route]
 
-    def use(self, *handlers):
+    def use(self, *handlers) -> None:
         self.base_handlers += list(handlers)
 
-    def static(self, route, rootDir, *handlers, staticHandler=NewStaticHandler):
+    def static(self, route, rootDir, *handlers, staticHandler=NewStaticHandler) -> None:
         if staticHandler:
             handlers = list(handlers)
             handlers.append(staticHandler(rootDir))
@@ -319,28 +320,28 @@ class App:
             route = f"{route.strip().rstrip('/')}/*"
         self.register("GET", route, handlers)
 
-    def get(self, route, *handlers):
+    def get(self, route, *handlers) -> None:
         self.register("GET", route, handlers)
 
-    def post(self, route, *handlers):
+    def post(self, route, *handlers) -> None:
         self.register("POST", route, handlers)
 
-    def head(self, route, *handlers):
+    def head(self, route, *handlers) -> None:
         self.register("HEAD", route, handlers)
 
-    def put(self, route, *handlers):
+    def put(self, route, *handlers) -> None:
         self.register("PUT", route, handlers)
 
-    def delete(self, route, *handlers):
+    def delete(self, route, *handlers) -> None:
         self.register("DELETE", route, handlers)
 
-    def patch(self, route, *handlers):
+    def patch(self, route, *handlers) -> None:
         self.register("PATCH", route, handlers)
 
-    def options(self, route, *handlers):
+    def options(self, route, *handlers) -> None:
         self.register("OPTIONS", route, handlers)
 
-    def any(self, route, *handlers):
+    def any(self, route, *handlers) -> None:
         self.get(route, *handlers)
         self.post(route, *handlers)
         self.head(route, *handlers)
@@ -355,9 +356,9 @@ class App:
             version="0.0.1",
             openapi_json_route="/openapi.json",
             openapi_ui_route="/docs",
-            openapi_ui_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui-bundle.js",
-            openapi_ui_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui.css",
-    ):
+            openapi_ui_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui-bundle.js",
+            openapi_ui_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui.css",
+    ) -> None:
         self.openapi_data = {
             "openapi": "3.0.2",
             "info": {
@@ -374,7 +375,7 @@ class App:
             openapi_ui_css_url,
         )))
 
-    def _(self, request, address):
+    def _(self, request, address) -> None:
         log = self.log
         try:
             rfd = request.makefile("rb", -1)
@@ -421,20 +422,13 @@ class App:
         finally:
             request.close()
 
-    def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5):
-        class Switch:
+    def close(self) -> None:
+        self.running = False
 
-            def __init__(self):
-                self.running = True
-
-            def stop(self):
-                self.running = False
-
-        switch = Switch()
-        signal.signal(signal.SIGTERM, lambda *args: switch.stop())
-        signal.signal(signal.SIGINT, lambda *args: switch.stop())
-        signal.signal(signal.SIGILL, lambda *args: switch.stop())
-        atexit.register(lambda *args: switch.stop())
+    def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5) -> None:
+        signal.signal(signal.SIGTERM, lambda *args: self.close())
+        signal.signal(signal.SIGINT, lambda *args: self.close())
+        signal.signal(signal.SIGILL, lambda *args: self.close())
 
         self.build()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -448,7 +442,7 @@ class App:
                     update(version=__version__). \
                     variables(host, port, grace). \
                     info("server start")
-                while switch.running:
+                while self.running:
                     ready = _selector.select(poll_interval)
                     if not ready:
                         continue

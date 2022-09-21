@@ -1,5 +1,5 @@
 # coding: utf-8
-def transfer(object):
+def transfer(object) -> dict:
     if isinstance(object, dict):
         return transfer_dict(object)
     if isinstance(object, list):
@@ -46,13 +46,6 @@ def transfer_list(object: list):
         return {"example": object}
 
 
-def mid_split(param, split, default):
-    params = param.split(split, 1)
-    if len(params) == 1:
-        return default
-    return params[-1]
-
-
 def get_object_content_type(object):
     if isinstance(object, (dict, list)):
         return "application/json"
@@ -73,6 +66,40 @@ def get_schema(object):
     return resp
 
 
+def get_parameters(object):
+    if not object:
+        return []
+    resp = []
+    for param, desc in object.items():
+        params = {
+            "name": param,
+            "description": desc,
+            "in": "query",
+            "required": False
+        }
+        if ":" not in param:
+            resp.append(params)
+            continue
+        pars = param.split(":", 1)
+        params["name"] = pars[0]
+        for par in pars[1].split(","):
+            if par in ("query", "header", "path", "cookie"):
+                params["in"] = par
+            elif par == "required":
+                params["required"] = True
+        resp.append(params)
+    return resp
+
+
+def parameters_filter(path, object):
+    if not object:
+        return False
+    for param in object:
+        if param["name"] == path and param["in"] == "path":
+            return True
+    return False
+
+
 def docs(
         summary: str = None,
         description: str = None,
@@ -85,23 +112,12 @@ def docs(
         responses: dict = None,
 ):
     if not responses:
-        responses = {"200:desc:Response OK": response}
+        responses = {"200:Response OK": response}
     path = {
         "summary": summary,
         "description": description,
         "tags": tags,
-        "parameters": [
-            {
-                "name": param.split(":in:", 1)[0],
-                "description": desc,
-                "in": mid_split(param, ":in:", "query")
-            }
-            for param, desc in (params or {}).items()
-        ],
-        "_parameters_filter": {
-            param if ":in:" in param else f"{param}:in:query": None
-            for param in (params or {}).keys()
-        },
+        "parameters": get_parameters(params),
         "requestBody": {
             "content": {
                 request_type or get_object_content_type(request): {
@@ -110,8 +126,8 @@ def docs(
             }
         },
         "responses": {
-            f"{code.split(':desc:', 1)[0]}": {
-                "description": mid_split(code, ":desc:", "No Response Description"),
+            f"{code.split(':', 1)[0]}": {
+                "description": code[code.index(':') + 1:] if ":" in code else "No Response Description",
                 "content": {
                     responses_type or get_object_content_type(resp): {
                         "schema": get_schema(resp),
