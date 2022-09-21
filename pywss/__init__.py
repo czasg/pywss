@@ -253,6 +253,9 @@ class App:
                 self.head_match_routes += v.head_match_routes
                 self.parse_match_routes += v.parse_match_routes
                 self.openapi_data = merge_dict(self.openapi_data, v.openapi_data)
+        for route, v in self.full_match_routes.items():
+            if isinstance(v, App):
+                continue
             elif "{" in route and "}" in route:
                 r = Route.from_route(route)
                 self.parse_match_routes.append(
