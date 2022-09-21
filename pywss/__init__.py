@@ -236,7 +236,7 @@ class App:
         self.parse_match_routes = []
         self.full_match_routes = {}
         self.log = loggus.GetLogger()
-        self.openapi_data = self.openapi_data = {
+        self.openapi_data = {
             "paths": defaultdict(dict),
         }
 
@@ -271,6 +271,8 @@ class App:
                             "name": node.name,
                             "in": "path"
                         })
+                    if _route not in self.openapi_data["paths"]:
+                        self.openapi_data["paths"][_route] = {}
                     self.openapi_data["paths"][_route][_method.lower()] = path
                 self.log.update({
                     "type": "parsermatch",
@@ -290,6 +292,8 @@ class App:
                 if hasattr(v[-1], "__openapi_path__"):
                     i = route.index("/")
                     _method, _route = route[:i], route[i:]
+                    if _route not in self.openapi_data["paths"]:
+                        self.openapi_data["paths"][_route] = {}
                     self.openapi_data["paths"][_route][_method.lower()] = v[-1].__openapi_path__
                 self.log.update({
                     "type": "fullmatch",
@@ -300,8 +304,9 @@ class App:
 
     def party(self, route, *handlers):
         route = f"{self.base_route}/{route.strip().strip('/')}"
-        self.full_match_routes[f"{route}"] = App(route, list(self.base_handlers) + list(handlers))
-        return self.full_match_routes[f"{route}"]
+        if route not in self.full_match_routes:
+            self.full_match_routes[route] = App(route, list(self.base_handlers) + list(handlers))
+        return self.full_match_routes[route]
 
     def use(self, *handlers):
         self.base_handlers += list(handlers)
