@@ -1,15 +1,16 @@
 ## Pywss - Python Web/WebSocket Server
 ![Project status](https://img.shields.io/badge/version-0.1.3-green.svg)
 
-> pip install pywss
+> pip3 install pywss
 
 Pywss 是一个轻量级的 Python 后端框架。功能清单：   
-- [x] websocket
-- [x] http server & test
-- [x] route party
-- [x] static file
+- [x] websocket upgrade
 - [x] openapi
 - [x] swagger ui
+- [x] route party
+- [x] middleware
+- [x] static server
+- [x] api test
 
 ## 一、快速使用手册
 
@@ -26,8 +27,9 @@ Pywss 是一个轻量级的 Python 后端框架。功能清单：
 ```python
 import pywss
 
-app = pywss.App()
-app.run()  # 启动服务
+app = pywss.App()  # 初始化app
+
+app.run(port=8080)  # 启动服务
 ```
 
 ### 2、绑定路由
@@ -38,8 +40,11 @@ def hello(ctx: pywss.Context):
     ctx.write({"hello": ctx.paths["name"]})
 
 app = pywss.App()
+
 app.get("/hello", lambda ctx: ctx.write({"hello": "world"})) # 注册路由 & 绑定匿名函数
+
 app.post("/hello/{name}", hello) # 注册路由
+
 app.run(port=8080)
 ```
 在终端界面执行：
@@ -107,8 +112,11 @@ def auth_handler(ctx: pywss.Context):
     ctx.next()
 
 app = pywss.App()
+
 app.use(log_handler)  # 注册全局中间件
+
 app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"}))  # 也可以直接在此注册
+
 app.run()
 ```
 支持 `use` 注册全局中间件，也支持单个路由绑定中间件。    
@@ -133,7 +141,9 @@ def websocket(ctx: pywss.Context):
 
 
 app = pywss.App()
+
 app.get("/websocket", websocket)
+
 app.run()
 ``` 
 WebSocket 本质基于 GET 升级实现，Pywss 则通过 `WebSocketContextWrap` 完成此处升级。    
@@ -181,13 +191,16 @@ def hello(ctx: pywss.Context):
     })
 
 app = pywss.App()
+
 app.openapi(  # 开启 openapi
     title="OpenAPI",
     version="0.0.1",
     openapi_json_route="/openapi.json",
     openapi_ui_route="/docs",
 )
+
 app.post("/hello/{name}", hello)
+
 app.run()
 ```
 打开浏览器，访问 [localhost:8080/docs](htto://localhost:8080/docs)
@@ -213,14 +226,14 @@ app.run()
 import pywss
 import pywss.test
 
-# 初始化app并注册路由
 app = pywss.App()
+
 app.get("/test", lambda ctx: ctx.set_status_code(204))
 
-# 基于app创建HttpRequest
-req = pywss.test.HttpRequest(app)
-# 发起Get请求，获取resp
-resp = req.get("/test")
+req = pywss.test.HttpRequest(app)  # 基于app创建HttpRequest
+
+resp = req.get("/test")  # 发起Get请求，获取resp
+
 assert resp.status_code == 204
 ```
 可以参考 [pywss单元测试](./test/0.1.1/test_base.py)
