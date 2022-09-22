@@ -45,7 +45,7 @@ def load(ctx: pywss.Context):
 
 def update(ctx: pywss.Context):
     # 升级 WebSocket
-    err = pywss.WebsocketContextWrap(ctx)
+    err = pywss.WebSocketContextWrap(ctx)
     if err:
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)

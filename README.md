@@ -72,7 +72,7 @@ import pywss
 
 def websocket(ctx: pywss.Context):
     # 升级 WebSocket
-    err = pywss.WebsocketContextWrap(ctx)
+    err = pywss.WebSocketContextWrap(ctx)
     if err:
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)
@@ -88,7 +88,7 @@ app = pywss.App()
 app.get("/websocket", websocket)
 app.run()
 ``` 
-WebSocket 基于 GET 请求升级实现，而 Pywss 则通过 `WebsocketContextWrap` 完成此处升级。    
+WebSocket 基于 GET 请求升级实现，而 Pywss 则通过 `WebSocketContextWrap` 完成此处升级。    
 测试需要`打开浏览器 -> F12 -> 控制台`，输入以下代码：
 ```
 ws = new WebSocket("ws://127.0.0.1:8080/websocket");

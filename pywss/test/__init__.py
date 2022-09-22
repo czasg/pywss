@@ -99,10 +99,8 @@ class HttpRequest:
         req_message = f"{self.method} {self.path} HTTP/1.1\r\n{header}\r\n\r\n{self.body}"
 
         s, c = socket.socketpair()
-        c.sendall(req_message.encode())
-        self.app._(s, None)
-        r = c.makefile("rb", -1)
-        resp = HttpResponse(r.readlines())
-        s.close()
-        c.close()
-        return resp
+        with s, c:
+            c.sendall(req_message.encode())
+            self.app._(s, None)
+            resp = c.makefile("rb", -1)
+            return HttpResponse(resp.readlines())

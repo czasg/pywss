@@ -86,6 +86,20 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "v2")
 
+    def test_swagger(self):
+        app = pywss.App()
+        app.openapi(title="test")
+        app.get("/hello/{name}", pywss.openapi.docs()(lambda ctx: ctx.write({"hello": ctx.paths["name"]})))
+
+        resp = pywss.test.HttpRequest(app).get("/openapi.json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.body)["info"]["title"], "test")
+        self.assertTrue("/hello/{name}" in json.loads(resp.body)["paths"])
+
+        resp = pywss.test.HttpRequest(app).get("/hello/world")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.body), {"hello": "world"})
+
 
 if __name__ == '__main__':
     unittest.main()
