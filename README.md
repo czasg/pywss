@@ -12,6 +12,16 @@ Pywss 是一个轻量级的 Python 后端框架。
 - [x] swagger ui
 
 ## 一、快速使用手册
+
+- [1、初始化 app 并启动服务](###-1、初始化-app-并启动服务)
+- 2、绑定路由
+- 3、创建子路由
+- 4、使用中间件
+- 5、升级 WebSocket
+- 6、openapi & swagger ui
+- 7、静态文件服务器
+- 8、单元测试
+
 ### 1、初始化 app 并启动服务
 ```python
 import pywss
@@ -176,7 +186,23 @@ app.run()
 ```
 打开浏览器，访问 [localhost:8080/docs](localhost:8080/docs)
 
-### 7、单元测试
+### 7、静态文件服务器
+```python
+import pywss
+
+app = pywss.App()
+app.static("/static", rootDir="/rootDir") # 注册静态资源，需要指定文件根目录
+app.run()
+```
+对于如下目录结构时，可以通过 [localhost:8080/static/index.html](localhost:8080/static/index.html) 进行访问
+```text
+- rootDir
+    - index.html
+    - 200.html
+    - 500.html
+```
+
+### 8、单元测试
 ```python
 import pywss
 import pywss.test
