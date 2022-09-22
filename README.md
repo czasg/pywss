@@ -42,7 +42,7 @@ app.get("/hello", lambda ctx: ctx.write({"hello": "world"})) # 注册路由 & �
 app.post("/hello/{name}", hello) # 注册路由
 app.run(port=8080)
 ```
-在终端命名界面执行：
+在终端界面执行：
 ```shell script
 >>> curl localhost:8080/hello
 {"hello": "world"}
@@ -70,7 +70,7 @@ v2.post("/hello/{name}", hello)
 
 app.run(port=8080)
 ```
-在终端命名界面执行：
+在终端界面执行：
 ```shell script
 >>> curl localhost:8080/api/v1/hello
 {"hello": "v1"}
@@ -110,7 +110,8 @@ app.use(log_handler)  # 注册全局中间件
 app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"}))  # 也可以直接在此注册
 app.run()
 ```
-使用中间件时需要调用 ctx.next() 以便继续执行，否则会中断此次请求。
+支持 `use` 注册全局中间件，也支持单个路由绑定中间件。    
+使用中间件时需要调用 `ctx.next()` 以便继续执行，否则会中断此次请求。     
 
 ### 5、升级WebSocket
 ```python
@@ -134,7 +135,7 @@ app = pywss.App()
 app.get("/websocket", websocket)
 app.run()
 ``` 
-WebSocket 基于 GET 请求升级实现，而 Pywss 则通过 `WebSocketContextWrap` 完成此处升级。    
+WebSocket 本质基于 GET 升级实现，Pywss 则通过 `WebSocketContextWrap` 完成此处升级。    
 测试需要`打开浏览器 -> F12 -> 控制台`，输入以下代码：
 ```
 ws = new WebSocket("ws://127.0.0.1:8080/websocket");
@@ -188,7 +189,7 @@ app.openapi(  # 开启 openapi
 app.post("/hello/{name}", hello)
 app.run()
 ```
-打开浏览器，访问 [localhost:8080/docs](localhost:8080/docs)
+打开浏览器，访问 [localhost:8080/docs](htto://localhost:8080/docs)
 
 ### 7、静态文件服务器
 ```python
@@ -198,7 +199,7 @@ app = pywss.App()
 app.static("/static", rootDir="/rootDir") # 注册静态资源，需要指定文件根目录
 app.run()
 ```
-对于如下目录结构时，可以通过 [localhost:8080/static/index.html](localhost:8080/static/index.html) 进行访问
+对于如下目录结构时，可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
 ```text
 - rootDir
     - index.html
