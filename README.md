@@ -13,16 +13,16 @@ Pywss 是一个轻量级的 Python 后端框架。
 
 ## 一、快速使用手册
 
-- [1、初始化 app 并启动服务](###-1、初始化-app-并启动服务)
-- 2、绑定路由
-- 3、创建子路由
-- 4、使用中间件
-- 5、升级 WebSocket
-- 6、openapi & swagger ui
-- 7、静态文件服务器
-- 8、单元测试
+- [1、初始化app](#1初始化app)
+- [2、绑定路由](#2绑定路由)
+- [3、创建子路由](#3创建子路由)
+- [4、使用中间件](#4使用中间件)
+- [5、升级WebSocket](#5升级WebSocket)
+- [6、openapi & swagger ui](#6openapi-&-swagger-ui)
+- [7、静态文件服务器](#7静态文件服务器)
+- [8、单元测试](#8单元测试)
 
-### 1、初始化 app 并启动服务
+### 1、初始化app
 ```python
 import pywss
 
@@ -108,7 +108,7 @@ app.run()
 ```
 使用中间件时需要调用 ctx.next() 以便继续执行，否则会中断此次请求。
 
-### 5、升级 WebSocket
+### 5、升级WebSocket
 ```python
 import pywss
 
