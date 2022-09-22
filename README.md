@@ -92,12 +92,13 @@ import pywss, time
 def log_handler(ctx: pywss.Context):
     start = time.time()
     ctx.next()  # 调用 next 进入到下一个 handler
+    cost = time.time() - start
     if ctx.response_status_code < 300:
-        ctx.log.info(f"{time.time() - start}")
+        ctx.log.info(cost)
     elif ctx.response_status_code < 400:
-        ctx.log.warning(f"{time.time() - start}")
+        ctx.log.warning(cost)
     else:
-        ctx.log.error(f"{time.time() - start}")
+        ctx.log.error(cost)
 
 def auth_handler(ctx: pywss.Context):
     if ctx.paths["name"] != "pywss":  # 校验请求参数
