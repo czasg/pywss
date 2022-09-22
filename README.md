@@ -18,7 +18,7 @@ Pywss 是一个轻量级的 Python 后端框架。
 - [3、创建子路由](#3创建子路由)
 - [4、使用中间件](#4使用中间件)
 - [5、升级WebSocket](#5升级WebSocket)
-- [6、openapi & swagger ui](#6openapi-&-swagger-ui)
+- [6、openapi & swagger ui](#6openapi--swagger-ui)
 - [7、静态文件服务器](#7静态文件服务器)
 - [8、单元测试](#8单元测试)
 
