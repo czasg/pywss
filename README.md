@@ -171,7 +171,7 @@ app.openapi(  # 开启 openapi
     openapi_json_route="/openapi.json",
     openapi_ui_route="/docs",
 )
-app.get("/hello/{name}", hello)
+app.post("/hello/{name}", hello)
 app.run()
 ```
 打开浏览器，访问 [localhost:8080/docs](localhost:8080/docs)
