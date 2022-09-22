@@ -1,7 +1,9 @@
 ## Pywss - Python Web/WebSocket Server
 ![Project status](https://img.shields.io/badge/version-0.1.3-green.svg)
 
-Pywss 是一个轻量级的 Python 后端框架。功能支持清单：   
+> pip install pywss
+
+Pywss 是一个轻量级的 Python 后端框架。功能清单：   
 - [x] websocket
 - [x] http server & test
 - [x] route party
