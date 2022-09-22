@@ -29,10 +29,10 @@ setup(
     name='pywss',
     version=find_version('pywss', '__init__.py'),
     description="This Is A Web/WebSocket Server By Python",
-    long_description="see https://github.com/czasg/Pywss",
+    long_description="see https://github.com/czasg/pywss",
     author='czasg',
     author_email='972542644@qq.com',
-    url='https://github.com/czasg/Pywss',
+    url='https://github.com/czasg/pywss',
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3.6",

@@ -1,20 +1,26 @@
 ## Pywss - Python Web/WebSocket Server
-![Project status](https://img.shields.io/badge/version-0.1.1-green.svg)
+![Project status](https://img.shields.io/badge/version-0.1.3-green.svg)
 
-> 重构前版本参考: [v0.0.15](https://github.com/CzaOrz/Pywss/tree/0.0.15) 
-
-Pywss 是一个小巧精炼的后端框架，具有一定的学习意义。不建议在正式环境投入使用。
-
-功能支持：   
+Pywss 是一个轻量级的 Python 后端框架。功能支持清单：   
 - [x] websocket
-- [x] http test
+- [x] http server & test
 - [x] route party
 - [x] static file
 - [x] openapi
 - [x] swagger ui
 
 ## 一、快速使用手册
-### 1、初始化 app 并启动服务
+
+- [1、初始化app](#1初始化app)
+- [2、绑定路由](#2绑定路由)
+- [3、创建子路由](#3创建子路由)
+- [4、使用中间件](#4使用中间件)
+- [5、升级WebSocket](#5升级WebSocket)
+- [6、openapi & swagger ui](#6openapi--swagger-ui)
+- [7、静态文件服务器](#7静态文件服务器)
+- [8、单元测试](#8单元测试)
+
+### 1、初始化app
 ```python
 import pywss
 
@@ -100,7 +106,7 @@ app.run()
 ```
 使用中间件时需要调用 ctx.next() 以便继续执行，否则会中断此次请求。
 
-### 5、升级 WebSocket
+### 5、升级WebSocket
 ```python
 import pywss
 
@@ -173,12 +179,28 @@ app.openapi(  # 开启 openapi
     openapi_json_route="/openapi.json",
     openapi_ui_route="/docs",
 )
-app.get("/hello/{name}", hello)
+app.post("/hello/{name}", hello)
 app.run()
 ```
 打开浏览器，访问 [localhost:8080/docs](localhost:8080/docs)
 
-### 7、单元测试
+### 7、静态文件服务器
+```python
+import pywss
+
+app = pywss.App()
+app.static("/static", rootDir="/rootDir") # 注册静态资源，需要指定文件根目录
+app.run()
+```
+对于如下目录结构时，可以通过 [localhost:8080/static/index.html](localhost:8080/static/index.html) 进行访问
+```text
+- rootDir
+    - index.html
+    - 200.html
+    - 500.html
+```
+
+### 8、单元测试
 ```python
 import pywss
 import pywss.test
