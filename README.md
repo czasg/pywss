@@ -96,7 +96,7 @@ $ curl -X POST localhost:8080/api/v2/hello/pywss
 ```python
 import pywss, time
 
-def log_handler(ctx: pywss.Context):
+def log_handler(ctx: pywss.Context):  # 日志中间件，单次请求结束后输出cost耗时 - 根据响应码判断输出不同级别日志
     start = time.time()
     ctx.next()  # 调用 next 进入到下一个 handler
     cost = time.time() - start
@@ -107,7 +107,7 @@ def log_handler(ctx: pywss.Context):
     else:
         ctx.log.error(cost)
 
-def auth_handler(ctx: pywss.Context):
+def auth_handler(ctx: pywss.Context):  # 认证中间件
     if ctx.paths["name"] != "pywss":  # 校验请求参数
         ctx.set_status_code(pywss.StatusUnauthorized)
         return
@@ -172,16 +172,16 @@ ws.onopen = function() {
 import pywss
 
 @pywss.openapi.docs(
-    summary="hello",
-    description="哈喽",
+    summary="此处是接口摘要 - 可选",
+    description="此处是接口描述 - 可选",
     params={
-        "page_size": "页面大小",
-        "username:query": "用户名-query",
-        "name:path,require": "用户名-path",
-        "Auth:header,required": "校验头",
+        "page_size": "此处是参数说明",
+        "username:query": "可以指定参数属于query(默认参数)",
+        "name:path,required": "path表示为路径参数，required表示必填参数",
+        "Auth:header,required": "参数支持：query、path、header、cookie",
     },
-    request={"hello": "world"},
-    response={"hello": "world"},
+    request={"请求说明": "此处是请求示例"},
+    response={"响应说明": "此处是响应示例"},
 )
 def hello(ctx: pywss.Context):
     ctx.write({
