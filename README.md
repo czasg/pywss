@@ -135,7 +135,7 @@ def websocket(ctx: pywss.Context):
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)
         return
-    # 轮询获取消息，阻塞式
+    # 轮询获取消息，实际使用场景建议引入心跳/探活机制
     while True:
         data = ctx.ws_read()
         ctx.log.info(data)
