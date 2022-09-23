@@ -18,7 +18,7 @@ from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 
 class Context:
