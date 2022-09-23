@@ -49,10 +49,10 @@ app.run(port=8080)
 ```
 在终端界面执行：
 ```shell script
->>> curl localhost:8080/hello
+$ curl localhost:8080/hello
 {"hello": "world"}
 
->>> curl -X POST localhost:8080/hello/pywss
+$ curl -X POST localhost:8080/hello/pywss
 {"hello": "pywss"}
 ```
 
@@ -77,16 +77,16 @@ app.run(port=8080)
 ```
 在终端界面执行：
 ```shell script
->>> curl localhost:8080/api/v1/hello
+$ curl localhost:8080/api/v1/hello
 {"hello": "v1"}
 
->>> curl -X POST localhost:8080/api/v1/hello/pywss
+$ curl -X POST localhost:8080/api/v1/hello/pywss
 {"hello": "/api/v1/hello/pywss"}
 
->>> curl localhost:8080/api/v2/hello
+$ curl localhost:8080/api/v2/hello
 {"hello": "v2"}
 
->>> curl -X POST localhost:8080/api/v2/hello/pywss
+$ curl -X POST localhost:8080/api/v2/hello/pywss
 {"hello": "/api/v2/hello/pywss"}
 ```
 
