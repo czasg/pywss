@@ -12,6 +12,8 @@ Pywss 是一个轻量级的 Python 后端框架。功能清单：
 - [x] static server
 - [x] api test
 
+[版本迭代历史](https://github.com/czasg/pywss/wiki/version-history)
+
 ## 一、快速使用手册
 
 - [1、初始化app](#1初始化app)
