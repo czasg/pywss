@@ -205,7 +205,7 @@ app.post("/hello/{name}", hello)
 
 app.run()
 ```
-打开浏览器，访问 [localhost:8080/docs](htto://localhost:8080/docs)
+打开浏览器，访问 [localhost:8080/docs](http://localhost:8080/docs)
 
 ### 7、静态文件服务器
 ```python
