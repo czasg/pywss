@@ -421,6 +421,8 @@ class App:
             ctx.log = log
             ctx.next()
             ctx.flush()
+        except ConnectionAbortedError:
+            log.error("connect abort")
         except:
             log.traceback()
         finally:
