@@ -2,7 +2,6 @@
 import os, re
 import json
 import time
-import signal
 import loggus
 import socket
 import threading
@@ -15,10 +14,11 @@ from pywss.headers import *
 from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
 from pywss.static import NewStaticHandler
+from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 
 class Context:
@@ -239,6 +239,7 @@ class App:
         self.openapi_data = {
             "paths": defaultdict(dict),
         }
+        Closing.add_close(self.close)
 
     def register(self, method, route, handlers) -> None:
         route = f"/{route.strip().strip('/')}" if route else route
@@ -429,10 +430,6 @@ class App:
         self.running = False
 
     def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5) -> None:
-        signal.signal(signal.SIGTERM, lambda *args: self.close())
-        signal.signal(signal.SIGINT, lambda *args: self.close())
-        signal.signal(signal.SIGILL, lambda *args: self.close())
-
         self.build()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((host, port))
