@@ -1,10 +1,8 @@
 # coding: utf-8
-import json as _json
-import pywss
-import socket
+import socket, json as _json
 
 
-class HttpResponse:
+class HttpTestResponse:
 
     def __init__(self, message_list):
         self.content = b"".join(message_list)
@@ -34,9 +32,9 @@ class HttpResponse:
         return f"{self.http_version} {self.status_code} {self.status_code_msg}\r\n{header}\r\n\r\n{self.body}"
 
 
-class HttpRequest:
+class HttpTestRequest:
 
-    def __init__(self, app: pywss.App):
+    def __init__(self, app):
         self.app = app
         self.method = None
         self.path = None
@@ -91,7 +89,7 @@ class HttpRequest:
             self.set_header(k, v)
         return self
 
-    def build(self) -> HttpResponse:
+    def build(self) -> HttpTestResponse:
         header_list = []
         for k, v in self.headers.items():
             header_list.append(f"{k}: {v}")
@@ -103,4 +101,4 @@ class HttpRequest:
             c.sendall(req_message.encode())
             self.app._(s, None)
             resp = c.makefile("rb", -1)
-            return HttpResponse(resp.readlines())
+            return HttpTestResponse(resp.readlines())

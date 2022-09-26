@@ -1,8 +1,7 @@
 # coding: utf-8
 import json
-import unittest
 import pywss
-import pywss.test
+import unittest
 
 
 class TestBase(unittest.TestCase):
@@ -11,19 +10,19 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.get("/text", lambda ctx: ctx.write("test"))
 
-        resp = pywss.test.HttpRequest(app).get("/text")
+        resp = pywss.HttpTestRequest(app).get("/text")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "test")
         self.assertEqual(int(resp.headers.get("Content-Length")), 4)
 
-        resp = pywss.test.HttpRequest(app).get("/NoFound")
+        resp = pywss.HttpTestRequest(app).get("/NoFound")
         self.assertEqual(resp.status_code, 404)
 
     def test_json(self):
         app = pywss.App()
         app.get("/json", lambda ctx: ctx.write_json({"test": "test"}))
 
-        resp = pywss.test.HttpRequest(app).get("/json")
+        resp = pywss.HttpTestRequest(app).get("/json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers.get("Content-Type"), "application/json")
         self.assertEqual(json.loads(resp.body), {"test": "test"})
@@ -32,7 +31,7 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.get("/test", lambda ctx: ctx.redirect("/test"))
 
-        resp = pywss.test.HttpRequest(app).get("/test")
+        resp = pywss.HttpTestRequest(app).get("/test")
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(resp.headers.get("Location"), "/test")
 
@@ -40,7 +39,7 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.get("/test", lambda ctx: ctx.set_cookie("test", "test", path="/test"))
 
-        resp = pywss.test.HttpRequest(app).get("/test")
+        resp = pywss.HttpTestRequest(app).get("/test")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers.get("Set-Cookie"), "test=test; Path=/test")
 
@@ -48,7 +47,7 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.static("/test", ".")
 
-        resp = pywss.test.HttpRequest(app).get(f"/test/{__name__}.py")
+        resp = pywss.HttpTestRequest(app).get(f"/test/{__name__}.py")
         self.assertEqual(resp.status_code, 200)
         self.assertTrue("test_static" in resp.body)
         self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
@@ -64,10 +63,10 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.get("/auth", auth, lambda ctx: ctx.write("test"))
 
-        resp = pywss.test.HttpRequest(app).get("/auth")
+        resp = pywss.HttpTestRequest(app).get("/auth")
         self.assertEqual(resp.status_code, 403)
 
-        resp = pywss.test.HttpRequest(app).get("/auth", headers={"Auth": "test"})
+        resp = pywss.HttpTestRequest(app).get("/auth", headers={"Auth": "test"})
         self.assertEqual(resp.status_code, 200)
 
     def test_party(self):
@@ -78,11 +77,11 @@ class TestBase(unittest.TestCase):
         v1.get("/test", lambda ctx: ctx.write("v1"))
         v2.get("/test", lambda ctx: ctx.write("v2"))
 
-        resp = pywss.test.HttpRequest(app).get("/api/v1/test")
+        resp = pywss.HttpTestRequest(app).get("/api/v1/test")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "v1")
 
-        resp = pywss.test.HttpRequest(app).get("/api/v2/test")
+        resp = pywss.HttpTestRequest(app).get("/api/v2/test")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "v2")
 
@@ -91,12 +90,12 @@ class TestBase(unittest.TestCase):
         app.openapi(title="test")
         app.get("/hello/{name}", pywss.openapi.docs()(lambda ctx: ctx.write({"hello": ctx.paths["name"]})))
 
-        resp = pywss.test.HttpRequest(app).get("/openapi.json")
+        resp = pywss.HttpTestRequest(app).get("/openapi.json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(json.loads(resp.body)["info"]["title"], "test")
         self.assertTrue("/hello/{name}" in json.loads(resp.body)["paths"])
 
-        resp = pywss.test.HttpRequest(app).get("/hello/world")
+        resp = pywss.HttpTestRequest(app).get("/hello/world")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(json.loads(resp.body), {"hello": "world"})
 
