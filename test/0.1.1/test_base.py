@@ -1,7 +1,10 @@
 # coding: utf-8
 import json
+import loggus
 import pywss
 import unittest
+
+loggus.SetLevel(loggus.ERROR)
 
 
 class TestBase(unittest.TestCase):
