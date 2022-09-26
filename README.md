@@ -226,13 +226,12 @@ app.run()
 ### 8、单元测试
 ```python
 import pywss
-import pywss.test
 
 app = pywss.App()
 
 app.get("/test", lambda ctx: ctx.set_status_code(204))
 
-req = pywss.test.HttpRequest(app)  # 基于app创建HttpRequest
+req = pywss.HttpTestRequest(app)  # 基于app创建HttpRequest
 
 resp = req.get("/test")  # 发起Get请求，获取resp
 
