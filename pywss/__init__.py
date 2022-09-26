@@ -13,6 +13,7 @@ from collections import defaultdict
 from pywss.headers import *
 from pywss.statuscode import *
 from pywss.websocket import WebSocketContextWrap
+from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.static import NewStaticHandler
 from pywss.closing import Closing
 from pywss.routing import Route
