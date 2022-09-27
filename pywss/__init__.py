@@ -323,28 +323,29 @@ class App:
             handlers.append(staticHandler(rootDir))
         if not route.endswith("*"):
             route = f"{route.strip().rstrip('/')}/*"
-        self.register("GET", route, handlers)
+        self.register(MethodGet, route, handlers)
+        self.register(MethodHead, route, handlers)
 
     def get(self, route, *handlers) -> None:
-        self.register("GET", route, handlers)
+        self.register(MethodGet, route, handlers)
 
     def post(self, route, *handlers) -> None:
-        self.register("POST", route, handlers)
+        self.register(MethodPost, route, handlers)
 
     def head(self, route, *handlers) -> None:
-        self.register("HEAD", route, handlers)
+        self.register(MethodHead, route, handlers)
 
     def put(self, route, *handlers) -> None:
-        self.register("PUT", route, handlers)
+        self.register(MethodPut, route, handlers)
 
     def delete(self, route, *handlers) -> None:
-        self.register("DELETE", route, handlers)
+        self.register(MethodDelete, route, handlers)
 
     def patch(self, route, *handlers) -> None:
-        self.register("PATCH", route, handlers)
+        self.register(MethodPatch, route, handlers)
 
     def options(self, route, *handlers) -> None:
-        self.register("OPTIONS", route, handlers)
+        self.register(MethodOptions, route, handlers)
 
     def any(self, route, *handlers) -> None:
         self.get(route, *handlers)
