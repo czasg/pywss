@@ -45,7 +45,7 @@ def load(ctx: pywss.Context):
 
 def update(ctx: pywss.Context):
     # 升级 WebSocket
-    err = pywss.WebSocketContextWrap(ctx)
+    err = pywss.WebSocketUpgrade(ctx)
     if err:
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)
@@ -91,3 +91,4 @@ if __name__ == '__main__':
     party.get("/updateUrl", update)
     # 启动服务
     app.run()
+    # 浏览器访问地址：http://localhost:8080/static/luckysheet.html

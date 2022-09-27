@@ -12,14 +12,14 @@ from datetime import timedelta
 from collections import defaultdict
 from pywss.headers import *
 from pywss.statuscode import *
-from pywss.websocket import WebSocketContextWrap
+from pywss.websocket import WebSocketUpgrade, WebSocketContextWrap
 from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.static import NewStaticHandler
 from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 
 class Context:
@@ -199,10 +199,10 @@ class Context:
         self.set_content_length(os.stat(file.fileno())[6])
         self.response_body.append(file)
 
-    def ws_read(self):
+    def ws_read(self):  # by WebSocketUpgrade
         raise NotImplementedError
 
-    def ws_write(self, body):
+    def ws_write(self, body):  # by WebSocketUpgrade
         raise NotImplementedError
 
     def flush(self):
