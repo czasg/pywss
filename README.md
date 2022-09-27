@@ -1,5 +1,5 @@
 ## Pywss - Python Web/WebSocket Server
-![Project status](https://img.shields.io/badge/version-0.1.5-green.svg)
+![Project status](https://img.shields.io/badge/version-0.1.6-green.svg)
 
 > pip3 install pywss
 
