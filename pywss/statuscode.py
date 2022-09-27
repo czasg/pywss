@@ -1,5 +1,15 @@
 # coding: utf-8
 
+# http method
+MethodGet = "GET"
+MethodPost = "POST"
+MethodHead = "HEAD"
+MethodPut = "PUT"
+MethodDelete = "DELETE"
+MethodPatch = "PATCH"
+MethodOptions = "OPTIONS"
+
+# http status code
 StatusContinue = 100
 StatusSwitchingProtocols = 101
 StatusProcessing = 102
