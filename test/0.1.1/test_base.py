@@ -55,6 +55,11 @@ class TestBase(unittest.TestCase):
         self.assertTrue("test_static" in resp.body)
         self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
 
+        resp = pywss.HttpTestRequest(app).head(f"/test/{__name__}.py")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.body == "")
+        self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
+
     def test_middleware(self):
         def auth(ctx: pywss.Context):
             password = ctx.headers.get("Auth", None)
