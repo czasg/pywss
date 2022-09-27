@@ -56,12 +56,12 @@ class TestBase(unittest.TestCase):
             app = pywss.App()
             app.static("/test", tmpdir)
 
-            resp = pywss.HttpTestRequest(app).get(f"/test/{tmpfile}")
+            resp = pywss.HttpTestRequest(app).get(f"/test/pywss")
             self.assertEqual(resp.status_code, 200)
             self.assertTrue(resp.body == "test")
             self.assertTrue(int(resp.headers["Content-Length"]) == 4)
 
-            resp = pywss.HttpTestRequest(app).head(f"/test/{tmpfile}")
+            resp = pywss.HttpTestRequest(app).head(f"/test/pywss")
             self.assertEqual(resp.status_code, 200)
             self.assertTrue(resp.body == "")
             self.assertTrue(int(resp.headers["Content-Length"]) == 4)
