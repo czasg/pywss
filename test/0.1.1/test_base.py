@@ -1,8 +1,9 @@
 # coding: utf-8
-import json
+import json, os
 import loggus
 import pywss
 import unittest
+import tempfile
 
 loggus.SetLevel(loggus.ERROR)
 
@@ -47,18 +48,23 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.headers.get("Set-Cookie"), "test=test; Path=/test")
 
     def test_static(self):
-        app = pywss.App()
-        app.static("/test", ".")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfile = os.path.join(tmpdir, "pywss")
+            with open(tmpfile, "w", encoding="utf-8") as f:
+                f.write("test")
 
-        resp = pywss.HttpTestRequest(app).get(f"/test/{__name__}.py")
-        self.assertEqual(resp.status_code, 200)
-        self.assertTrue("test_static" in resp.body)
-        self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
+            app = pywss.App()
+            app.static("/test", tmpdir)
 
-        resp = pywss.HttpTestRequest(app).head(f"/test/{__name__}.py")
-        self.assertEqual(resp.status_code, 200)
-        self.assertTrue(resp.body == "")
-        self.assertTrue(int(resp.headers.get("Content-Length")) > 0)
+            resp = pywss.HttpTestRequest(app).get(f"/test/{tmpfile}")
+            self.assertEqual(resp.status_code, 200)
+            self.assertTrue(resp.body == "test")
+            self.assertTrue(int(resp.headers["Content-Length"]) == 4)
+
+            resp = pywss.HttpTestRequest(app).head(f"/test/{tmpfile}")
+            self.assertEqual(resp.status_code, 200)
+            self.assertTrue(resp.body == "")
+            self.assertTrue(int(resp.headers["Content-Length"]) == 4)
 
     def test_middleware(self):
         def auth(ctx: pywss.Context):
