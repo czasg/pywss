@@ -3,7 +3,7 @@
 
 > pip3 install pywss
 
-Pywss 是一个轻量级的 Python 后端框架。功能清单：   
+Pywss 是一个轻量级的 Python Web 框架。功能清单：   
 - [x] websocket upgrade
 - [x] openapi
 - [x] swagger ui
