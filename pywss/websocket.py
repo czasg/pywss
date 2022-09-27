@@ -11,7 +11,7 @@ RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
                     "Sec-WebSocket-Accept: %s\r\n\r\n"
 
 
-def WebSocketContextWrap(ctx):
+def WebSocketUpgrade(ctx):
     if ctx.headers.get("Upgrade") != "websocket":
         return "invalid websocket request"
     secKey = ctx.headers.get("Sec-WebSocket-Key")
@@ -31,6 +31,11 @@ def WebSocketContextWrap(ctx):
     ctx.ws_read = lambda: _websocketRead(ctx.rfd)
     ctx.ws_write = ws_write
     return None
+
+
+# abandoned
+def WebSocketContextWrap(ctx):
+    return WebSocketUpgrade(ctx)
 
 
 def _createWebSocketResponse(secKey):

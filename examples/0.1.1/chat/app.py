@@ -28,7 +28,7 @@ class Pool:
 
 def handler(ctx: pywss.Context):
     # 升级 WebSocket
-    err = pywss.WebSocketContextWrap(ctx)
+    err = pywss.WebSocketUpgrade(ctx)
     if err:
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)
@@ -65,3 +65,4 @@ if __name__ == '__main__':
     app.static("/static", ".")
     app.get("/ws/chat", handler)
     app.run()
+    # 浏览器访问地址：http://localhost:8080/static/chat.html
