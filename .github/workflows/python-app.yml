@@ -38,3 +38,5 @@ jobs:
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest --cov=pywss
+    - name: Codecov
+      run: bash <(curl -s https://codecov.io/bash)       
