@@ -212,10 +212,12 @@ app.run()
 import pywss
 
 app = pywss.App()
+
 app.static("/static", rootDir="/rootDir") # 注册静态资源，需要指定文件根目录
+
 app.run()
 ```
-对于如下目录结构时，可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
+假设已注册目录`/rootDir`结构如下，则可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
 ```text
 - rootDir
     - index.html
