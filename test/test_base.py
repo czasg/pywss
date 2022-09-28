@@ -14,7 +14,7 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         # get
         app.get("/get", lambda ctx: ctx.write("get"))
-        resp = pywss.HttpTestRequest(app).get("/get")
+        resp = pywss.HttpTestRequest(app).get("/get?name=pywss&age=123")
         self.assertEqual(resp.body, "get")
         # post
         app.post("/post", lambda ctx: ctx.write("post"))
