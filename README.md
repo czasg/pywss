@@ -239,7 +239,7 @@ resp = req.get("/test")  # 发起Get请求，获取resp
 
 assert resp.status_code == 204
 ```
-可以参考 [pywss单元测试](./test/0.1.1/test_base.py)
+可以参考 [pywss单元测试](test/test_base.py)
 
 ## 二、参数说明
 ### 1、请求参数
