@@ -54,6 +54,9 @@ class HttpTestRequest:
             data = _json.dumps(json, ensure_ascii=False)
         if isinstance(data, str):
             self.body = data
+        elif isinstance(data, dict):
+            self.set_headers({"Content-Type": "application/x-www-form-urlencoded"})
+            self.body = "&".join([f"{k}={v}" for k, v in data.items()])
         return self.build()
 
     def get(self, route, headers=None, json=None, data=""):
@@ -90,6 +93,8 @@ class HttpTestRequest:
         return self
 
     def build(self) -> HttpTestResponse:
+        if self.body:
+            self.headers["Content-Length"] = len(self.body.encode())
         header_list = []
         for k, v in self.headers.items():
             header_list.append(f"{k}: {v}")
