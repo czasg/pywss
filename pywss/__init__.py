@@ -69,13 +69,18 @@ class Context:
                 return resp
             resp = json.loads(self.content.decode())
         except:
-            pass
+            self.log.traceback()
         return resp
 
     def form(self):
         resp = {}
+        ct = self.headers.get("Content-Type").strip()
         try:
-            ct = self.headers.get("Content-Type").strip()
+            if ct == "application/x-www-form-urlencoded":
+                for value in self.body().strip().split("&"):
+                    k, v = value.split("=", 1)
+                    resp[unquote(k)] = unquote(v)
+                return resp
             if not ct.startswith("multipart/form-data"):
                 return resp
             boundary = ""
@@ -93,7 +98,7 @@ class Context:
                 name = re.search("name=\"(.*?)\"", h).group(1)
                 resp[name] = v
         except:
-            pass
+            self.log.traceback()
         return resp
 
     def body(self):

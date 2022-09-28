@@ -1,1 +1,1 @@
-loggus>=0.0.22
+loggus
