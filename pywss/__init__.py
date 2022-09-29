@@ -460,7 +460,7 @@ class App:
         for i in range(int(grace) + 1):
             self.log.update(hit=i + 1, grace=grace).warning("server closing")
             time.sleep(1)
-        self.log.panic("server closed")
+        self.log.warning("server closed")
 
 
 class data(dict):
