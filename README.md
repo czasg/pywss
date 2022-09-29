@@ -166,7 +166,7 @@ ws.onopen = function() {
 }
 ```
 
-其他具体使用场景/用例，可以参考 [多人在线协同编辑luckysheet](./examples/0.1.1/luckysheet)、[多人聊天室](./examples/0.1.1/chat)
+其他具体使用场景/用例，可以参考 [多人在线协同编辑luckysheet](./demo/luckysheet)、[多人聊天室](./demo/chat)
 
 ### 6、openapi & swagger ui
 ```python
