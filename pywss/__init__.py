@@ -22,15 +22,6 @@ from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 __version__ = '0.1.6'
 
 
-class data(dict):
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-    def __getattr__(self, item):
-        return self.get(item, None)
-
-
 class Context:
     _handler_index = 0
     _flush_header = False
@@ -77,7 +68,7 @@ class Context:
             ct = self.headers.get("Content-Type").strip()
             if not ct.startswith("application/json"):
                 return resp
-            resp = json.loads(self.content.decode())
+            resp = json.loads(self.body())
         except:
             self.log.traceback()
         return resp
@@ -100,7 +91,7 @@ class Context:
                     boundary = v.replace("boundary=", "")
             if not boundary:
                 return resp
-            for data in self.content.decode().split(f"--{boundary}"):
+            for data in self.body().split(f"--{boundary}"):
                 data = data.strip()
                 if not data.startswith("Content-Disposition"):
                     continue
@@ -470,3 +461,12 @@ class App:
             self.log.update(hit=i + 1, grace=grace).warning("server closing")
             time.sleep(1)
         self.log.panic("server closed")
+
+
+class data(dict):
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __getattr__(self, item):
+        return self.get(item, None)
