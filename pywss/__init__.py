@@ -22,6 +22,15 @@ from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 __version__ = '0.1.6'
 
 
+class data(dict):
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __getattr__(self, item):
+        return self.get(item, None)
+
+
 class Context:
     _handler_index = 0
     _flush_header = False
@@ -41,6 +50,7 @@ class Context:
         self.route: str = route
         self._handlers: list = handlers
         self.address: tuple = address
+        self.data: data = data()  # data save for user
 
         self.content_length: int = int(headers.get("Content-Length", 0))
         self.content: bytes = b""
