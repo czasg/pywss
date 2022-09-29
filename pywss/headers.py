@@ -36,10 +36,10 @@ def parse_request_line(fp):
     if not line:
         return "", "", "", "empty request line"
     if len(line) > 65536:
-        return "", "", "", "URI is too long"
+        return "", "", "", "uri is too long"
     lines = str(line, 'iso-8859-1').rstrip("\r\n").split(maxsplit=2)
     if len(lines) != 3:
-        return "", "", "", f"Bad request line {line}"
+        return "", "", "", f"bad request line {line}"
     method, path, version = lines
     return method, unquote(path), version, None
 
@@ -51,11 +51,11 @@ def parse_headers(fp):
         if not line:
             return headers, "empty headers"
         if len(line) > 65536:
-            return headers, "Headers is too long"
+            return headers, "headers is too long"
         if line in (b'\r\n', b'\n', b''):
             break
         lines = str(line, 'iso-8859-1').rstrip("\r\n").split(":", maxsplit=1)
         if len(lines) != 2:
-            return headers, f"Bad request header {line}"
+            return headers, f"bad request header {line}"
         headers[lines[0].strip()] = lines[1].strip()
     return headers, None

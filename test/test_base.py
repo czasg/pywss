@@ -6,7 +6,7 @@ import unittest
 import tempfile
 import threading
 
-loggus.SetLevel(loggus.ERROR)
+loggus.SetLevel(loggus.PANIC)
 
 
 class TestBase(unittest.TestCase):
@@ -170,12 +170,23 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.openapi(title="test")
         app.get("/hello", pywss.openapi.docs(summary="test", description="test",
-                                             params={"test:query,required": "pywss"},
-                                             request={"dict": {"test": "swagger"},
-                                                      "list": [1, 2, 3],
-                                                      "list1": [{"test": "swagger"}]},
+                                             params={
+                                                 "test:query,required": "pywss",
+                                                 "page_size": "123",
+                                             },
+                                             request={
+                                                 "dict": {"test": "swagger"},
+                                                 "list": [1, 2, 3],
+                                                 "list1": [[1, 2, 3]],
+                                                 "list2": [],
+                                                 "listObject": [{"test": "swagger"}],
+                                                 "descVersion": ("1.0.0", "版本说明"),
+                                                 "desclistObject": [({"test": "swagger"}, "test")],
+                                             },
                                              response={"test": "swagger"})(lambda ctx: ctx.write("swagger")))
-        app.get("/hello/{name}", pywss.openapi.docs()(lambda ctx: ctx.write({"hello": ctx.paths["name"]})))
+        app.get("/hello/{name}", pywss.openapi.docs(
+            params={"name:path,required": "test"}
+        )(lambda ctx: ctx.write({"hello": ctx.paths["name"]})))
 
         resp = pywss.HttpTestRequest(app).get("/openapi.json")
         self.assertEqual(resp.status_code, 200)
@@ -196,8 +207,24 @@ class TestBase(unittest.TestCase):
     def test_run(self):
         app = pywss.App()
         app.use(lambda ctx: ctx.next())
-        threading.Thread(target=lambda: app.close()).start()
+        threading.Thread(target=lambda: app.close() or pywss.Closing.close()).start()
         app.run()
+
+    def test_connect_err(self):
+        def raiseException(ctx: pywss.Context):
+            ctx.data.name = "test"
+            raise Exception(ctx.data.age)
+
+        def raiseConnectionAbortedError(ctx: pywss.Context):
+            raise ConnectionAbortedError("test")
+
+        app = pywss.App()
+        app.get("/raiseException", raiseException)
+        app.get("/raiseConnectionAbortedError", raiseConnectionAbortedError)
+
+        request = pywss.HttpTestRequest(app)
+        self.assertEqual(request.get("/raiseException").content, b"")
+        self.assertEqual(request.get("/raiseConnectionAbortedError").content, b"")
 
 
 if __name__ == '__main__':
