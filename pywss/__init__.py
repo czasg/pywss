@@ -26,33 +26,33 @@ class Context:
     _handler_index = 0
     _flush_header = False
 
-    def __init__(self, app, fd, rfd, method, path, paths, version, headers, route, handlers, address):
-        self.app = app
-        self.fd = fd
-        self.rfd = rfd
-        self.method = method
-        self.version = version
-        self.headers = headers
-        self.cookies = parse_cookies(headers)
-        self.path = path
-        self.paths = paths
-        self.params = parse_params(path)
-        self.route = route
-        self._handlers = handlers
-        self.address = address
-        self.log: loggus.Entry = None
+    def __init__(self, app, fd, address, log, rfd, method, path, paths, version, headers, route, handlers):
+        self.app: 'App' = app
+        self.log: loggus.Entry = log
+        self.fd: socket.socket = fd
+        self.rfd: BufferedReader = rfd
+        self.method: str = method
+        self.version: str = version
+        self.headers: dict = headers
+        self.cookies: dict = parse_cookies(headers)
+        self.path: str = path
+        self.paths: dict = paths
+        self.params: dict = parse_params(path)
+        self.route: str = route
+        self._handlers: list = handlers
+        self.address: tuple = address
 
-        self.content_length = int(headers.get("Content-Length", 0))
-        self.content = b""
+        self.content_length: int = int(headers.get("Content-Length", 0))
+        self.content: bytes = b""
         if self.content_length:
             self.content = rfd.read(self.content_length)
 
-        self.response_status_code = 200
-        self.response_headers = {
+        self.response_status_code: int = 200
+        self.response_headers: dict = {
             "Server": "Pywss",
             "PywssVersion": __version__,
         }
-        self.response_body = []
+        self.response_body: list = []
 
     def next(self):
         if self._handler_index >= len(self._handlers):
@@ -386,7 +386,7 @@ class App:
             openapi_ui_css_url,
         )))
 
-    def _(self, request, address) -> None:
+    def _(self, request: socket.socket, address: tuple) -> None:
         log = self.log
         try:
             rfd = request.makefile("rb", -1)
@@ -424,8 +424,7 @@ class App:
                 request.sendall(b"HTTP/1.1 404 NotFound\r\n")
                 log.warning("No Handler")
                 return
-            ctx = Context(self, request, rfd, method, path, paths, version, hes, route, handlers, address)
-            ctx.log = log
+            ctx = Context(self, request, address, log, rfd, method, path, paths, version, hes, route, handlers)
             ctx.next()
             ctx.flush()
         except ConnectionAbortedError:
