@@ -1,6 +1,7 @@
 # coding: utf-8
 import json, os
 import loggus
+import socket
 import pywss
 import unittest
 import tempfile
@@ -225,6 +226,38 @@ class TestBase(unittest.TestCase):
         request = pywss.HttpTestRequest(app)
         self.assertEqual(request.get("/raiseException").content, b"")
         self.assertEqual(request.get("/raiseConnectionAbortedError").content, b"")
+
+    def test_websocket(self):
+        def websocket(ctx: pywss.Context):
+            err = pywss.WebSocketUpgrade(ctx)
+            if err:
+                ctx.log.error(err)
+                ctx.set_status_code(pywss.StatusBadRequest)
+                return
+            ctx.ws_write(b"test")
+            ctx.ws_write("test")
+            ctx.ws_write({"test": "test"})
+
+        app = pywss.App()
+        app.get("/websocket", websocket)
+        app.build()
+        s, c = socket.socketpair()
+        threading.Thread(target=app._, args=(s, None)).start()
+        c.sendall(b'GET /websocket HTTP/1.1\r\n'
+                  b'Upgrade: websocket\r\n'
+                  b'Host: localhost:8080\r\n'
+                  b'Origin: http://localhost:8080\r\n'
+                  b'Sec-WebSocket-Key: LvJ3S1F2dEnm+8GNaapAgg==\r\n'
+                  b'Sec-WebSocket-Version: 13\r\n'
+                  b'Connection: Upgrade\r\n\r\n')
+        resp = c.recv(1024)
+        self.assertIn(b"101 Switching Protocols", resp)
+        self.assertIn(b"Upgrade: websocket", resp)
+        self.assertIn(b"Connection: Upgrade", resp)
+        self.assertIn(b"Sec-WebSocket-Accept: eVZ4hOFNJGMIfDNEG3b/VpD7CNk=", resp)
+        self.assertIn(b'test', c.recv(1024))
+        self.assertIn(b'test', c.recv(1024))
+        self.assertIn(b'test', c.recv(1024))
 
 
 if __name__ == '__main__':
