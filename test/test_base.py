@@ -4,6 +4,7 @@ import loggus
 import pywss
 import unittest
 import tempfile
+import threading
 
 loggus.SetLevel(loggus.ERROR)
 
@@ -191,6 +192,12 @@ class TestBase(unittest.TestCase):
         resp = pywss.HttpTestRequest(app).get("/hello/world")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(json.loads(resp.body), {"hello": "world"})
+
+    def test_run(self):
+        app = pywss.App()
+        app.use(lambda ctx: ctx.next())
+        threading.Thread(target=lambda: app.close()).start()
+        app.run()
 
 
 if __name__ == '__main__':
