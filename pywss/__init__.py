@@ -457,10 +457,11 @@ class App:
                         continue
                     request, address = sock.accept()
                     threading.Thread(target=self._, args=(request, address)).start()
-        for i in range(int(grace) + 1):
+        for i in range(grace):
             self.log.update(hit=i + 1, grace=grace).warning("server closing")
             time.sleep(1)
         self.log.warning("server closed")
+        sock.close()
 
 
 class data(dict):

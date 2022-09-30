@@ -7,14 +7,18 @@ import threading
 from urllib.parse import unquote
 
 
-class Pool:
+class WebSocketManager:
     lock = threading.Lock()
     pool = {}
+    index = 0
 
     @classmethod
-    def add(cls, uid, ctx):
+    def register(cls, ctx):
         with cls.lock:
+            cls.index += 1
+            uid = f"user-{cls.index}"
             cls.pool[uid] = ctx
+            return uid
 
     @classmethod
     def delete(cls, uid):
@@ -27,7 +31,10 @@ class Pool:
             for uid, ctx in cls.pool.items():  # type: pywss.Context
                 if uid == by:
                     continue
-                ctx.ws_write(data)
+                try:
+                    ctx.ws_write(data)
+                except:
+                    cls.pool.pop(uid, None)
 
 
 def load(ctx: pywss.Context):
@@ -50,9 +57,8 @@ def update(ctx: pywss.Context):
         ctx.log.error(err)
         ctx.set_status_code(pywss.StatusBadRequest)
         return
-    uid = str(uuid.uuid4())
-    Pool.add(uid, ctx)
-
+    # 注册并获取用户ID
+    uid = WebSocketManager.register(ctx)
     try:
         # 轮询获取消息
         while True:
@@ -73,12 +79,12 @@ def update(ctx: pywss.Context):
             if json_data.get("t") != "mv":
                 resp_data["type"] = 2
             resp = json.dumps(resp_data).encode()
-            Pool.notify(resp, uid)
+            WebSocketManager.notify(resp, uid)
     except:
         pass
     finally:
         ctx.log.warning(f"{uid} exit")
-        Pool.delete(uid)
+        WebSocketManager.delete(uid)
 
 
 if __name__ == '__main__':
@@ -90,7 +96,7 @@ if __name__ == '__main__':
     app.post("/luckysheet/api/loadUrl", load)
     app.get("/luckysheet/api/updateUrl", update)
     # 注册首页路由
-    app.any("/", lambda ctx: ctx.redirect("/static/luckysheet.html"))
+    app.get("/", lambda ctx: ctx.redirect("/static/luckysheet.html"))
     # 启动服务
     app.run()
     """ 浏览器访问 ctrl+左键
