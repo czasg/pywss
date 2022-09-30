@@ -234,9 +234,8 @@ class TestBase(unittest.TestCase):
                 ctx.log.error(err)
                 ctx.set_status_code(pywss.StatusBadRequest)
                 return
+            self.assertEqual(ctx.ws_read(), b"test")
             ctx.ws_write(b"test")
-            # ctx.ws_write("test")
-            # ctx.ws_write({"test": "test"})
 
         app = pywss.App()
         app.get("/websocket", websocket)
@@ -255,9 +254,9 @@ class TestBase(unittest.TestCase):
         self.assertIn(b"Upgrade: websocket", resp)
         self.assertIn(b"Connection: Upgrade", resp)
         self.assertIn(b"Sec-WebSocket-Accept: eVZ4hOFNJGMIfDNEG3b/VpD7CNk=", resp)
-        self.assertIn(b'test', c.recv(1024))
-        # self.assertIn(b'test', c.recv(1024))
-        # self.assertIn(b'test', c.recv(1024))
+        c.sendall(b'\x81\x84\xfd\xd9\xd7\xb5\x89\xbc\xa4\xc1')
+        resp = c.recv(1024)
+        self.assertIn(b'test', resp)
 
 
 if __name__ == '__main__':
