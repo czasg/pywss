@@ -33,8 +33,6 @@ def parse_params(path):
 
 def parse_request_line(fp):
     line = fp.readline(65537)
-    if not line:
-        return "", "", "", "empty request line"
     if len(line) > 65536:
         return "", "", "", "uri is too long"
     lines = str(line, 'iso-8859-1').rstrip("\r\n").split(maxsplit=2)
@@ -48,8 +46,6 @@ def parse_headers(fp):
     headers = {}
     while True:
         line = fp.readline(65537)
-        if not line:
-            return headers, "empty headers"
         if len(line) > 65536:
             return headers, "headers is too long"
         if line in (b'\r\n', b'\n', b''):
