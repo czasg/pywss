@@ -128,14 +128,14 @@ class TestBase(unittest.TestCase):
                 "test5": ([["test"]], "test"),
                 "test44": [{"test": "test"}],
                 "test55": ([({"test": ("test", "test")}, "test")], "test"),
-                "test6": {"test": "test"},
+                "test6": {"test": ""},
                 "test7": ({"test": "test"}, "test"),
-                "test8": {"test": {"test": "test"}},
+                "test8": {"test": {"test": ""}},
                 "test9": ({"test": ({"test": ("test", "test")}, "test")}, "test"),
                 "test10": {"test": ["test"]},
                 "test11": ({"test": (["test"], "test")}, "test"),
             },
-            response=("test", "test")
+            response=([], "test")
         )(lambda ctx: ctx.write("test")))
 
         resp = pywss.HttpTestRequest(app).get("/openapi.json")
@@ -152,12 +152,17 @@ class TestBase(unittest.TestCase):
 
     def test_app_party(self):
         app = pywss.App()
+        app.get("/test", pywss.openapi.docs()(lambda ctx: ctx.write("v0")))
         api = app.party("/api")
         api.party("/v1").get("/test/{test}", lambda ctx: ctx.write("v1"))
         api.party("/v2").get("/test/{test}", pywss.openapi.docs(
             params={"test:path,required": "test"}
         )(lambda ctx: ctx.write("v2")))
         api.party("/v3").get("/test/{test}", pywss.openapi.docs()(lambda ctx: ctx.write("v3")))
+
+        resp = pywss.HttpTestRequest(app).get("/test")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.body, "v0")
 
         resp = pywss.HttpTestRequest(app).get("/api/v1/test/test")
         self.assertEqual(resp.status_code, 200)
@@ -223,6 +228,7 @@ class TestBase(unittest.TestCase):
         })
         self.assertEqual(resp.headers["Test"], "test")
         self.assertIn("test=test", resp.headers["Set-Cookie"])
+        self.assertIn("HTTP/1.1 200", str(resp))
 
     def test_ctx_text(self):
         app = pywss.App()
