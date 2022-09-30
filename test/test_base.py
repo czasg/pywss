@@ -122,7 +122,7 @@ class TestBase(unittest.TestCase):
             request={
                 "test": "test",
                 "test1": ("test", "test"),
-                "test2": ["test"],
+                "test2": [],
                 "test3": (["test"], "test"),
                 "test4": [["test"]],
                 "test5": ([["test"]], "test"),
@@ -135,7 +135,7 @@ class TestBase(unittest.TestCase):
                 "test10": {"test": ["test"]},
                 "test11": ({"test": (["test"], "test")}, "test"),
             },
-            response=([], "test")
+            response=["test"]
         )(lambda ctx: ctx.write("test")))
 
         resp = pywss.HttpTestRequest(app).get("/openapi.json")
@@ -232,7 +232,7 @@ class TestBase(unittest.TestCase):
 
     def test_ctx_text(self):
         app = pywss.App()
-        app.get("/test", lambda ctx: ctx.write("test"))
+        app.get("/test", lambda ctx: ctx.write("test") or ctx.next())
 
         resp = pywss.HttpTestRequest(app).get("/test")
         self.assertEqual(resp.status_code, 200)
@@ -424,6 +424,26 @@ class TestBase(unittest.TestCase):
         ok, res = route.match("/test/test/test")
         self.assertEqual(ok, True)
         self.assertEqual(res, {"test": "test"})
+
+    def test_headers(self):
+        import pywss.headers
+
+        s, c = socket.socketpair()
+        with s, c:
+            rb = s.makefile("rb", -1)
+            c.sendall(b't' * 65536 + b'\r\n')
+            _, _, _, err = pywss.headers.parse_request_line(rb)
+            self.assertEqual(err, "uri is too long")
+            c.send(b'\r\n')
+            _, _, _, err = pywss.headers.parse_request_line(rb)
+            self.assertEqual(err, r"bad request line b'\n'")
+
+        s, c = socket.socketpair()
+        with s, c:
+            rb = s.makefile("rb", -1)
+            c.sendall(b't' * 65536 + b'\r\n')
+            _, err = pywss.headers.parse_headers(rb)
+            self.assertEqual(err, "headers is too long")
 
 
 if __name__ == '__main__':
