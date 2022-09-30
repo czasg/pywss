@@ -59,27 +59,6 @@ class HttpTestRequest:
             self.body = "&".join([f"{k}={v}" for k, v in data.items()])
         return self.build()
 
-    def get(self, route, headers=None, json=None, data=""):
-        return self.request("GET", route, headers, json, data)
-
-    def post(self, route, headers=None, json=None, data=""):
-        return self.request("POST", route, headers, json, data)
-
-    def head(self, route, headers=None, json=None, data=""):
-        return self.request("HEAD", route, headers, json, data)
-
-    def put(self, route, headers=None, json=None, data=""):
-        return self.request("PUT", route, headers, json, data)
-
-    def delete(self, route, headers=None, json=None, data=""):
-        return self.request("DELETE", route, headers, json, data)
-
-    def patch(self, route, headers=None, json=None, data=""):
-        return self.request("PATCH", route, headers, json, data)
-
-    def options(self, route, headers=None, json=None, data=""):
-        return self.request("OPTIONS", route, headers, json, data)
-
     def set_header(self, k, v):
         header = []
         for key in k.split("-"):
@@ -107,3 +86,24 @@ class HttpTestRequest:
             self.app._(s, None)
             resp = c.makefile("rb", -1)
             return HttpTestResponse(resp.readlines())
+
+    def get(self, route, headers=None, json=None, data=""):
+        return self.request("GET", route, headers, json, data)
+
+    def post(self, route, headers=None, json=None, data=""):
+        return self.request("POST", route, headers, json, data)
+
+    def head(self, route, headers=None, json=None, data=""):
+        return self.request("HEAD", route, headers, json, data)
+
+    def put(self, route, headers=None, json=None, data=""):
+        return self.request("PUT", route, headers, json, data)
+
+    def delete(self, route, headers=None, json=None, data=""):
+        return self.request("DELETE", route, headers, json, data)
+
+    def patch(self, route, headers=None, json=None, data=""):
+        return self.request("PATCH", route, headers, json, data)
+
+    def options(self, route, headers=None, json=None, data=""):
+        return self.request("OPTIONS", route, headers, json, data)
