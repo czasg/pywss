@@ -258,6 +258,17 @@ class TestBase(unittest.TestCase):
         resp = c.recv(1024)
         self.assertIn(b'test', resp)
 
+    def test_upload_files(self):
+        app = pywss.App()
+        app.post("/upload", lambda ctx: self.assertEqual(ctx.form()["file"], "test"))
+        app.build()
+
+        s, c = socket.socketpair()
+        threading.Thread(target=app._, args=(s, None)).start()
+        requestBody = b'POST /upload HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: python-requests/2.22.0\r\nAccept-Encoding: gzip, deflate\r\nAccept: */*\r\nConnection: keep-alive\r\nContent-Length: 144\r\nContent-Type: multipart/form-data; boundary=445e813923e368417a24e9a6476b3c54\r\n\r\n--445e813923e368417a24e9a6476b3c54\r\nContent-Disposition: form-data; name="file"; filename="file"\r\n\r\ntest\r\n--445e813923e368417a24e9a6476b3c54--\r\n'
+        c.sendall(requestBody)
+        self.assertIn(b"200", c.recv(1024))
+
 
 if __name__ == '__main__':
     unittest.main()
