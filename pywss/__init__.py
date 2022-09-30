@@ -433,6 +433,10 @@ class App:
         except:
             log.traceback()
         finally:
+            try:
+                request.shutdown(socket.SHUT_WR)
+            except OSError:
+                pass
             request.close()
 
     def close(self) -> None:
