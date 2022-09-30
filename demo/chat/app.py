@@ -57,8 +57,7 @@ def handler(ctx: pywss.Context):
                 WebSocketManager.notify({'from': uid, 'msg': msg})  # 广播消息
     except:
         pass
-    # 用户退出
-    with ctx.log.trycache():
+    finally:
         WebSocketManager.delete(uid)  # 注销用户
         WebSocketManager.notify({'online': len(WebSocketManager.pool)})  # 用户退出，广播一轮在线人数
         WebSocketManager.notify({'from': uid, 'msg': "拜拜~"})
