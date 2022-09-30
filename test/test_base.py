@@ -332,11 +332,19 @@ class TestBase(unittest.TestCase):
                 ctx.set_status_code(pywss.StatusBadRequest)
                 return
             self.assertEqual(ctx.ws_read(), b"test")
-            ctx.ws_write(b"test")
+            ctx.ws_write(b'test')
+
             self.assertEqual(ctx.ws_read(), b"test")
-            ctx.ws_write("test")
+            ctx.ws_write('test')
+
             self.assertEqual(ctx.ws_read(), b"test")
             ctx.ws_write({"test": "test"})
+
+            self.assertEqual(ctx.ws_read(), b"t" * 1000)
+            ctx.ws_write(b"t" * 1000)
+
+            self.assertEqual(ctx.ws_read(), b"t" * 65536)
+            ctx.ws_write(b't' * 65536)
 
         app = pywss.App()
         app.get("/websocket", websocket)
@@ -356,15 +364,55 @@ class TestBase(unittest.TestCase):
             self.assertIn(b"Upgrade: websocket", resp)
             self.assertIn(b"Connection: Upgrade", resp)
             self.assertIn(b"Sec-WebSocket-Accept: eVZ4hOFNJGMIfDNEG3b/VpD7CNk=", resp)
+
             c.sendall(b'\x81\x84\xfd\xd9\xd7\xb5\x89\xbc\xa4\xc1')
-            resp = c.recv(1024)
-            self.assertIn(b'test', resp)
+            self.assertIn(b'test', c.recv(1024))
+
             c.sendall(b'\x81\x84\xfd\xd9\xd7\xb5\x89\xbc\xa4\xc1')
-            resp = c.recv(1024)
-            self.assertIn(b'test', resp)
+            self.assertIn(b'test', c.recv(1024))
+
             c.sendall(b'\x81\x84\xfd\xd9\xd7\xb5\x89\xbc\xa4\xc1')
+            self.assertIn(b'test', c.recv(1024))
+
+            reqBody = b'\x81\xfe\x03\xe8A\xc4\xed75\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C5\xb0\x99C'
+            c.sendall(reqBody)
+            self.assertIn(b't' * 1000, c.recv(1024 * 1024))
+
+            c.sendall(b'\x81\xff\x00\x00\x00\x00\x00\x01\x00\x00\xb2\xea&\x82' + b'\xc6\x9eR\xf6' * 65536)
+            self.assertIn(b't' * 65536, c.recv(1024 * 1024 * 1024))
+
+    def test_websocket_err(self):
+        def websocket(ctx: pywss.Context):
+            err = pywss.WebSocketContextWrap(ctx)
+            if err:
+                ctx.set_status_code(pywss.StatusBadRequest)
+                return
+            self.assertEqual(ctx.ws_read(), b'')
+
+        app = pywss.App()
+        app.get("/websocket", websocket)
+        resp = pywss.HttpTestRequest(app).get("/websocket")
+        self.assertEqual(resp.status_code, pywss.StatusBadRequest)
+        resp = pywss.HttpTestRequest(app).get("/websocket", headers={"Upgrade": "websocket"})
+        self.assertEqual(resp.status_code, pywss.StatusBadRequest)
+
+        app.build()
+        s, c = socket.socketpair()
+        with s, c:
+            threading.Thread(target=app._, args=(s, None)).start()
+            c.sendall(b'GET /websocket HTTP/1.1\r\n'
+                      b'Upgrade: websocket\r\n'
+                      b'Host: localhost:8080\r\n'
+                      b'Origin: http://localhost:8080\r\n'
+                      b'Sec-WebSocket-Key: LvJ3S1F2dEnm+8GNaapAgg==\r\n'
+                      b'Sec-WebSocket-Version: 13\r\n'
+                      b'Connection: Upgrade\r\n\r\n')
             resp = c.recv(1024)
-            self.assertIn(b'test', resp)
+            self.assertIn(b"101 Switching Protocols", resp)
+            self.assertIn(b"Upgrade: websocket", resp)
+            self.assertIn(b"Connection: Upgrade", resp)
+            self.assertIn(b"Sec-WebSocket-Accept: eVZ4hOFNJGMIfDNEG3b/VpD7CNk=", resp)
+            c.sendall(b'1')
 
     def test_routing(self):
         import pywss.routing
