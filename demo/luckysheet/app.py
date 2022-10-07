@@ -1,9 +1,9 @@
 # coding: utf-8
 import json
-import uuid
 import pywss
 import zlib
 import threading
+
 from urllib.parse import unquote
 
 
