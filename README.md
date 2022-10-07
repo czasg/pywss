@@ -30,9 +30,11 @@ Pywss 是一个轻量级的 Python Web 框架。功能清单：
 ```python
 import pywss
 
-app = pywss.App()  # 初始化app
+# 初始化app
+app = pywss.App()
 
-app.run(port=8080)  # 启动服务
+# 启动服务
+app.run(port=8080)  
 ```
 
 ### 2、绑定路由
@@ -44,9 +46,11 @@ def hello(ctx: pywss.Context):
 
 app = pywss.App()
 
-app.get("/hello", lambda ctx: ctx.write({"hello": "world"})) # 注册路由 & 绑定匿名函数
+# 注册路由 & 绑定匿名函数
+app.get("/hello", lambda ctx: ctx.write({"hello": "world"}))
 
-app.post("/hello/{name}", hello) # 注册路由
+# 注册路由
+app.post("/hello/{name}", hello)
 
 app.run(port=8080)
 ```
@@ -97,7 +101,8 @@ $ curl -X POST localhost:8080/api/v2/hello/pywss
 ```python
 import pywss, time
 
-def log_handler(ctx: pywss.Context):  # 日志中间件，单次请求结束后输出cost耗时 - 根据响应码判断输出不同级别日志
+# 日志中间件，单次请求结束后输出cost耗时 - 根据响应码判断输出不同级别日志
+def log_handler(ctx: pywss.Context):  
     start = time.time()
     ctx.next()  # 调用 next 进入到下一个 handler
     cost = time.time() - start
@@ -108,17 +113,21 @@ def log_handler(ctx: pywss.Context):  # 日志中间件，单次请求结束后�
     else:
         ctx.log.error(cost)
 
-def auth_handler(ctx: pywss.Context):  # 认证中间件
-    if ctx.paths["name"] != "pywss":  # 校验请求参数
+# 认证中间件
+def auth_handler(ctx: pywss.Context):  
+    # 校验请求参数
+    if ctx.paths["name"] != "pywss":  
         ctx.set_status_code(pywss.StatusUnauthorized)
         return
     ctx.next()
 
 app = pywss.App()
 
-app.use(log_handler)  # 注册全局中间件
+# 注册全局中间件
+app.use(log_handler)  
 
-app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"}))  # 也可以直接在此注册
+# 中间件也可以直接路由处注册
+app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"}))  
 
 app.run()
 ```
@@ -195,7 +204,8 @@ def hello(ctx: pywss.Context):
 
 app = pywss.App()
 
-app.openapi(  # 开启 openapi
+# 开启 openapi
+app.openapi(  
     title="OpenAPI",
     version="0.0.1",
     openapi_json_route="/openapi.json",
@@ -214,7 +224,8 @@ import pywss
 
 app = pywss.App()
 
-app.static("/static", rootDir="/rootDir") # 注册静态资源，需要指定文件根目录
+# 注册静态资源，需要指定文件根目录
+app.static("/static", rootDir="/rootDir") 
 
 app.run()
 ```
@@ -234,9 +245,11 @@ app = pywss.App()
 
 app.get("/test", lambda ctx: ctx.set_status_code(204))
 
-req = pywss.HttpTestRequest(app)  # 基于app创建HttpRequest
+# 基于app创建HttpRequest
+req = pywss.HttpTestRequest(app)  
 
-resp = req.get("/test")  # 发起Get请求，获取resp
+# 发起Get请求，获取resp
+resp = req.get("/test")  
 
 assert resp.status_code == 204
 ```
