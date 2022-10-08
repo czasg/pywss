@@ -36,6 +36,9 @@ app = pywss.App()
 # 启动服务
 app.run(port=8080)  
 ```
+默认:
+- `host="0.0.0.0"`
+- `port=8080`
 
 ### 2、绑定路由
 ```python
@@ -54,6 +57,11 @@ app.post("/hello/{name}", hello)
 
 app.run(port=8080)
 ```
+`handler`仅接收一个参数，就是`pywss.Context`。路由支持：  
+- `/hello/world`：精确匹配
+- `/hello/{world}`：局部匹配，路径参数可通过`ctx.paths`获取
+- `/hello/*`：模糊匹配
+
 在终端界面执行：
 ```shell script
 $ curl localhost:8080/hello
