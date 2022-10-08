@@ -3,6 +3,7 @@ import json
 import struct
 import base64
 import hashlib
+import warnings
 
 MAGIC_STRING = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 RESPONSE_TEMPLATE = "HTTP/1.1 101 Switching Protocols\r\n" \
@@ -35,6 +36,8 @@ def WebSocketUpgrade(ctx):
 
 # abandoned
 def WebSocketContextWrap(ctx):
+    warnings.warn("WebSocketContextWrap is deprecated, use WebSocketUpgrade instead",
+                  DeprecationWarning)
     return WebSocketUpgrade(ctx)
 
 
