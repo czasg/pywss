@@ -236,7 +236,6 @@ class Context:
 class App:
 
     def __init__(self, base_route="", base_handlers=None):
-        self.running = True
         self.base_route = f"/{base_route.strip().strip('/')}" if base_route else base_route
         self.base_handlers = list(base_handlers) if base_handlers else []
         self.head_match_routes = []
@@ -246,6 +245,7 @@ class App:
         self.openapi_data = {
             "paths": defaultdict(dict),
         }
+        self.running = False
         Closing.add_close(self.close)
 
     def register(self, method, route, handlers) -> None:
@@ -313,6 +313,7 @@ class App:
                     "handlers": [handler.__name__ for handler in v],
                 }).info(f"bind route")
         self.full_match_routes = routes
+        self.running = True
 
     def party(self, route, *handlers) -> 'App':
         route = f"{self.base_route}/{route.strip().strip('/')}"
