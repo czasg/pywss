@@ -1,4 +1,5 @@
 # coding: utf-8
+import time
 import json, os
 import loggus
 import socket
@@ -81,7 +82,7 @@ class TestBase(unittest.TestCase):
 
     def test_app_run(self):
         app = pywss.App()
-        threading.Thread(target=lambda: app.close() or pywss.Closing.close()).start()
+        threading.Thread(target=lambda: time.sleep(0.5) or app.close() or pywss.Closing.close()).start()
         app.run(port=0, grace=1)
         self.assertEqual(app.running, False)
 
