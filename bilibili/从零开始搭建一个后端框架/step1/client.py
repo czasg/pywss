@@ -1,8 +1,8 @@
 # coding: utf-8
 import requests
 
-requests.post("http://localhost:8080/test", data="test")
+print(requests.post("http://localhost:8080/hello", data="hello world").text)
 
 """ curl
-curl -X POST localhost:8080/test -d test
+curl -X POST localhost:8080/hello -d "hello world"
 """

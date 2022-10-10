@@ -1,77 +1,88 @@
-import json
+# coding: utf-8
+
+"""
+服务端搭建
+请求报文解析
+上下文绑定
+响应报文构造
+路由注册
+"""
+
 import socket
 import threading
 
 
 class Context:
 
-    def __init__(self, fd: socket.socket, method, route, version, headers, content):
-        self.fd = fd
+    def __init__(self, request: socket.socket, method, route, version, headers, body):
+        self.request = request
         self.method = method
         self.route = route
         self.version = version
         self.headers = headers
-        self.content = content
+        self.body = body
 
+        self.response_body = ""
         self.response_code = 200
         self.response_headers = {
-            "Server-Version": "0.0.1",
+            "Test-Version": "0.0.1"
         }
-        self.response_content = ""
-
-    def set_statuscode(self, code):
-        self.response_code = code
-
-    def set_header(self, k, v):
-        self.headers[k] = v
 
     def write(self, data):
-        if isinstance(data, str):
-            self.response_content = data
-        elif isinstance(data, dict):
-            self.response_content = json.dumps(data)
+        self.response_body = data
 
     def flush(self):
-        first_line = f"HTTP/1.1 {self.response_code} test"
-        header_line = "\r\n".join([f"{k}: {v}" for k, v in self.response_headers.items()])
-        resp = first_line + "\r\n" + header_line + "\r\n" + "\r\n" + self.response_content
-        self.fd.sendall(resp.encode())
+        sep = "\r\n"
+        if self.response_body:
+            self.response_headers["Content-Length"] = len(self.response_body.encode())
+        text = f"""{self.version} {self.response_code} test
+{sep.join([f"{k}: {v}" for k, v in self.response_headers.items()])}
+
+{self.response_body}"""
+        self.request.sendall(text.encode())
 
 
 class App:
 
     def __init__(self):
-        self.route = {}
+        self.routes = {}
 
-    def register(self, method: str, route: str, handler):
-        self.route[f"{method.upper()}/{route.strip('/')}"] = handler
+    def register(self, method, route, handler):
+        self.routes[f"{method}{route}"] = handler
 
-    def post(self, route: str, handler):
+    def get(self, route, handler):
+        self.register("GET", route, handler)
+
+    def post(self, route, handler):
         self.register("POST", route, handler)
 
-    def _(self, request: socket.socket, address: tuple):
-        # print(address)
+    def handler(self, request: socket.socket, address):
         try:
             rfd = request.makefile("rb", -1)
-            method, route, version = rfd.readline().decode().split()
-            # print(method, route, version)
+            # 解析请求报文 - method, route, version
+            method, route, version = rfd.readline().decode().strip().split(" ")
+            # 解析请求报文 - headers
             headers = {}
             while True:
-                line = rfd.readline()
-                if line == b"\r\n":
+                line = rfd.readline().decode().strip()
+                if not line:
                     break
-                k, v = line.decode().split(":", 1)
-                headers[k.strip()] = v.strip()
-            # print(headers)
-            content = b""
-            content_length = int(headers.get("Content-Length", "0"))
-            if content_length:
-                content = rfd.read(content_length)
-            # print(content)
-            ctx = Context(request, method, route, version, headers, content)
-            handler = self.route.get(f"{method}{route}", None)
-            if handler:
-                handler(ctx)
+                k, v = line.split(":", 1)
+                headers[k] = v
+            # 解析请求报文 - body
+            body = b""
+            cl = int(headers.get("Content-Length", 0))
+            if cl:
+                body = rfd.read(cl)
+
+            ctx = Context(request, method, route, version, headers, body)
+
+            handler = self.routes.get(f"{method}{route}", None)
+            if not handler:
+                ctx.response_code = 404
+                ctx.flush()
+                return
+            handler(ctx)
         except:
             pass
         finally:
@@ -85,18 +96,16 @@ class App:
 
         while True:
             request, address = sock.accept()
-            threading.Thread(target=self._, args=(request, address)).start()
+            threading.Thread(target=self.handler, args=(request, address)).start()
 
 
-def handler(ctx: Context):
-    print(ctx.method, ctx.route)
-    print(ctx.headers)
-    print(ctx.content)
-    ctx.write("hello world")
+def hello(ctx: Context):
+    ctx.write(f"hello world by {ctx.method}{ctx.route}")
     ctx.flush()
 
 
 if __name__ == '__main__':
     app = App()
-    app.post("/test", handler)
+    app.get("/hello", hello)
+    app.post("/hello", hello)
     app.run()
