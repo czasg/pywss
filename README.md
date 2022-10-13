@@ -7,16 +7,51 @@
 **Pywss 是一个轻量级的 Python Web 框架。**     
 
 主要特性：   
-- [x] websocket upgrade
-- [x] openapi & swagger ui
-- [x] middleware
-- [x] static server
-- [x] api test
+- [x] WebSocket Upgrade
+- [x] OpenAPI & Swagger-UI
+- [x] Middleware
+- [x] Static Server
+- [x] API Test
 
-[版本迭代历史](https://github.com/czasg/pywss/wiki/version-history)
+<details>
+  <summary>重点版本迭代说明</summary>
 
-## 一、快速使用手册
+- 0.1.4
+  * 修复`signal`无法在子线程注册
+- 0.1.3
+  * 支持`openapi`
+  * 支持`swagger ui`
+- 0.1.2
+  * 修复`Content-Length`丢失问题
+- 0.1.1
+  * 项目重构
 
+</details>
+
+## 一、快速开始
+
+1、安装 pywss
+```shell
+pip install pywss
+```
+2、创建 main.py，写入以下代码：
+```python
+import pywss
+
+def hello(ctx: pywss.Context):
+  ctx.write("hello world")
+
+if __name__ == '__main__':
+    app = pywss.App()
+    app.get("/hello", hello)
+    app.run()
+```
+3、启动服务
+```shell
+python main.py
+```
+
+## 二、进阶使用
 - [1、初始化app](#1初始化app)
 - [2、绑定路由](#2绑定路由)
 - [3、创建子路由](#3创建子路由)
@@ -57,9 +92,11 @@ app.post("/hello/{name}", hello)
 
 app.run(port=8080)
 ```
-`handler`仅接收一个参数，就是`pywss.Context`。路由支持：  
+路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
+
+除此之外，路由支持多种匹配方式：  
 - `/hello/world`：精确匹配
-- `/hello/{world}`：局部匹配，路径参数可通过`ctx.paths`获取
+- `/hello/{world}`：局部匹配（对应路径参数可通过`ctx.paths`获取）
 - `/hello/*`：模糊匹配
 
 在终端界面执行：
@@ -72,6 +109,7 @@ $ curl -X POST localhost:8080/hello/pywss
 ```
 
 ### 3、创建子路由
+pywss 支持通过`app.party`来实现丰富的路由管理
 ```python
 import pywss
 
@@ -106,6 +144,9 @@ $ curl -X POST localhost:8080/api/v2/hello/pywss
 ```
 
 ### 4、使用中间件
+pywss 支持通过 `use` 注册全局中间件，也支持单个路由绑定中间件。  
+
+使用中间件时，注意需要调用`ctx.next()`才能继续执行往后执行，否则会中断此次请求。 
 ```python
 import pywss, time
 
@@ -139,10 +180,11 @@ app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"})
 
 app.run()
 ```
-支持 `use` 注册全局中间件，也支持单个路由绑定中间件。    
-使用中间件时需要调用 `ctx.next()` 以便继续执行，否则会中断此次请求。     
+    
 
 ### 5、升级WebSocket
+WebSocket 本质基于 HTTP GET 升级实现，Pywss 则通过 `WebSocketUpgrade` 完成此处升级。    
+
 ```python
 import pywss
 
@@ -166,7 +208,6 @@ app.get("/websocket", websocket)
 
 app.run()
 ``` 
-WebSocket 本质基于 GET 升级实现，Pywss 则通过 `WebSocketUpgrade` 完成此处升级。    
 测试需要`打开浏览器 -> F12 -> 控制台`，输入以下代码：
 ```
 ws = new WebSocket("ws://127.0.0.1:8080/websocket");
@@ -263,7 +304,7 @@ assert resp.status_code == 204
 ```
 可以参考 [pywss单元测试](test/test_base.py)
 
-## 二、参数说明
+## 三、参数说明
 ### 1、请求参数
 * Context
     * `ctx.app`: app
