@@ -44,9 +44,7 @@ class Context:
         self.data: data = data()  # data save for user
 
         self.content_length: int = int(headers.get("Content-Length", 0))
-        self.content: bytes = b""
-        if self.content_length:
-            self.content = rfd.read(self.content_length)
+        self.content: bytes = b""  # default empty, use self.body() to instead
 
         self.response_status_code: int = 200
         self.response_headers: dict = {
@@ -55,7 +53,7 @@ class Context:
         }
         self.response_body: list = []
 
-    def next(self):
+    def next(self) -> None:
         if self._handler_index >= len(self._handlers):
             return
         index = self._handler_index
@@ -68,17 +66,17 @@ class Context:
             ct = self.headers.get("Content-Type").strip()
             if not ct.startswith("application/json"):
                 return resp
-            resp = json.loads(self.body())
+            resp = json.loads(self.body().decode())
         except:
             self.log.traceback()
         return resp
 
-    def form(self):
+    def form(self) -> dict:
         resp = {}
         ct = self.headers.get("Content-Type").strip()
         try:
             if ct == "application/x-www-form-urlencoded":
-                for value in self.body().strip().split("&"):
+                for value in self.body().decode().strip().split("&"):
                     k, v = value.split("=", 1)
                     resp[unquote(k)] = unquote(v)
                 return resp
@@ -91,7 +89,7 @@ class Context:
                     boundary = v.replace("boundary=", "")
             if not boundary:
                 return resp
-            for data in self.body().split(f"--{boundary}"):
+            for data in self.body().decode().split(f"--{boundary}"):
                 data = data.strip()
                 if not data.startswith("Content-Disposition"):
                     continue
@@ -102,22 +100,24 @@ class Context:
             self.log.traceback()
         return resp
 
-    def body(self):
-        return self.content.decode()
+    def body(self) -> bytes:
+        if not self.content and self.content_length:
+            self.content = self.rfd.read(self.content_length)
+        return self.content
 
-    def set_header(self, k, v):
+    def set_header(self, k, v) -> None:
         header = []
         for key in k.split("-"):
             header.append(key[0].upper() + key[1:].lower())
         self.response_headers["-".join(header)] = v
 
-    def set_content_length(self, size: int):
+    def set_content_length(self, size: int) -> None:
         self.response_headers["Content-Length"] = self.response_headers.get("Content-Length", 0) + size
 
-    def set_content_type(self, v):
+    def set_content_type(self, v) -> None:
         self.response_headers.setdefault("Content-Type", v)
 
-    def set_cookie(self, key, value, maxAge=None, expires=None, path="/", domain=None, secure=False, httpOnly=False):
+    def set_cookie(self, key, value, maxAge=None, expires=None, path="/", domain=None, secure=False, httpOnly=False) -> None:
         buf = [f"{key}={value}"]
         if isinstance(maxAge, timedelta):
             maxAge = (maxAge.days * 60 * 60 * 24) + maxAge.seconds
@@ -169,14 +169,14 @@ class Context:
             buf.append(f"{k}={v}")
         self.response_headers["Set-Cookie"] = "; ".join(buf)
 
-    def set_status_code(self, status_code):
+    def set_status_code(self, status_code) -> None:
         self.response_status_code = status_code
 
-    def redirect(self, url, status_code=StatusFound):
+    def redirect(self, url, status_code=StatusFound) -> None:
         self.set_status_code(status_code)
         self.set_header("Location", url)
 
-    def write(self, body):
+    def write(self, body) -> None:
         if isinstance(body, (str, bytes)):
             self.write_text(body)
         elif isinstance(body, (dict, list)):
@@ -184,20 +184,20 @@ class Context:
         elif isinstance(body, BufferedReader):
             self.write_file(body)
 
-    def write_text(self, data: str):
+    def write_text(self, data: str) -> None:
         if isinstance(data, str):
             data = data.encode()
         self.set_content_length(len(data))
         self.set_content_type("text/html; charset=utf-8")
         self.response_body.append(data)
 
-    def write_json(self, data):
+    def write_json(self, data) -> None:
         data = json.dumps(data, ensure_ascii=False).encode()
         self.set_content_length(len(data))
         self.set_content_type("application/json")
         self.response_body.append(data)
 
-    def write_file(self, file):
+    def write_file(self, file) -> None:
         if isinstance(file, str) and os.path.exists(file):
             file = open(file, "rb")
         if not isinstance(file, BufferedReader):
@@ -205,13 +205,13 @@ class Context:
         self.set_content_length(os.stat(file.fileno())[6])
         self.response_body.append(file)
 
-    def ws_read(self):  # by WebSocketUpgrade
+    def ws_read(self) -> None:  # impl by WebSocketUpgrade
         raise NotImplementedError
 
-    def ws_write(self, body):  # by WebSocketUpgrade
+    def ws_write(self, body) -> None:  # impl by WebSocketUpgrade
         raise NotImplementedError
 
-    def flush(self):
+    def flush(self) -> None:
         if not self._flush_header:
             data = [f"{self.version} {self.response_status_code} Pywss"]
             for k, v in self.response_headers.items():
