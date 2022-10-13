@@ -61,43 +61,37 @@ class Context:
         self._handlers[index](self)
 
     def json(self):
-        resp = {}
-        try:
-            ct = self.headers.get("Content-Type").strip()
-            if not ct.startswith("application/json"):
-                return resp
-            resp = json.loads(self.body().decode())
-        except:
-            self.log.traceback()
-        return resp
+        return json.loads(self.body().decode())  # not check Content-Type: application/json
 
     def form(self) -> dict:
         resp = {}
         ct = self.headers.get("Content-Type").strip()
-        try:
-            if ct == "application/x-www-form-urlencoded":
-                for value in self.body().decode().strip().split("&"):
-                    k, v = value.split("=", 1)
-                    resp[unquote(k)] = unquote(v)
-                return resp
-            if not ct.startswith("multipart/form-data"):
-                return resp
-            boundary = ""
-            for v in ct.split(";"):
-                v = v.strip()
-                if v.startswith("boundary="):
-                    boundary = v.replace("boundary=", "")
-            if not boundary:
-                return resp
-            for data in self.body().decode().split(f"--{boundary}"):
-                data = data.strip()
-                if not data.startswith("Content-Disposition"):
-                    continue
-                h, v = data.split("\r\n\r\n", 1)
-                name = re.search("name=\"(.*?)\"", h).group(1)
-                resp[name] = v
-        except:
-            self.log.traceback()
+
+        if ct == "application/x-www-form-urlencoded":
+            for value in self.body().decode().strip().split("&"):
+                k, v = value.split("=", 1)
+                resp[unquote(k)] = unquote(v)
+            return resp
+        elif not ct.startswith("multipart/form-data"):
+            raise Exception(f"not support form Content-Type:{ct}")
+
+        # parse form-data boundary
+        boundary = ""
+        for v in ct.split(";"):
+            v = v.strip()
+            if v.startswith("boundary="):
+                boundary = v.replace("boundary=", "")
+                break
+        if not boundary:
+            raise Exception(f"invalid form-data, with not boundary")
+        # parse form-data
+        for data in self.body().decode().split(f"--{boundary}"):
+            data = data.strip()
+            if not data.startswith("Content-Disposition"):
+                continue
+            h, v = data.split("\r\n\r\n", 1)
+            name = re.search("name=\"(.*?)\"", h).group(1)
+            resp[name] = v
         return resp
 
     def body(self) -> bytes:
@@ -117,7 +111,9 @@ class Context:
     def set_content_type(self, v) -> None:
         self.response_headers.setdefault("Content-Type", v)
 
-    def set_cookie(self, key, value, maxAge=None, expires=None, path="/", domain=None, secure=False, httpOnly=False) -> None:
+    def set_cookie(
+            self, key, value, maxAge=None, expires=None, path="/", domain=None, secure=False, httpOnly=False
+    ) -> None:
         buf = [f"{key}={value}"]
         if isinstance(maxAge, timedelta):
             maxAge = (maxAge.days * 60 * 60 * 24) + maxAge.seconds
