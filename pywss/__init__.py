@@ -19,7 +19,7 @@ from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 
 class Context:
@@ -201,7 +201,7 @@ class Context:
         self.set_content_length(os.stat(file.fileno())[6])
         self.response_body.append(file)
 
-    def ws_read(self) -> None:  # impl by WebSocketUpgrade
+    def ws_read(self) -> bytes:  # impl by WebSocketUpgrade
         raise NotImplementedError
 
     def ws_write(self, body) -> None:  # impl by WebSocketUpgrade
