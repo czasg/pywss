@@ -9,9 +9,9 @@
 主要特性：   
 - [x] WebSocket Upgrade
 - [x] OpenAPI & Swagger-UI
+- [x] API Test
 - [x] Middleware
 - [x] Static Server
-- [x] API Test
 
 <details>
   <summary>重点版本迭代说明</summary>
@@ -327,30 +327,31 @@ assert resp.status_code == 204
 ### 1、请求参数
 * Context
     * `ctx.app`: app
-    * `ctx.fd`: socket 句柄
-    * `ctx.method`: 字符串类型，请求方法，如 `GET/POST/PUT/DELETE`
-    * `ctx.path`: 字符串类型，请求路径，如 `/api/v1/query`
-    * `ctx.paths`: 字典类型，请求路径参数，如 `/api/v1/query/{name}`
-    * `ctx.route`: 字符串类型，匹配路由的路径，如 `GET/api/v1/query`
-    * `ctx.cookies`: 字典类型，表示 cookies
-    * `ctx.content`: 原生二进制请求体
-    * `ctx.body()`: 字符串类型。等同于 `ctx.content.decode()`
-    * `ctx.json()`: 获取 json 请求
-    * `ctx.form()`: 获取 form 请求，文件数据也会存放于此
-    * `ctx.params`: 字典类型，获取 url 路由参数，类似 `?code=1&callback=2` 会解析成 `{"code": "1", "callback": "2"}`
-        * 多个同名会以列表形式存放，`?code=1&code=2` 会解析成 `{"code": ["1", "2"]}`
-    * `ctx.headers`: 字典类型，获取 url 请求头
+    * `ctx.fd`: `socket.socket`类型，一般用于写操作
+    * `ctx.rfd`: `socket.makefile`类型，一般用于读操作
+    * `ctx.method`: `str`类型，请求方法，如 `GET/POST/PUT/DELETE`
+    * `ctx.path`: `str`类型，请求路径，如 `/api/v1/query`
+    * `ctx.paths`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
+    * `ctx.route`: `str`类型，匹配路由的路径，如 `GET/api/v1/query`
+    * `ctx.cookies`: `dict`类型，用于存储请求`cookies`数据
+    * `ctx.body()`: `bytes`类型，获取用户请求报文`body`
+    * `ctx.json()`: 解析用户请求，等同于`json.loads(self.body())`，需要遵循一定`json`格式
+    * `ctx.form()`: 解析用户请求，需要遵循一定`form`格式
+    * `ctx.params`: `dict`类型，用于存储解析的`query`参数
+        * `http://github.com/czasg/pywss?code=1&callback=2`->`{"code": "1", "callback": "2"}`
+        * `http://github.com/czasg/pywss?code=1&code=2`->`{"code": ["1", "2"]}`
+    * `ctx.headers`: `dict`类型，用于存储解析的`header`参数
 
 ### 2、响应参数
 * Context
-    * `ctx.set_status_code`: -
-    * `ctx.set_header`: -
-    * `ctx.set_content_type`: -
-    * `ctx.set_cookie`: -
-    * `ctx.write`: -
-    * `ctx.write_text`: -
-    * `ctx.write_json`: -
-    * `ctx.write_file`: -
-    * `ctx.ws_read`: WebSocket 专用
-    * `ctx.ws_write`: WebSocket 专用
+    * `ctx.set_status_code`: 设置响应状态码
+    * `ctx.set_header`: 设置响应头
+    * `ctx.set_content_type`: 设置响应类型
+    * `ctx.set_cookie`: 设置响应`cookie`
+    * `ctx.write`: 用于写请求
+    * `ctx.write_text`: 同`ctx.write`
+    * `ctx.write_json`: 同`ctx.write`
+    * `ctx.write_file`: 同`ctx.write`
+    * `ctx.ws_read`: WebSocket 读请求，需要`pywss.WebSocketUpgrade`升级后使用
+    * `ctx.ws_write`: WebSocket 写请求，需要`pywss.WebSocketUpgrade`升级后使用
     * `ctx.flush`: 一般不需要自己调用
