@@ -96,8 +96,8 @@ app.run(port=8080)
 
 除此之外，路由支持多种匹配方式：  
 - `/hello/world`：精确匹配
-- `/hello/{world}`：局部匹配（对应路径参数可通过`ctx.paths`获取）
-- `/hello/*`：模糊匹配
+- `/hello/{world}`：局部匹配（注意：对应路径参数可通过`ctx.paths["world"]`获取`）
+- `/hello/*`：模糊匹配（注意：路由最后一位必须是`*`）
 
 在终端界面执行：
 ```shell script
@@ -144,7 +144,7 @@ $ curl -X POST localhost:8080/api/v2/hello/pywss
 ```
 
 ### 4、使用中间件
-pywss 支持通过 `use` 注册全局中间件，也支持单个路由绑定中间件。  
+pywss 支持通过`use`注册全局中间件，也支持单个路由绑定中间件。  
 
 使用中间件时，注意需要调用`ctx.next()`才能继续执行往后执行，否则会中断此次请求。 
 ```python
@@ -183,7 +183,7 @@ app.run()
     
 
 ### 5、升级WebSocket
-WebSocket 本质基于 HTTP GET 升级实现，Pywss 则通过 `WebSocketUpgrade` 完成此处升级。    
+WebSocket 本质基于 HTTP GET 升级实现，Pywss 则通过`WebSocketUpgrade`完成此处升级。    
 
 ```python
 import pywss
