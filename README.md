@@ -28,6 +28,8 @@
 
 </details>
 
+<br/>
+
 ## 一、快速开始
 
 1、安装 pywss
@@ -50,6 +52,8 @@ if __name__ == '__main__':
 ```shell
 python main.py
 ```
+
+<br/>
 
 ## 二、进阶使用
 - [1、初始化app](#1初始化app)
@@ -74,6 +78,8 @@ app.run(port=8080)
 默认:
 - `host="0.0.0.0"`
 - `port=8080`
+
+<br/>
 
 ### 2、绑定路由
 ```python
@@ -107,6 +113,8 @@ $ curl localhost:8080/hello
 $ curl -X POST localhost:8080/hello/pywss
 {"hello": "pywss"}
 ```
+
+<br/>
 
 ### 3、创建子路由
 pywss 支持通过`app.party`来实现丰富的路由管理
@@ -142,6 +150,8 @@ $ curl localhost:8080/api/v2/hello
 $ curl -X POST localhost:8080/api/v2/hello/pywss
 {"hello": "/api/v2/hello/pywss"}
 ```
+
+<br/>
 
 ### 4、使用中间件
 pywss 支持通过`use`注册全局中间件，也支持单个路由绑定中间件。  
@@ -180,7 +190,8 @@ app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"})
 
 app.run()
 ```
-    
+
+<br/>
 
 ### 5、升级WebSocket
 WebSocket 本质基于 HTTP GET 升级实现，Pywss 则通过`WebSocketUpgrade`完成此处升级。    
@@ -226,6 +237,8 @@ ws.onopen = function() {
 
 其他具体使用场景/用例，可以参考 [多人在线协同编辑luckysheet](./demo/luckysheet)、[多人聊天室](./demo/chat)
 
+<br/>
+
 ### 6、openapi & swagger ui
 ```python
 import pywss
@@ -267,6 +280,8 @@ app.run()
 ```
 打开浏览器，访问 [localhost:8080/docs](http://localhost:8080/docs)
 
+<br/>
+
 ### 7、静态文件服务器
 ```python
 import pywss
@@ -286,6 +301,8 @@ app.run()
     - 500.html
 ```
 
+<br/>
+
 ### 8、单元测试
 ```python
 import pywss
@@ -303,6 +320,8 @@ resp = req.get("/test")
 assert resp.status_code == 204
 ```
 可以参考 [pywss单元测试](test/test_base.py)
+
+<br/>
 
 ## 三、参数说明
 ### 1、请求参数
