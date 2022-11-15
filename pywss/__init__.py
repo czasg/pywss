@@ -386,10 +386,10 @@ class App:
 
     def _(self, request: socket.socket, address: tuple) -> None:
         log = self.log
-        keep_alive = True
         try:
+            keep_alive = True
+            rfd = request.makefile("rb", -1)
             while keep_alive:
-                rfd = request.makefile("rb", -1)
                 method, path, version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
