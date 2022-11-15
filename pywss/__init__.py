@@ -386,45 +386,51 @@ class App:
 
     def _(self, request: socket.socket, address: tuple) -> None:
         log = self.log
+        keep_alive = True
         try:
-            rfd = request.makefile("rb", -1)
-            method, path, version, err = parse_request_line(rfd)
-            if err:
-                request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
-                return
-            log = log.update(method=method, path=path)
-            hes, err = parse_headers(rfd)
-            if err:
-                request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
-                log.error(err)
-                return
-            # full match
-            paths = {}
-            route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
-            handlers = self.full_match_routes.get(route, None)
-            # parser match
-            if not handlers:
-                for r, v in self.parse_match_routes:
-                    fix, ps = r.match(route)
-                    if fix:
-                        route = r.route
-                        handlers = v
-                        paths = ps
-                        break
-            # head match
-            if not handlers:
-                for r, v in self.head_match_routes:
-                    if route.startswith(r):
-                        route = r
-                        handlers = v
-                        break
-            if not handlers:
-                request.sendall(b"HTTP/1.1 404 NotFound\r\n")
-                log.warning("No Handler")
-                return
-            ctx = Context(self, request, address, log, rfd, method, path, paths, version, hes, route, handlers)
-            ctx.next()
-            ctx.flush()
+            while keep_alive:
+                rfd = request.makefile("rb", -1)
+                method, path, version, err = parse_request_line(rfd)
+                if err:
+                    request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
+                    return
+                log = log.update(method=method, path=path)
+                hes, err = parse_headers(rfd)
+                if err:
+                    request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
+                    log.error(err)
+                    return
+                # check keep alive
+                if hes.get("Connection", "").lower() == "close":
+                    keep_alive = False
+                    continue
+                # full match
+                paths = {}
+                route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
+                handlers = self.full_match_routes.get(route, None)
+                # parser match
+                if not handlers:
+                    for r, v in self.parse_match_routes:
+                        fix, ps = r.match(route)
+                        if fix:
+                            route = r.route
+                            handlers = v
+                            paths = ps
+                            break
+                # head match
+                if not handlers:
+                    for r, v in self.head_match_routes:
+                        if route.startswith(r):
+                            route = r
+                            handlers = v
+                            break
+                if not handlers:
+                    request.sendall(b"HTTP/1.1 404 NotFound\r\n")
+                    log.warning("No Handler")
+                    return
+                ctx = Context(self, request, address, log, rfd, method, path, paths, version, hes, route, handlers)
+                ctx.next()
+                ctx.flush()
         except ConnectionAbortedError:
             log.error("connect abort")
         except:
