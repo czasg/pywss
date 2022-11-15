@@ -8,9 +8,8 @@ class AppLog(App):
         log = self.log
         log.info("建立连接")
         try:
-            keep_alive = True
             rfd = request.makefile("rb", -1)
-            while keep_alive:
+            while True:
                 method, path, version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
@@ -24,8 +23,7 @@ class AppLog(App):
                 log.variables(method, path, version).info("获取请求")
                 # check keep alive
                 if hes.get("Connection", "").lower() == "close":
-                    keep_alive = False
-                    continue
+                    break
                 # full match
                 paths = {}
                 route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"

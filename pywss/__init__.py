@@ -387,9 +387,8 @@ class App:
     def _(self, request: socket.socket, address: tuple) -> None:
         log = self.log
         try:
-            keep_alive = True
             rfd = request.makefile("rb", -1)
-            while keep_alive:
+            while True:
                 method, path, version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
@@ -402,8 +401,7 @@ class App:
                     return
                 # check keep alive
                 if hes.get("Connection", "").lower() == "close":
-                    keep_alive = False
-                    continue
+                    break
                 # full match
                 paths = {}
                 route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
