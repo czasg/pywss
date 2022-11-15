@@ -83,6 +83,7 @@ class HttpTestRequest:
         s, c = socket.socketpair()
         with s, c:
             c.sendall(req_message.encode())
+            c.sendall("GET / HTTP/1.1\r\nConnection: close\r\n\r\n".encode())
             self.app._(s, None)
             resp = c.makefile("rb", -1)
             return HttpTestResponse(resp.readlines())
