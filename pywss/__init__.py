@@ -246,7 +246,9 @@ class App:
 
     def register(self, method, route, handlers) -> None:
         route = f"/{route.strip().strip('/')}" if route else route
-        self.full_match_routes[f"{method}{self.base_route}{route}"] = list(self.base_handlers) + list(handlers)
+        route = f"{self.base_route}{route}"
+        route = f"/{route.strip().strip('/')}"
+        self.full_match_routes[f"{method}{route}"] = list(self.base_handlers) + list(handlers)
 
     def build(self) -> None:
         routes = {}
