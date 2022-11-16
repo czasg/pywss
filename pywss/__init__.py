@@ -50,6 +50,7 @@ class Context:
         self.response_headers: dict = {
             "Server": "Pywss",
             "PywssVersion": __version__,
+            "Content-Length": 0,
         }
         self.response_body: list = []
 
