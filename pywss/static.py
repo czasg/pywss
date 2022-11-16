@@ -17,7 +17,7 @@ def NewStaticHandler(root, default="application/octet-stream"):
             ctx.set_status_code(StatusServiceUnavailable)
             ctx.write("Not Support Header Content-Range")
             return
-        path = f"GET{ctx.path.split('?', 1)[0]}"[len(ctx.route) + 1:]
+        path = f"GET{ctx.path.split('?', 1)[0]}"[len(ctx.route):].strip("/")
         file = os.path.join(root, *path.split("/"))
         if not os.path.exists(file):
             ctx.set_status_code(StatusNotFound)

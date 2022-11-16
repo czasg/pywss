@@ -296,7 +296,7 @@ class TestBase(unittest.TestCase):
                 self.assertTrue(resp.body == "test")
                 self.assertTrue(int(resp.headers["Content-Length"]) == 4)
 
-                resp = pywss.HttpTestRequest(app).head(f"/test/pywss")
+                resp = pywss.HttpTestRequest(app).head(f"/test/{name}")
                 self.assertEqual(resp.status_code, 200)
                 self.assertTrue(resp.body == "")
                 self.assertTrue(int(resp.headers["Content-Length"]) == 4)
