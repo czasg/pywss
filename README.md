@@ -16,6 +16,12 @@
 <details>
   <summary>重点版本迭代说明</summary>
 
+- 0.1.10
+  * 修复部分路由BUG
+- 0.1.9
+  * 默认支持`keep-alive`
+- 0.1.7
+  * 调整json/form解析
 - 0.1.4
   * 修复`signal`无法在子线程注册
 - 0.1.3
@@ -52,6 +58,7 @@ if __name__ == '__main__':
 ```shell
 python main.py
 ```
+至此，一个简单的 hello world 服务就启动了。
 
 <br/>
 
