@@ -170,6 +170,8 @@ class Context:
         self.response_status_code = status_code
 
     def redirect(self, url, status_code=StatusFound) -> None:
+        if "?" not in url and "?" in self.path:
+            url = f"{url}?{self.path.split('?', 1)[1]}"
         self.set_status_code(status_code)
         self.set_header("Location", url)
 
@@ -396,7 +398,8 @@ class App:
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                     return
-                log = log.update(method=method, path=path)
+                route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
+                log = log.update(route=route)
                 hes, err = parse_headers(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
@@ -407,7 +410,6 @@ class App:
                     break
                 # full match
                 paths = {}
-                route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
                 handlers = self.full_match_routes.get(route, None)
                 # parser match
                 if not handlers:
