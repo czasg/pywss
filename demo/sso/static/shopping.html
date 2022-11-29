@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping</title>
+    <script src="./vue.min.js"></script>
+    <script src="./axios.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .container {
+            height: 100vh;
+            width: 100vw;
+            background: #f1f1f1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            position: absolute;
+            height: 40vh;
+            width: 100vw;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            font-weight: bold;
+            background: #75ac89;
+        }
+        .content {
+            position: absolute;
+            top: 40vh;
+            left: 0;
+            height: 60vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: bold;
+        }
+
+        .message-box {
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+        .message {
+            width: 350px;
+            height: 50px;
+            background: #e3efd7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            animation: message-enter 1s;
+        }
+        @keyframes message-enter {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .v-enter-active, .v-leave-active {
+            transition: all 1s ease;
+        }
+        .v-enter-from, .v-leave-to {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <div class="header">
+        Shopping购物系统
+    </div>
+    <div class="content">
+        当前用户：{{ cur_payload.une }}
+        <br/>
+        过期时间：{{ exp }}
+    </div>
+    <transition-group class="message-box" tag="div">
+        <div class="message" :key="message" v-for="message in messages">
+            {{ message }}
+        </div>
+    </transition-group>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                cur_payload: {
+                    usr: '',
+                    exp: '',
+                },
+                cur_jwt_token: '',
+                exp: 0,
+
+                messages: [],
+            }
+        },
+        mounted() {
+            // get token
+            this.fillToken();
+            // login if not token
+            if (this.cur_jwt_token === '') {
+                location.href = `http://sso/api/v1/auth`;
+                return
+            }
+            // check token
+            this.checkToken();
+            // update time
+            this.startUpdate();
+        },
+        methods: {
+            logout(){
+                var keys = document.cookie.match(/[^ =;]+(?=\=)/g);
+                if (keys) {
+                    for (var i = keys.length; i--;) {
+                        document.cookie = keys[i] + '=0;path=/;expires=' + new Date(0).toUTCString();
+                        document.cookie = keys[i] + '=0;path=/;domain=' + document.domain + ';expires=' + new Date(0).toUTCString();
+                    }
+                }
+                this.info('token expire, waiting to logout');
+                setTimeout(() => {
+                    location.href = `http://sso/api/v1/auth`;
+                }, 1500);
+            },
+            checkToken(){
+                axios({
+                    method: 'post',
+                    url: '/api/v1/auth/verify',
+                    headers: {
+                        Authorization: `Bearer ${this.cur_jwt_token}`,
+                    },
+                }).then(resp => {
+                    this.info('token check pass');
+                }).catch(resp => {
+                    this.info('token check failure');
+                    setTimeout(this.logout, 1500);
+                })
+            },
+            info(msg){
+                this.messages.push(msg);
+                setTimeout(() => {
+                    this.messages.shift();
+                }, 1500)
+            },
+            fillToken(){
+                if (document.location.href.indexOf('?') !== -1) {
+                     document.location.href.split('?')[1].split('&').forEach(value => {
+                        if (value.startsWith('token=') === true) {
+                            this.cur_jwt_token = value.split('=')[1];
+                            document.cookie = `jwt_token=${this.cur_jwt_token}`
+                        }
+                    })
+                }
+                document.cookie.split(';').forEach(value => {
+                    value = value.trim();
+                    if (value.startsWith('jwt_token=') === true) {
+                        this.cur_jwt_token = value.split('=')[1];
+                    }
+                })
+                if (this.cur_jwt_token !== '') {
+                    payload = this.cur_jwt_token.split('.')[1];
+                    payload = window.atob(payload);
+                    this.cur_payload = JSON.parse(payload);
+                }
+            },
+            startUpdate(){
+                this.exp = this.cur_payload.exp - parseInt(new Date().getTime() / 1000);
+                setInterval(() => {
+                    if (this.exp <= 0) {
+                        return
+                    }
+                    this.exp = this.cur_payload.exp - parseInt(new Date().getTime() / 1000);
+                    if (this.exp <= 0) {
+                        this.logout();
+                    }
+                }, 1000)
+            }
+        }
+    });
+</script>
+</html>
