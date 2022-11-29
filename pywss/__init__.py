@@ -452,28 +452,29 @@ class App:
 
     def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5) -> None:
         self.build()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind((host, port))
-        sock.listen(request_queue_size)
-        selector = selectors.PollSelector if hasattr(selectors, 'PollSelector') else selectors.SelectSelector
-        with self.log.trycache():
-            with selector() as _selector:
-                _selector.register(sock.fileno(), selectors.EVENT_READ)
-                self.log. \
-                    update(version=__version__). \
-                    variables(host, port, grace). \
-                    info("server start")
-                while self.running:
-                    ready = _selector.select(poll_interval)
-                    if not ready:
-                        continue
-                    request, address = sock.accept()
-                    threading.Thread(target=self._, args=(request, address)).start()
-        for i in range(grace):
-            self.log.update(hit=i + 1, grace=grace).warning("server closing")
-            time.sleep(1)
-        self.log.warning("server closed")
-        sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind((host, port))
+            sock.listen(request_queue_size)
+            selector = selectors.PollSelector if hasattr(selectors, 'PollSelector') else selectors.SelectSelector
+            with self.log.trycache():
+                with selector() as _selector:
+                    _selector.register(sock.fileno(), selectors.EVENT_READ)
+                    self.log.update(
+                        version=__version__,
+                        host=host,
+                        port=port,
+                        grace=grace
+                    ).info("server start")
+                    while self.running:
+                        ready = _selector.select(poll_interval)
+                        if not ready:
+                            continue
+                        request, address = sock.accept()
+                        threading.Thread(target=self._, args=(request, address)).start()
+            for i in range(grace):
+                self.log.update(hit=i + 1, grace=grace).warning("server closing")
+                time.sleep(1)
+            self.log.warning("server closed")
 
 
 class data(dict):
