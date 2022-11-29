@@ -326,6 +326,8 @@ class App:
         self.base_handlers += list(handlers)
 
     def static(self, route, rootDir, *handlers, staticHandler=NewStaticHandler) -> None:
+        if not os.path.exists(rootDir):
+            raise Exception(f"not found {rootDir}")
         if staticHandler:
             handlers = list(handlers)
             handlers.append(staticHandler(rootDir))
