@@ -40,9 +40,21 @@
 
 1、安装 pywss
 ```shell
-pip install pywss
+pip3 install pywss
 ```
-2、创建 main.py，写入以下代码：
+2、基于命令行快速启动web服务    
+启动静态文件服务，其中`--static`参数为：本地路径 + ":" + 路由前缀
+```shell
+pywss --static=".:/" --port=8080
+```
+
+启动web服务，其中`--route`参数为：`method : route : code : body`
+```shell
+pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
+```
+
+3、基于代码快速启动web服务    
+创建 main.py，写入以下代码：
 ```python
 import pywss
 
@@ -54,11 +66,11 @@ if __name__ == '__main__':
     app.get("/hello", hello)
     app.run()
 ```
-3、启动服务
+启动服务
 ```shell
 python main.py
 ```
-至此，一个简单的 hello world 服务就启动了。
+一个简单的 hello world 服务就启动了。
 
 <br/>
 
