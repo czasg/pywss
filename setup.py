@@ -35,11 +35,16 @@ setup(
     author_email='972542644@qq.com',
     url='https://github.com/czasg/pywss',
     packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'pywss = entrypoint:main',
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
     install_requires=[
-        "loggus >= 0.1.1",
+        "loggus>=0.1.1",
     ],
 )
