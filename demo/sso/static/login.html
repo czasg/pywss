@@ -312,6 +312,9 @@
                     password: this.register_password,
                 }).then(resp => {
                     this.info(resp.data.msg);
+                    setTimeout(() => {
+                        this.panel_active = true;
+                    }, 500);
                 })
             },
             login() {

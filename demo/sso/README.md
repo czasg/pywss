@@ -1,5 +1,12 @@
-# luckysheet 在线协同编辑
+# SSO单点登录服务
 
-1、安装依赖：`pip install -r requirements.txt`
+## 1、配置hosts文件  
+以win系统为例：修改 `C:\Windows\System32\drivers\etc\hosts` 文件，加入以下内容：
+```text
+127.0.0.1       sso
+127.0.0.1       shopping
+127.0.0.1       living
+```
 
-2、启动后端服务：`python app.py`
+## 2、docker-compose启动
+打开命令行执行：`docker-compose up -d`

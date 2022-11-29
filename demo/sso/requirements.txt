@@ -1,2 +1,5 @@
-pywss
 sqlalchemy
+pymysql
+mysqlclient
+mysql-connector
+pywss
