@@ -16,9 +16,9 @@ services:
     image: mysql:latest
     healthcheck:
       test: mysqladmin ping -h mysql -u root -p123456
-      interval: 30s
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 60
     ports:
       - "3306"
     environment:

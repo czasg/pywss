@@ -42,35 +42,40 @@
 ```shell
 pip3 install pywss
 ```
-2、基于命令行快速启动web服务    
-启动静态文件服务，其中`--static`参数为：本地路径 + ":" + 路由前缀
-```shell
-pywss --static=".:/" --port=8080
-```
 
-启动web服务，其中`--route`参数为：`method : route : code : body`
-```shell
-pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
-```
-
-3、基于代码快速启动web服务    
-创建 main.py，写入以下代码：
+2、基于代码形式的启动    
+创建 main.py 文件，写入以下代码：
 ```python
 import pywss
 
 def hello(ctx: pywss.Context):
   ctx.write("hello world")
 
-if __name__ == '__main__':
+def main():
     app = pywss.App()
     app.get("/hello", hello)
     app.run()
+
+if __name__ == '__main__':
+    main()
 ```
 启动服务
 ```shell
-python main.py
+python3 main.py
 ```
 一个简单的 hello world 服务就启动了。
+
+
+3、基于命令行快速启动       
+如果你只是想快速简单的起一个服务，那么你还可以通过命令行的方式：
+- 启动静态文件服务，其中`--static`参数为：本地路径 + ":" + 路由前缀
+```shell
+pywss --static=".:/" --port=8080
+```
+- 启动web服务，其中`--route`参数为：`method : route : code : body`
+```shell
+pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
+```
 
 <br/>
 
