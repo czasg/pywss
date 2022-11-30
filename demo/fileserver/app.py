@@ -4,8 +4,8 @@ import pywss
 
 def main():
     app = pywss.App()
-    app.get("/", lambda ctx: ctx.redirect("/static/"))
-    app.static("/static", ".")
+    app.get("/", lambda ctx: ctx.redirect("/file-server/"))
+    app.static("/file-server", ".")
     app.run()
 
 

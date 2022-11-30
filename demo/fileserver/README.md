@@ -4,6 +4,6 @@
 
 2、启动后端服务：`python app.py`
 
-3、浏览器访问地址：[http://localhost:8080/static/](http://localhost:8080/static/)
+3、浏览器访问地址：[http://localhost:8080/file-server/](http://localhost:8080/file-server/)
 
 4、即可看到简易操作页面

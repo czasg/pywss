@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 
-from pywss.statuscode import *
+from pywss.statuscode import StatusNotFound, StatusServiceUnavailable, MethodHead
 
 
 def html_template(path, limit):
