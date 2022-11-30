@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--port", default=8080, type=int,
                         help="web server port, default[8080]")
     parser.add_argument("--route", action='append', default=[],
-                        help='method:route:code:body, eg[--route="GET:/hello:200:hello,world"]')
+                        help='method:route:code:body, eg[--route="GET:/hello:200:hello,pywss"]')
     parser.add_argument("--static", action='append', default=[],
                         help='eg[--static="/localDir:/staticRoute"]')
     parser.add_argument("--restart", choices=['always', 'never'],
@@ -33,12 +33,14 @@ def main():
 
     with loggus.trycache():
         app = pywss.App()
-        for arg in args.route or ['GET:/:200:Hello Pywss']:
+        for arg in args.route:
             method, route, code, body = arg.split(":", 3)
             getattr(app, method.lower())(route, new_handler(int(code), body))
         for arg in args.static:
             rootDir, route = arg.split(":", 1)
             app.static(route, rootDir=rootDir)
+        if not args.route and not args.static:
+            app.get("/", lambda ctx: ctx.write("hello, pywss"))
         app.run(host=args.host, port=args.port)
 
 
