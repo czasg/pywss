@@ -287,6 +287,14 @@ class TestBase(unittest.TestCase):
             app = pywss.App()
             app.static("/test", tmpdir)
 
+            for name in ["tmp"]:
+                os.makedirs(os.path.join(tmpdir, name))
+                resp = pywss.HttpTestRequest(app).get(f"/test/{name}")
+                self.assertEqual(resp.status_code, 302)
+
+                resp = pywss.HttpTestRequest(app).get(f"/test/{name}/")
+                self.assertEqual(resp.status_code, 200)
+
             for name in ["pywss", "test.html", "test.css", "test.js", "test.json", "test.xml", "test.png"]:
                 tmpfile = os.path.join(tmpdir, name)
                 with open(tmpfile, "w", encoding="utf-8") as f:
