@@ -208,11 +208,11 @@ class TestBase(unittest.TestCase):
 
     def test_ctx_redirect(self):
         app = pywss.App()
-        app.get("/test", lambda ctx: ctx.redirect("/test"))
+        app.get("/test", lambda ctx: ctx.redirect("/test/"))
 
-        resp = pywss.HttpTestRequest(app).get("/test")
+        resp = pywss.HttpTestRequest(app).get("/test?test=test")
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers.get("Location"), "/test")
+        self.assertEqual(resp.headers.get("Location"), "/test/?test=test")
 
     def test_ctx_headers(self):
         def header(ctx: pywss.Context):
@@ -285,6 +285,8 @@ class TestBase(unittest.TestCase):
     def test_static(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             app = pywss.App()
+            app.get("/write-buffer", lambda ctx: ctx.write(open(os.path.join(tmpdir, "pywss"), "rb")))
+            app.get("/write-file-str", lambda ctx: ctx.write_file(os.path.join(tmpdir, "pywss")))
             app.static("/test", rootDir=tmpdir, staticHandler=lambda rootDir: pywss.NewStaticHandler(rootDir, limit=7))
             os.makedirs(os.path.join(tmpdir, "empty_child_dir"))
             for name in ["pywss", "test.html", "test.css", "test.js", "test.json", "test.xml", "test.png", "text.txt"]:
@@ -307,11 +309,22 @@ class TestBase(unittest.TestCase):
                 resp = pywss.HttpTestRequest(app).get(f"/test/{name}", headers={"Content-Range": "0"})
                 self.assertEqual(resp.status_code, pywss.StatusServiceUnavailable)
 
-
             resp = pywss.HttpTestRequest(app).get(f"/test")
             self.assertEqual(resp.status_code, 302)
             resp = pywss.HttpTestRequest(app).get(f"/test/")
             self.assertEqual(resp.status_code, 200)
+            resp = pywss.HttpTestRequest(app).get(f"/write-buffer")
+            self.assertEqual(resp.status_code, 200)
+            resp = pywss.HttpTestRequest(app).get(f"/write-file-str")
+            self.assertEqual(resp.status_code, 200)
+
+            raiseErr = None
+            try:
+                app = pywss.App()
+                app.static("/test", rootDir=tmpdir+"not-exist-dir")
+            except Exception as e:
+                raiseErr = e
+            self.assertIsNotNone(raiseErr)
 
     def test_middleware(self):
         def auth(ctx: pywss.Context):
@@ -333,6 +346,15 @@ class TestBase(unittest.TestCase):
 
     def test_websocket(self):
         def websocket(ctx: pywss.Context):
+            try:
+                ctx.ws_read()
+            except NotImplementedError:
+                pass
+            try:
+                ctx.ws_read()
+            except NotImplementedError:
+                pass
+
             err = pywss.WebSocketUpgrade(ctx)
             if err:
                 ctx.log.error(err)

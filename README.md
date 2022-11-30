@@ -346,7 +346,7 @@ resp = req.get("/test")
 
 assert resp.status_code == 204
 ```
-可以参考 [pywss单元测试](test/test_base.py)
+可以参考 [pywss单元测试](test/test_app.py)
 
 <br/>
 
