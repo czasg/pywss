@@ -73,7 +73,7 @@ def html_template(path, limit):
 
 def NewStaticHandler(root, default="application/octet-stream", limit=100):
     textHtml = tuple("html,htm,shtml".split(","))
-    textPlain = tuple("py,go,md,txt".split(","))
+    textPlain = tuple("py,go,md,txt,log".split(","))
     textCss = tuple("css".split(","))
     textXml = tuple("xml".split(","))
     applicationXJavascript = tuple("js".split(","))
