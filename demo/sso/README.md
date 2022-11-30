@@ -9,4 +9,4 @@
 ```
 
 ## 2、docker-compose启动
-打开命令行执行：`docker-compose up -d`
+打开命令行执行：`docker-compose up`
