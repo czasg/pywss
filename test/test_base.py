@@ -285,17 +285,9 @@ class TestBase(unittest.TestCase):
     def test_static(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             app = pywss.App()
-            app.static("/test", tmpdir)
-
-            for name in ["tmp"]:
-                os.makedirs(os.path.join(tmpdir, name))
-                resp = pywss.HttpTestRequest(app).get(f"/test/{name}")
-                self.assertEqual(resp.status_code, 302)
-
-                resp = pywss.HttpTestRequest(app).get(f"/test/{name}/")
-                self.assertEqual(resp.status_code, 200)
-
-            for name in ["pywss", "test.html", "test.css", "test.js", "test.json", "test.xml", "test.png"]:
+            app.static("/test", rootDir=tmpdir, staticHandler=lambda rootDir: pywss.NewStaticHandler(rootDir, limit=7))
+            os.makedirs(os.path.join(tmpdir, "empty_child_dir"))
+            for name in ["pywss", "test.html", "test.css", "test.js", "test.json", "test.xml", "test.png", "text.txt"]:
                 tmpfile = os.path.join(tmpdir, name)
                 with open(tmpfile, "w", encoding="utf-8") as f:
                     f.write("test")
@@ -314,6 +306,12 @@ class TestBase(unittest.TestCase):
 
                 resp = pywss.HttpTestRequest(app).get(f"/test/{name}", headers={"Content-Range": "0"})
                 self.assertEqual(resp.status_code, pywss.StatusServiceUnavailable)
+
+
+            resp = pywss.HttpTestRequest(app).get(f"/test")
+            self.assertEqual(resp.status_code, 302)
+            resp = pywss.HttpTestRequest(app).get(f"/test/")
+            self.assertEqual(resp.status_code, 200)
 
     def test_middleware(self):
         def auth(ctx: pywss.Context):
