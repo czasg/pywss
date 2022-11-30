@@ -43,7 +43,7 @@
 pip3 install pywss
 ```
 
-2、基于代码形式的启动    
+2、搭建web服务    
 创建 main.py 文件，写入以下代码：
 ```python
 import pywss
@@ -59,15 +59,18 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-启动服务
+启动服务，至此，一个简单的 hello world 服务就启动了。
 ```shell
 python3 main.py
 ```
-一个简单的 hello world 服务就启动了。
 
 
 3、基于命令行快速启动       
-如果你只是想快速简单的起一个服务，那么你还可以通过命令行的方式：
+如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
+- 查看帮助指令
+```shell
+pywss -h
+```
 - 启动静态文件服务，其中`--static`参数为：本地路径 + ":" + 路由前缀
 ```shell
 pywss --static=".:/" --port=8080
@@ -180,7 +183,7 @@ $ curl -X POST localhost:8080/api/v2/hello/pywss
 ### 4、使用中间件
 pywss 支持通过`use`注册全局中间件，也支持单个路由绑定中间件。  
 
-使用中间件时，注意需要调用`ctx.next()`才能继续执行往后执行，否则会中断此次请求。 
+使用中间件时，注意需要调用`ctx.next()`才能继续往后执行，否则会中断此次请求。 
 ```python
 import pywss, time
 
