@@ -436,6 +436,8 @@ class App:
                 ctx = Context(self, request, address, log, rfd, method, path, paths, version, hes, route, handlers)
                 ctx.next()
                 ctx.flush()
+                if ctx.content_length != len(ctx.content):  # sock should be close
+                    return
         except ConnectionAbortedError:
             log.error("connect abort")
         except:
