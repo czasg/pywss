@@ -470,7 +470,7 @@ class App:
                         if not ready:
                             continue
                         request, address = sock.accept()
-                        threading.Thread(target=self._, args=(request, address)).start()
+                        threading.Thread(target=self._, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
                 time.sleep(1)
