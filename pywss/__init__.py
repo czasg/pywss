@@ -41,7 +41,7 @@ class Context:
         self.route: str = route
         self._handlers: list = handlers
         self.address: tuple = address
-        self.data: data = data()  # data save for user
+        self.data: Data = Data()  # data save for user
 
         self.content_length: int = int(headers.get("Content-Length", 0))
         self.content: bytes = b""  # default empty, use self.body() to instead
@@ -477,7 +477,7 @@ class App:
             self.log.warning("server closed")
 
 
-class data(dict):
+class Data(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
