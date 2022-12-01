@@ -71,11 +71,14 @@ python3 main.py
 ```shell
 pywss -h
 ```
-- 启动静态文件服务，其中`--static`参数为：本地路径 + ":" + 路由前缀
+- 启动静态文件服务，指令如下，此时可以通过`http://localhost:8080`访问：
+    - `--static`表示`本地路径 : 路由前缀`，即将本地路径下的文件映射到指定路由
+    - `--port`表示端口号
 ```shell
 pywss --static=".:/" --port=8080
 ```
-- 启动web服务，其中`--route`参数为：`method : route : code : body`
+- 启动web服务，指令如下，此时可以通过`http://localhost:8080/hello`访问：
+    - `--route`表示`method : route : code : body`，即指定响应信息
 ```shell
 pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
 ```
