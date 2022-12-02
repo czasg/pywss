@@ -34,7 +34,7 @@ setup(
     author='czasg',
     author_email='972542644@qq.com',
     url='https://github.com/czasg/pywss',
-    packages=find_packages(),
+    packages=find_packages(exclude=("test",)),
     entry_points={
         'console_scripts': [
             'pywss = entrypoint:main',
