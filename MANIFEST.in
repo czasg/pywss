@@ -1,0 +1,7 @@
+include LICENSE
+include MANIFEST.in
+include requirements.txt
+
+prune test
+
+global-exclude __pycache__ *.py[cod]
