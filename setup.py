@@ -11,6 +11,17 @@ from setuptools import setup, find_packages
 3、twine upload dist/__packages__-__version__.tar.gz
 """
 
+"""MANIFEST.in
+- include file-pattern ...
+- exclude file-pattern ...
+- recursive-include dir-pattern file-pattern ...
+- recursive-exclude dir-pattern file-pattern ...
+- global-include file-or-dir-pattern ...
+- global-exclude file-or-dir-pattern ...
+- graft dir-pattern
+- prune dir-pattern
+"""
+
 
 def read(*parts):
     here = os.path.abspath(os.path.dirname(__file__))
@@ -35,6 +46,9 @@ setup(
     author_email='972542644@qq.com',
     url='https://github.com/czasg/pywss',
     packages=find_packages(exclude=("test",)),
+    include_package_data=True,
+    zip_safe=False,
+    license="MIT",
     entry_points={
         'console_scripts': [
             'pywss = entrypoint:main',
