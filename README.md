@@ -38,12 +38,13 @@
 
 ## 一、快速开始
 
-1、安装 pywss
+### 1、安装 pywss
 ```shell
 pip3 install pywss
 ```
 
-2、搭建web服务    
+
+### 2、搭建web服务    
 创建 main.py 文件，写入以下代码：
 ```python
 import pywss
@@ -65,23 +66,27 @@ python3 main.py
 ```
 
 
-3、基于命令行快速启动       
+### 3、基于命令行快速启动       
 如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
 - 查看帮助指令
 ```shell
 pywss -h
 ```
-- 启动静态文件服务，指令如下，此时可以通过`http://localhost:8080`访问：
+
+- 启动静态文件服务：
     - `--static`表示`本地路径 : 路由前缀`，即将本地路径下的文件映射到指定路由
     - `--port`表示端口号
 ```shell
 pywss --static=".:/" --port=8080
 ```
-- 启动web服务，指令如下，此时可以通过`http://localhost:8080/hello`访问：
+通过`http://localhost:8080/`访问  
+
+- 启动web服务：
     - `--route`表示`method : route : code : body`，即指定响应信息
 ```shell
 pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
 ```
+通过`http://localhost:8080/hello`访问
 
 <br/>
 
@@ -105,9 +110,11 @@ app = pywss.App()
 # 启动服务
 app.run(port=8080)  
 ```
-默认:
-- `host="0.0.0.0"`
-- `port=8080`
+参数说明:
+- `host`: 默认 0.0.0.0
+- `port`: 默认 8080
+- `grace`: 退出滞留时间，默认为0
+
 
 <br/>
 
