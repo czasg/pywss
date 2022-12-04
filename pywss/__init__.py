@@ -440,6 +440,8 @@ class App:
                     return
         except ConnectionAbortedError:
             log.error("connect abort")
+        except ConnectionResetError:
+            log.error("connect reset")
         except:
             log.traceback()
         finally:
