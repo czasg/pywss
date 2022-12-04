@@ -40,11 +40,18 @@ class WebSocketManager:
 def load(ctx: pywss.Context):
     data = json.dumps([
         {
-            "name": "Cell",
-            "index": "sheet_01",
+            "name": "Sheet1",
+            "index": f"sheet_01",
             "order": 0,
-            "status": 1,
+            "status": "1",
+            "column": 60,
+            "row": 84,
+            "config": {},
+            "pivotTable": None,
+            "isPivotTable": False,
+            "data": [[None for _ in range(60)] for _ in range(84)],
             "celldata": [],
+            "color": "",
         }
     ])
     ctx.write(data)
@@ -87,18 +94,21 @@ def update(ctx: pywss.Context):
         WebSocketManager.delete(uid)
 
 
-if __name__ == '__main__':
+def main():
     # 初始化 app
     app = pywss.App()
     # 注册静态资源
-    app.static("/static", ".")
+    app.get("/", lambda ctx: ctx.redirect("/static/luckysheet.html"))
+    app.static("/static", "./static")
     # 注册 luckysheet 路由
     app.post("/luckysheet/api/loadUrl", load)
     app.get("/luckysheet/api/updateUrl", update)
-    # 注册首页路由
-    app.get("/", lambda ctx: ctx.redirect("/static/luckysheet.html"))
     # 启动服务
     app.run()
+
+
+if __name__ == '__main__':
+    main()
     """ 浏览器访问 ctrl+左键
     http://localhost:8080
     http://localhost:8080/static/luckysheet.html
