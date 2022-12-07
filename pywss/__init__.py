@@ -235,17 +235,17 @@ class Context:
 class App:
 
     def __init__(self, base_route="", base_handlers=None):
-        self.base_route = f"/{base_route.strip().strip('/')}" if base_route else base_route
-        self.base_handlers = list(base_handlers) if base_handlers else []
-        self.head_match_routes = []
-        self.parse_match_routes = []
-        self.full_match_routes = {}
-        self.log = loggus.GetLogger()
-        self.openapi_data = {
+        self.base_route: str = f"/{base_route.strip().strip('/')}" if base_route else base_route
+        self.base_handlers: list = list(base_handlers) if base_handlers else []
+        self.head_match_routes: list = []
+        self.parse_match_routes: list = []
+        self.full_match_routes: dict = {}
+        self.openapi_data: dict = {
             "paths": defaultdict(dict),
         }
-        self.running = False
-        Closing.add_close(self.close)
+        self.running: bool = False
+        self.data: Data = Data()
+        self.log = loggus.GetLogger()
 
     def register(self, method, route, handlers) -> None:
         if len(handlers) < 1:
@@ -404,7 +404,7 @@ class App:
             openapi_ui_css_url,
         )))
 
-    def _(self, request: socket.socket, address: tuple) -> None:
+    def handler_request(self, request: socket.socket, address: tuple) -> None:
         log = self.log
         try:
             rfd = request.makefile("rb", -1)
@@ -468,6 +468,7 @@ class App:
         self.running = False
 
     def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5) -> None:
+        Closing.add_close(self.close)
         self.build()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
@@ -487,7 +488,7 @@ class App:
                         if not ready:
                             continue
                         request, address = sock.accept()
-                        threading.Thread(target=self._, args=(request, address), daemon=True).start()
+                        threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
                 time.sleep(1)
