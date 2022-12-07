@@ -248,6 +248,8 @@ class App:
         Closing.add_close(self.close)
 
     def register(self, method, route, handlers) -> None:
+        if len(handlers) < 1:
+            raise Exception("not found handlers")
         route = f"/{route.strip().strip('/')}" if route else route
         route = f"{self.base_route}{route}"
         route = f"/{route.strip().strip('/')}"
@@ -365,6 +367,17 @@ class App:
         self.delete(route, *handlers)
         self.patch(route, *handlers)
         self.options(route, *handlers)
+
+    def view(self, route, *handlers):
+        if len(handlers) < 1:
+            raise Exception("not found handlers")
+        view = handlers[-1]
+        handlers = list(handlers[:-1])
+        if hasattr(view, "use"):
+            handlers += list(getattr(view, "use")() or [])
+        for method in ("get", "post", "head", "put", "delete", "patch", "options", "any"):
+            if hasattr(view, method):
+                getattr(self, method)(route, *handlers, getattr(view, method))
 
     def openapi(
             self,

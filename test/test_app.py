@@ -61,6 +61,77 @@ class TestBase(unittest.TestCase):
         resp = pywss.HttpTestRequest(app).get("/any")
         self.assertEqual(resp.body, "any")
 
+        # view - ins
+        class ViewIns:
+
+            def __init__(self):
+                self.count = 0
+
+            def add_count(self, ctx: pywss.Context):
+                self.count += 1
+                ctx.next()
+
+            def use(self):
+                return [self.add_count]
+
+            def get(self, ctx: pywss.Context):
+                ctx.write(f"get-view-{self.count}")
+
+            def post(self, ctx: pywss.Context):
+                ctx.write(f"post-view-{self.count}")
+
+        app = pywss.App()
+        app.view("/view", ViewIns())
+        resp = pywss.HttpTestRequest(app).get("/view")
+        self.assertEqual(resp.body, "get-view-1")
+        resp = pywss.HttpTestRequest(app).post("/view")
+        self.assertEqual(resp.body, "post-view-2")
+
+        # view - class
+        class ViewCls:
+            count = 0
+
+            @classmethod
+            def add_count(cls, ctx: pywss.Context):
+                cls.count += 1
+                ctx.next()
+
+            @classmethod
+            def use(cls):
+                return [cls.add_count]
+
+            @classmethod
+            def get(cls, ctx: pywss.Context):
+                ctx.write(f"get-view-{cls.count}")
+
+            @classmethod
+            def post(cls, ctx: pywss.Context):
+                ctx.write(f"post-view-{cls.count}")
+
+        app = pywss.App()
+        app.view("/view", ViewCls)
+        resp = pywss.HttpTestRequest(app).get("/view")
+        self.assertEqual(resp.body, "get-view-1")
+        resp = pywss.HttpTestRequest(app).post("/view")
+        self.assertEqual(resp.body, "post-view-2")
+
+        # error - register
+        err = None
+        try:
+            app = pywss.App()
+            app.get("/get")
+        except Exception as e:
+            err = e
+        self.assertIsNotNone(err)
+        # error - view
+        err = None
+        try:
+            app = pywss.App()
+            app.view("/view")
+        except Exception as e:
+            err = e
+        self.assertIsNotNone(err)
+
     def test_app_bad_request(self):
         s, c = socket.socketpair()
         with s, c:
@@ -321,7 +392,7 @@ class TestBase(unittest.TestCase):
             raiseErr = None
             try:
                 app = pywss.App()
-                app.static("/test", rootDir=tmpdir+"not-exist-dir")
+                app.static("/test", rootDir=tmpdir + "not-exist-dir")
             except Exception as e:
                 raiseErr = e
             self.assertIsNotNone(raiseErr)
