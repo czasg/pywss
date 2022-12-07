@@ -376,8 +376,8 @@ class App:
         if hasattr(view, "use"):
             handlers += list(getattr(view, "use")() or [])
         for method in ("get", "post", "head", "put", "delete", "patch", "options", "any"):
-            if hasattr(view, method):
-                getattr(self, method)(route, *handlers, getattr(view, method))
+            if hasattr(view, f"http_{method}"):
+                getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
 
     def openapi(
             self,
