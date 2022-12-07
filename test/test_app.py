@@ -74,10 +74,10 @@ class TestBase(unittest.TestCase):
             def use(self):
                 return [self.add_count]
 
-            def get(self, ctx: pywss.Context):
+            def http_get(self, ctx: pywss.Context):
                 ctx.write(f"get-view-{self.count}")
 
-            def post(self, ctx: pywss.Context):
+            def http_post(self, ctx: pywss.Context):
                 ctx.write(f"post-view-{self.count}")
 
         app = pywss.App()
@@ -101,11 +101,11 @@ class TestBase(unittest.TestCase):
                 return [cls.add_count]
 
             @classmethod
-            def get(cls, ctx: pywss.Context):
+            def http_get(cls, ctx: pywss.Context):
                 ctx.write(f"get-view-{cls.count}")
 
             @classmethod
-            def post(cls, ctx: pywss.Context):
+            def http_post(cls, ctx: pywss.Context):
                 ctx.write(f"post-view-{cls.count}")
 
         app = pywss.App()
