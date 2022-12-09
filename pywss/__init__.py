@@ -40,6 +40,7 @@ class Context:
         self.params: dict = parse_params(path)
         self.route: str = route
         self._handlers: list = handlers
+        self._stream: bool = False  # make True when using self.stream(), then self.body() will always empty
         self.address: tuple = address
         self.data: Data = Data()  # data save for user
 
@@ -96,9 +97,38 @@ class Context:
         return resp
 
     def body(self) -> bytes:
+        if self._stream:
+            return self.content  # should be empty
         if not self.content and self.content_length:
             self.content = self.rfd.read(self.content_length)
+        if not self.content and self.headers.get("Transfer-Encoding", "").lower() == "chunked":
+            size = int(self.rfd.readline(), 16)
+            while size > 0:
+                self.content += self.rfd.read(size)
+                assert self.rfd.read(2) == b"\r\n"
+                size = int(self.rfd.readline(), 16)
+            assert self.rfd.read(2) == b"\r\n"
         return self.content
+
+    def stream(self, size=65536):
+        if self._stream:
+            return self.content  # should be empty
+        if not self.content and self.content_length:
+            cl = self.content_length
+            while cl > 0:
+                rl = min(size, cl)
+                yield self.rfd.read(rl)
+                cl -= rl
+            self._stream = True
+            return
+        if not self.content and self.headers.get("Transfer-Encoding", "").lower() == "chunked":
+            size = int(self.rfd.readline(), 16)
+            while size > 0:
+                yield self.rfd.read(size)
+                assert self.rfd.read(2) == b"\r\n"
+                size = int(self.rfd.readline(), 16)
+            assert self.rfd.read(2) == b"\r\n"
+            self._stream = True
 
     def set_header(self, k, v) -> None:
         header = []

@@ -73,7 +73,7 @@ class HttpTestRequest:
 
     def build(self) -> HttpTestResponse:
         if self.body:
-            self.headers["Content-Length"] = len(self.body.encode())
+            self.headers.setdefault("Content-Length", len(self.body.encode()))
         header_list = []
         for k, v in self.headers.items():
             header_list.append(f"{k}: {v}")
