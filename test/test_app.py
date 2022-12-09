@@ -132,6 +132,42 @@ class TestBase(unittest.TestCase):
             err = e
         self.assertIsNotNone(err)
 
+    def test_app_body(self):
+        # self.body() by Content-Length
+        app = pywss.App()
+        app.post("/post-body", lambda ctx: ctx.write(ctx.body()))
+        resp = pywss.HttpTestRequest(app).post("/post-body", data="test")
+        self.assertEqual(resp.body, "test")
+        # self.body() by Transfer-Encoding
+        app = pywss.App()
+        app.post("/post-body", lambda ctx: ctx.write(ctx.body()))
+        resp = pywss.HttpTestRequest(app).post(
+            "/post-body",
+            headers={
+                "Content-Length": "0",
+                "Transfer-Encoding": "chunked",
+            },
+            data="4\r\ntest\r\n5\r\n-for-\r\n5\r\npywss\r\n0\r\n\r\n",
+        )
+        self.assertEqual(resp.body, "test-for-pywss")
+        # self.stream() by Content-Length
+        app = pywss.App()
+        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))) or ctx.body() or ctx.stream())
+        resp = pywss.HttpTestRequest(app).post("/post-body", data="test")
+        self.assertEqual(resp.body, "test")
+        # self.stream() by Transfer-Encoding
+        app = pywss.App()
+        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))) or ctx.body() or ctx.stream())
+        resp = pywss.HttpTestRequest(app).post(
+            "/post-body",
+            headers={
+                "Content-Length": "0",
+                "Transfer-Encoding": "chunked",
+            },
+            data="4\r\ntest\r\n5\r\n-for-\r\n5\r\npywss\r\n0\r\n\r\n",
+        )
+        self.assertEqual(resp.body, "test-for-pywss")
+
     def test_app_bad_request(self):
         s, c = socket.socketpair()
         with s, c:
