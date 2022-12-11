@@ -12,7 +12,7 @@
 
 ### 1.1.安装依赖
 ```shell script
-pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 1.2.启动mysql服务
