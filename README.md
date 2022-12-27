@@ -4,15 +4,13 @@
 [![codecov](https://codecov.io/gh/czasg/pywss/branch/master/graph/badge.svg?token=JSXIQXY1EQ)](https://codecov.io/gh/czasg/pywss)
 [![PyPI version](https://badge.fury.io/py/pywss.svg)](https://badge.fury.io/py/pywss)
 
-> pip3 install pywss
-
 **Pywss 是一个轻量级的 Python Web 框架。**     
 
 主要特性：   
+- [x] Http Server
 - [x] WebSocket Upgrade
 - [x] OpenAPI & Swagger-UI
 - [x] API Test
-- [x] Middleware
 - [x] Static Server
 
 <details>
@@ -67,29 +65,6 @@ if __name__ == '__main__':
 python3 main.py
 ```
 
-
-### 3、基于命令行快速启动       
-如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
-- 查看帮助指令
-```shell
-pywss -h
-```
-
-- 启动静态文件服务：
-    - `--static`表示`本地路径 : 路由前缀`，即将本地路径下的文件映射到指定路由
-    - `--port`表示端口号
-```shell
-pywss --static=".:/" --port=8080
-```
-通过`http://localhost:8080/`访问  
-
-- 启动web服务：
-    - `--route`表示`method : route : code : body`，即指定响应信息
-```shell
-pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
-```
-通过`http://localhost:8080/hello`访问
-
 <br/>
 
 ## 二、进阶使用
@@ -101,6 +76,7 @@ pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
 - [6、openapi & swagger ui](#6openapi--swagger-ui)
 - [7、静态文件服务器](#7静态文件服务器)
 - [8、单元测试](#8单元测试)
+- [9、命名行启动](#9命名行启动)
 
 ### 1、初始化app
 ```python
@@ -124,34 +100,33 @@ app.run(port=8080)
 ```python
 import pywss
 
-def hello(ctx: pywss.Context):
-    ctx.write({"hello": ctx.paths["name"]})
-
+# 初始化App
 app = pywss.App()
 
-# 注册路由 & 绑定匿名函数
-app.get("/hello", lambda ctx: ctx.write({"hello": "world"}))
+# 注册路由 - get/post/head/put/delete/patch/options/any
+app.get("/exact/match", lambda ctx: ctx.write({"hello": "world"}))
+app.get("/part/{match}", lambda ctx: ctx.write({"hello": ctx.paths["match"]}))
+app.get("/blur/match/*", lambda ctx: ctx.write({"hello": "world"}))
 
-# 注册路由
-app.post("/hello/{name}", hello)
+# Restful Style
+class RouteV1:
+
+    def http_get(self, ctx: pywss.Context):
+        ctx.write({"hello": "world"})
+
+    def http_post(self, ctx: pywss.Context):
+        ctx.write({"hello": "world"})
+
+app.view("/v1", RouteV1())
 
 app.run(port=8080)
 ```
 路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
 
-除此之外，路由支持多种匹配方式：  
+此外，路由支持多种匹配方式：  
 - `/hello/world`：精确匹配
 - `/hello/{world}`：局部匹配（注意：对应路径参数可通过`ctx.paths["world"]`获取`）
 - `/hello/*`：模糊匹配（注意：路由最后一位必须是`*`）
-
-在终端界面执行：
-```shell script
-$ curl localhost:8080/hello
-{"hello": "world"}
-
-$ curl -X POST localhost:8080/hello/pywss
-{"hello": "pywss"}
-```
 
 <br/>
 
@@ -359,6 +334,30 @@ resp = req.get("/test")
 assert resp.status_code == 204
 ```
 可以参考 [pywss单元测试](test/test_app.py)
+
+<br/>
+
+### 8、命令行启动
+如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
+- 查看帮助指令
+```shell
+pywss -h
+```
+
+- 启动静态文件服务：
+    - `--static`表示`本地路径 : 路由前缀`，即将本地路径下的文件映射到指定路由
+    - `--port`表示端口号
+```shell
+pywss --static=".:/" --port=8080
+```
+通过`http://localhost:8080/`访问  
+
+- 启动web服务：
+    - `--route`表示`method : route : code : body`，即指定响应信息
+```shell
+pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
+```
+通过`http://localhost:8080/hello`访问
 
 <br/>
 
