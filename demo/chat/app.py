@@ -13,7 +13,7 @@ class WebSocketManager:
     def register(cls, ctx):
         with cls.lock:
             cls.index += 1
-            uid = f"user-{cls.index}"
+            uid = f"U-{cls.index}"
             cls.pool[uid] = ctx
             return uid
 
@@ -42,29 +42,29 @@ def handler(ctx: pywss.Context):
     # 注册并获取用户ID
     uid = WebSocketManager.register(ctx)
     try:
-        # 首次连接
-        data = ctx.ws_read().decode()
-        json_data = json.loads(data)
-        if json_data.get('start') == True:
-            ctx.ws_write({'sock_id': uid})  # 赋值用户名
-            WebSocketManager.notify({'online': len(WebSocketManager.pool)})  # 首次进来，广播一轮在线人数
         # 轮询获取消息
         while True:
             data = ctx.ws_read().decode()  # 阻塞获取
-            json_data = json.loads(data)
-            msg = json_data.get('msg')
-            if msg:
-                WebSocketManager.notify({'from': uid, 'msg': msg})  # 广播消息
+            if data == "ping":  # 心跳数据
+                continue
+            json_data: dict = json.loads(data)
+            msg_type = json_data.get('type')
+            if msg_type == "init":
+                ctx.ws_write({"type": "init", "uid": uid})
+                WebSocketManager.notify({"type": "online", "online": len(WebSocketManager.pool)})
+                WebSocketManager.notify({"type": "broad", "uid": "System Admin", "msg": f"欢迎 {uid} 来到WebSocket聊天室！"})
+            elif msg_type == "broad":
+                WebSocketManager.notify({"type": "broad", "uid": uid, "msg": json_data.get("msg")})
     except:
         pass
     finally:
         WebSocketManager.delete(uid)  # 注销用户
-        WebSocketManager.notify({'online': len(WebSocketManager.pool)})  # 用户退出，广播一轮在线人数
-        WebSocketManager.notify({'from': uid, 'msg': "拜拜~"})
+        WebSocketManager.notify({"type": "online", "online": len(WebSocketManager.pool)})
+        WebSocketManager.notify({"type": "broad", "uid": "System Admin", "msg": f"{uid} 离开聊天室！"})
         ctx.log.warning(f"{uid} exit")
 
 
-if __name__ == '__main__':
+def main():
     # 初始化 app
     app = pywss.App()
     # 注册静态路由
@@ -75,6 +75,10 @@ if __name__ == '__main__':
     app.get("/", lambda ctx: ctx.redirect("/static/chat.html"))
     # 启动服务
     app.run()
+
+
+if __name__ == '__main__':
+    main()
     """ 浏览器访问 ctrl+左键
     http://localhost:8080
     http://localhost:8080/static/chat.html
