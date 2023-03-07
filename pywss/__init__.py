@@ -12,9 +12,9 @@ from datetime import timedelta
 from collections import defaultdict
 from pywss.headers import *
 from pywss.statuscode import *
+from pywss.middleware import *
 from pywss.websocket import WebSocketUpgrade, WebSocketContextWrap
 from pywss.testing import HttpTestRequest, HttpTestResponse
-from pywss.static import NewStaticHandler
 from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
