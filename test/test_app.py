@@ -464,6 +464,15 @@ class TestBase(unittest.TestCase):
         resp = pywss.HttpTestRequest(app).get("/cors")
         self.assertEqual(resp.body, "test")
 
+    def test_recover(self):
+        app = pywss.App()
+        app.use(pywss.NewRecoverHandler(default_content={"code": 500}, traceback=True))
+        app.get("/recover", lambda ctx: 1 / 0)
+
+        resp = pywss.HttpTestRequest(app).get("/recover")
+        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.body, '{"code": 500}')
+
     def test_websocket(self):
         def websocket(ctx: pywss.Context):
             try:
