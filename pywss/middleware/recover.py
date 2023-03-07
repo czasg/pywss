@@ -7,7 +7,7 @@ def NewRecoverHandler(
         default_content=None,
         traceback=False,
 ):
-    def recover(ctx):
+    def recoverHandler(ctx):
         try:
             ctx.next()
         except:
@@ -17,4 +17,4 @@ def NewRecoverHandler(
             if traceback:
                 ctx.log.traceback()
 
-    return recover
+    return recoverHandler

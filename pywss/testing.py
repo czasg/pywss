@@ -39,15 +39,13 @@ class HttpTestRequest:
         self.method = None
         self.path = None
         self.body = None
-        self.headers = None
+        self.headers = dict()
         self.app.build()
 
     def request(self, method, route, headers=None, json=None, data=""):
         self.method = method
         self.path = route
-        self.headers = {
-            "Pywss-Http-Test": "0.0.1",
-        }
+        self.set_header("Pywss-Http-Test", "0.0.1")
         self.set_headers(headers or {})
         if json:
             self.set_headers({"Content-Type": "application/json"})
