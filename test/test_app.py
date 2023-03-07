@@ -451,6 +451,19 @@ class TestBase(unittest.TestCase):
         resp = pywss.HttpTestRequest(app).get("/auth", headers={"Auth": "test"})
         self.assertEqual(resp.status_code, 200)
 
+    def test_cors(self):
+        app = pywss.App()
+        app.use(pywss.NewCORSHandler())
+        app.options("/cors", lambda ctx: None)
+        app.get("/cors", lambda ctx: ctx.write("test"))
+
+        resp = pywss.HttpTestRequest(app).options("/cors")
+        self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "*")
+        self.assertEqual(resp.headers.get("Access-Control-Allow-Credentials"), "true")
+
+        resp = pywss.HttpTestRequest(app).get("/cors")
+        self.assertEqual(resp.body, "test")
+
     def test_websocket(self):
         def websocket(ctx: pywss.Context):
             try:
