@@ -515,6 +515,23 @@ class TestBase(unittest.TestCase):
         authorization = resp.headers.get("Authorization")
         self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
 
+        # jwt
+        jwtExcept = None
+        try:
+            pywss.JWT(secret).decrypt("Bearer test")
+        except Exception as e:
+            jwtExcept = e
+        self.assertIsNotNone(jwtExcept)
+        # jwt
+        jwtExcept = None
+        try:
+            jwt = pywss.JWT(secret)
+            token = jwt.encrypt(name="test")
+            jwt.decrypt(token+"xxx")
+        except Exception as e:
+            jwtExcept = e
+        self.assertIsNotNone(jwtExcept)
+
     def test_websocket(self):
         def websocket(ctx: pywss.Context):
             try:
