@@ -13,7 +13,7 @@ def NewCORSHandler(
     allowHeaders = ",".join(allow_headers)
     allowCredentials = "true" if allow_credentials else "false"
 
-    def cors(ctx):
+    def corsHandler(ctx):
         if ctx.method == MethodOptions:
             ctx.set_header("Access-Control-Allow-Origin", allowOrigins)
             ctx.set_header("Access-Control-Allow-Methods", allowMethods)
@@ -22,4 +22,4 @@ def NewCORSHandler(
             return
         ctx.next()
 
-    return cors
+    return corsHandler

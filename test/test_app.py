@@ -473,6 +473,65 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.status_code, 500)
         self.assertEqual(resp.body, '{"code": 500}')
 
+    def test_jwt(self):
+        secret = "test"
+
+        app = pywss.App()
+        app.use(pywss.NewJWTHandler(secret=secret, ignore_route=("/register",)))
+        app.get("/register", lambda ctx: ctx.set_header("Authorization", ctx.data.jwt.encrypt(name="pywss")))
+        app.get("/login", lambda ctx: ctx.write("ok"))
+
+        resp = pywss.HttpTestRequest(app).get("/register")
+        self.assertEqual(resp.status_code, 200)
+        authorization = resp.headers.get("Authorization")
+        self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
+
+        resp = pywss.HttpTestRequest(app).set_header("Authorization", authorization).get("/login")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.body, "ok")
+
+        resp = pywss.HttpTestRequest(app). \
+            set_header("Authorization", pywss.JWT(secret, expire=-1000).encrypt()). \
+            get("/login")
+        self.assertEqual(resp.status_code, 403)
+
+        # ignore_startswith
+        app = pywss.App()
+        app.use(pywss.NewJWTHandler(secret=secret, ignore_startswith=("/register",)))
+        app.get("/register", lambda ctx: ctx.set_header("Authorization", ctx.data.jwt.encrypt(name="pywss")))
+        app.get("/login", lambda ctx: ctx.write("ok"))
+        resp = pywss.HttpTestRequest(app).get("/register")
+        self.assertEqual(resp.status_code, 200)
+        authorization = resp.headers.get("Authorization")
+        self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
+
+        # ignore_endswith
+        app = pywss.App()
+        app.use(pywss.NewJWTHandler(secret=secret, ignore_endswith=("/register",)))
+        app.get("/register", lambda ctx: ctx.set_header("Authorization", ctx.data.jwt.encrypt(name="pywss")))
+        app.get("/login", lambda ctx: ctx.write("ok"))
+        resp = pywss.HttpTestRequest(app).get("/register")
+        self.assertEqual(resp.status_code, 200)
+        authorization = resp.headers.get("Authorization")
+        self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
+
+        # jwt
+        jwtExcept = None
+        try:
+            pywss.JWT(secret).decrypt("Bearer test")
+        except Exception as e:
+            jwtExcept = e
+        self.assertIsNotNone(jwtExcept)
+        # jwt
+        jwtExcept = None
+        try:
+            jwt = pywss.JWT(secret)
+            token = jwt.encrypt(name="test")
+            jwt.decrypt(token+"xxx")
+        except Exception as e:
+            jwtExcept = e
+        self.assertIsNotNone(jwtExcept)
+
     def test_websocket(self):
         def websocket(ctx: pywss.Context):
             try:
