@@ -30,10 +30,7 @@ def NewJWTHandler(
             return
         try:
             token = ctx.headers.get("Authorization")
-            jwt_payload = jwt.decrypt(token)
-            if jwt_payload.get("exp", 0) < time.time():
-                raise Exception("JWT Token Expire")
-            ctx.data.jwt_payload = jwt_payload
+            ctx.data.jwt_payload = jwt.decrypt(token)
         except:
             ctx.set_status_code(StatusForbidden)
             return
@@ -80,4 +77,8 @@ class JWT:
         if sha256.hexdigest() != signature:
             raise Exception("Invalid JWT Token, Signature Except")
 
-        return json.loads(base64.b64decode(payload))
+        jwt_payload = json.loads(base64.b64decode(payload))
+        if jwt_payload.get("exp", 0) < int(time.time()):
+            raise Exception("JWT Token Expire")
+
+        return jwt_payload
