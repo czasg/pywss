@@ -642,6 +642,28 @@ class TestBase(unittest.TestCase):
         self.assertEqual(ok, True)
         self.assertEqual(res, {"test": "test"})
 
+        app = pywss.App()
+        app.get("/test/", lambda ctx: ctx.write(ctx.route))
+        resp =pywss.HttpTestRequest(app).get("/test")
+        self.assertEqual(resp.body, "/test")
+        resp =pywss.HttpTestRequest(app).get("/test/")
+        self.assertEqual(resp.body, "/test/")
+
+        app = pywss.App()
+        app.get("/{test}/", lambda ctx: ctx.write(ctx.route_keys["test"]))
+        resp =pywss.HttpTestRequest(app).get("/123")
+        self.assertEqual(resp.body, "123")
+        resp =pywss.HttpTestRequest(app).get("/456/")
+        self.assertEqual(resp.body, "456")
+
+        app = pywss.App()
+        app.get("*", lambda ctx: ctx.write(ctx._route))
+        resp =pywss.HttpTestRequest(app).get("/123")
+        self.assertEqual(resp.body, "GET")
+        resp =pywss.HttpTestRequest(app).get("/456/")
+        self.assertEqual(resp.body, "GET")
+
+
     def test_headers(self):
         import pywss.headers
 

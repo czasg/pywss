@@ -11,3 +11,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+    """ 浏览器访问 ctrl+左键
+    http://localhost:8080
+    http://localhost:8080/file-server/
+    """

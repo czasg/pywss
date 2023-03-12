@@ -26,22 +26,30 @@ class Context:
     _handler_index = 0
     _flush_header = False
 
-    def __init__(self, app, fd, address, log, rfd, method, path, paths, version, headers, route, handlers):
+    def __init__(
+            self, app, log,
+            fd, rfd, address,
+            http_method, http_path, http_version,
+            route, route_keys, headers,
+            register_route, register_handlers
+    ):
         self.app: 'App' = app
         self.log: loggus.Entry = log
         self.fd: socket.socket = fd
         self.rfd: BufferedReader = rfd
-        self.method: str = method
-        self.version: str = version
-        self.headers: dict = headers
-        self.cookies: dict = parse_cookies(headers)
-        self.path: str = path
-        self.paths: dict = paths
-        self.params: dict = parse_params(path)
-        self.route: str = route
-        self._handlers: list = handlers
-        self._stream: bool = False  # make True when using self.stream(), then self.body() will always empty
         self.address: tuple = address
+        self.method: str = http_method
+        self.path: str = http_path  # /route?key=value
+        self.version: str = http_version
+        self.route: str = route  # /route
+        self.route_keys: dict = route_keys
+        self.headers: dict = headers
+        self._route: str = register_route
+        self._handlers: list = register_handlers
+
+        self.cookies: dict = parse_cookies(headers)
+        self.params: dict = parse_params(http_path)
+        self._stream: bool = False  # make True when using self.stream(), then self.body() will always empty
         self.data: Data = Data()  # data save for user
 
         self.content_length: int = int(headers.get("Content-Length", 0))
@@ -439,44 +447,51 @@ class App:
         try:
             rfd = request.makefile("rb", -1)
             while True:
-                method, path, version, err = parse_request_line(rfd)
+                http_method, http_path, http_version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                     return
-                route = f"{method.upper()}/{path.split('?', 1)[0].strip('/')}"
-                log = log.update(route=route)
-                hes, err = parse_headers(rfd)
+                route = register_route = f"/{http_path.split('?', 1)[0].lstrip('/')}"
+                route_keys = dict()
+                method_route = f"{http_method.upper()}{route.rstrip('/')}"
+                log = log.update(route=method_route)
+                http_headers, err = parse_headers(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                     log.error(err)
                     return
                 # check keep alive
-                if hes.get("Connection", "").lower() == "close":
+                if http_headers.get("Connection", "").lower() == "close":
                     break
                 # full match
-                paths = {}
-                handlers = self.full_match_routes.get(route, None)
+                handlers = self.full_match_routes.get(method_route, None)
                 # parser match
                 if not handlers:
                     for r, v in self.parse_match_routes:
-                        fix, ps = r.match(route)
+                        fix, ps = r.match(method_route)
                         if fix:
-                            route = r.route
+                            register_route = r.route
                             handlers = v
-                            paths = ps
+                            route_keys = ps
                             break
                 # head match
                 if not handlers:
                     for r, v in self.head_match_routes:
-                        if route.startswith(r):
-                            route = r
+                        if method_route.startswith(r):
+                            register_route = r
                             handlers = v
                             break
                 if not handlers:
                     request.sendall(b"HTTP/1.1 404 NotFound\r\n")
                     log.warning("No Handler")
                     return
-                ctx = Context(self, request, address, log, rfd, method, path, paths, version, hes, route, handlers)
+                ctx = Context(
+                    self, log,
+                    request, rfd, address,
+                    http_method, http_path, http_version,
+                    route, route_keys, http_headers,
+                    register_route, handlers
+                )
                 ctx.next()
                 ctx.flush()
                 if ctx.content_length != len(ctx.content):  # sock should be close

@@ -18,15 +18,14 @@ def NewStaticHandler(root, default="application/octet-stream", limit=100):
             ctx.set_status_code(StatusServiceUnavailable)
             ctx.write("Not Support Header Content-Range")
             return
-        _path = ctx.path.split('?', 1)[0]
-        path = f"GET{_path}"[len(ctx.route):].strip("/")
-        file = os.path.join(root, *path.split("/"))
+        _path = f"{ctx.method}/{ctx.route.strip('/')}"
+        file = os.path.join(root, *_path.replace(ctx._route, "").strip("/").split("/"))
         if not os.path.exists(file):
             ctx.set_status_code(StatusNotFound)
             return
         if os.path.isdir(file):
-            if _path[-1] != "/":
-                ctx.redirect(_path + "/")
+            if ctx.route[-1] != "/":
+                ctx.redirect(ctx.route + "/")
                 return
             ctx.set_content_type("text/html; charset=UTF-8")
             ctx.write(html_template(file, limit))
