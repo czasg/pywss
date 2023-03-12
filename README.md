@@ -84,7 +84,7 @@ python3 main.py
 |options|`app.options("/http-options", handler)`|
 |any|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
 |view|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见视图部分|
-|static|`app.static("/file-server", ".")`，注册静态文件服务|
+|static|`app.static("/file-server", ".")`，注册静态文件服务，具体使用见静态文件服务部分|
 
 路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
 
@@ -99,7 +99,8 @@ python3 main.py
 |局部匹配|`app.get("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_keys`中|
 |头部匹配|`app.get("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
 
-注意：上述匹配机制无法同时生效，且存在优先级，即**全等匹配**优先、其次**局部匹配**、最后**头部匹配**~
+**_注意_**：   
+上述匹配机制无法同时生效，且存在优先级，即**全等匹配**优先、其次**局部匹配**、最后**头部匹配**~
 
 <br/>
 
@@ -289,11 +290,13 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-打开浏览器，访问 [localhost:8080/docs](http://localhost:8080/docs)
+在启动服务后，
+接着打开浏览器，访问 [localhost:8080/docs](http://localhost:8080/docs) 即可看到经典 SwaggerUI 界面。
 
 <br/>
 
-### 8、静态文件服务器
+### 8、文件服务
+**Pywss** 通过 `app.static` 实现了简单的静态文件服务器，代码参考如下：
 ```python
 import pywss
 
@@ -304,13 +307,7 @@ app.static("/static", rootDir="/rootDir")
 
 app.run()
 ```
-假设目录`/rootDir`结构如下，则可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
-```text
-- rootDir
-    - index.html
-    - 200.html
-    - 500.html
-```
+启动服务后，可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
 
 <br/>
 
