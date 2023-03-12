@@ -9,7 +9,7 @@
 
 **Pywss 是一个轻量级的 Python Web 框架。**     
 
-主要特性：   
+其主要特性有：   
 - [x] Http Server
 - [x] WebSocket Upgrade
 - [x] Swagger UI
@@ -30,7 +30,7 @@
 pip3 install pywss
 ```
 
-### 2、搭建 web 应用服务    
+### 2、搭建 web 应用    
 首先创建 `main.py` 文件，并写入以下代码：
 ```python
 import pywss
@@ -84,6 +84,7 @@ python3 main.py
 |options|`app.options("/http-options", handler)`|
 |any|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
 |view|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见视图部分|
+|static|`app.static("/file-server", ".")`，注册静态文件服务|
 
 路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
 
@@ -95,8 +96,10 @@ python3 main.py
 |特殊路由匹配机制|说明|
 |---|---|
 |全等匹配|`app.get("/full/match", handler)`|
-|局部匹配|`app.post("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_keys`中|
-|头部匹配|`app.post("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
+|局部匹配|`app.get("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_keys`中|
+|头部匹配|`app.get("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
+
+注意：上述匹配机制无法同时生效，且存在优先级，即**全等匹配**优先、其次**局部匹配**、最后**头部匹配**~
 
 <br/>
 
