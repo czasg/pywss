@@ -4,7 +4,7 @@ import pywss
 
 def hello(ctx: pywss.Context):
     ctx.write({
-        "hello": ctx.paths["name"],
+        "hello": ctx.route_keys["name"],
         "file": __file__,
     })
 

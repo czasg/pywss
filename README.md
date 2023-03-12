@@ -12,30 +12,10 @@
 主要特性：   
 - [x] Http Server
 - [x] WebSocket Upgrade
-- [x] OpenAPI & Swagger-UI
-- [x] API Test
-- [x] Static Server
-
-<details>
-  <summary>重点版本迭代说明</summary>
-
-- 0.1.10
-  * 修复部分路由BUG
-- 0.1.9
-  * 默认支持`keep-alive`
-- 0.1.7
-  * 调整json/form解析
-- 0.1.4
-  * 修复`signal`无法在子线程注册
-- 0.1.3
-  * 支持`openapi`
-  * 支持`swagger ui`
-- 0.1.2
-  * 修复`Content-Length`丢失问题
-- 0.1.1
-  * 项目重构
-
-</details>
+- [x] Swagger UI
+- [x] Middleware
+- [x] Route Party
+- [x] Http API Test
 
 <br/>
 
@@ -46,172 +26,183 @@
 pip3 install pywss
 ```
 
-
-### 2、搭建web服务    
-创建 main.py 文件，写入以下代码：
+### 2、搭建 web 应用服务    
+首先创建 `main.py` 文件，并写入以下代码：
 ```python
 import pywss
 
-def hello(ctx: pywss.Context):
-  ctx.write("hello world")
+def handler(ctx: pywss.Context):
+  ctx.write("hello~")
+
+def main(port = 8080):
+    app = pywss.App()
+    app.get("/hi", lambda ctx: ctx.write("hi~"))  # curl localhost:8080/hi
+    app.post("/hello", handler)  # curl -X POST localhost:8080/hello
+    app.run(port=port)
+
+if __name__ == '__main__':
+    main()
+```
+接着启动服务:
+```shell
+python3 main.py
+```
+
+至此，一个简单的 web 应用服务就启动了。
+
+此外，**Pywss** 底层并没有实现 **WSGI** 接口协议，
+其编程风格也不同于 **Flask**、**Django** 等主流框架。
+如果你有过类似 **Gin**、**Iris** 等框架的编程经验，那你可能发现了一个宝藏项目~
+
+<br/>
+
+## 二、进阶使用
+- [1、路由方法](#1路由方法)
+- [2、特殊路由匹配机制](#2特殊路由匹配机制)
+- [3、视图机制](#3视图机制)
+- [4、路由组](#4路由组)
+- [5、中间件](#5中间件)
+- [6、升级WebSocket](#升级WebSocket)
+- [7、SwaggerUI](#7SwaggerUI)
+- [8、静态文件服务器](#8静态文件服务器)
+- [9、单元测试](#9单元测试)
+- [10、命令行启动](#10命令行启动)
+
+### 1、路由方法
+在快速开始中，我们已经看到了一个简单的应用是如何注册路由并绑定业务模块的。
+
+除了上述`get`、`post`方法之外，**Pywss** 还实现了：
+
+|路由方法|说明|
+|---|---|
+|get|`app.get("/http-get", handler)`|
+|post|`app.post("/http-post", handler)`|
+|head|`app.head("/http-head", handler)`|
+|put|`app.put("/http-put", handler)`|
+|delete|`app.delete("/http-delete", handler)`|
+|patch|`app.patch("/http-patch", handler)`|
+|options|`app.options("/http-options", handler)`|
+|any|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
+|view|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见视图部分|
+
+路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
+
+<br/>
+
+### 2、特殊路由匹配机制
+除了上述常规路由方法之外，**特殊路由匹配机制** 也是现代 web 框架必不可少的特点。
+
+|特殊路由匹配机制|说明|
+|---|---|
+|全等匹配|`app.get("/full/match", handler)`|
+|局部匹配|`app.post("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_keys`中|
+|头部匹配|`app.post("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
+
+<br/>
+
+### 3、视图机制
+**Pywss** 通过 `app.view` 实现了简单的视图机制，以便更加友好的支持 Restful 风格代码，参考如下：
+
+```python
+import pywss
+
+class UserView:
+
+    def http_get(self, ctx: pywss.Context):
+        uid = ctx.route_keys["uid"]
+        ctx.write({"uid": uid, "msg": "query success"})
+
+    def http_post(self, ctx: pywss.Context):
+        uid = ctx.route_keys["uid"]
+        ctx.write({"uid": uid, "msg": "create success"})
 
 def main():
     app = pywss.App()
-    app.get("/hello", hello)
+    app.view("/api/user/{uid}", UserView())
     app.run()
 
 if __name__ == '__main__':
     main()
 ```
-启动服务，至此，一个简单的 hello world 服务就启动了。
-```shell
-python3 main.py
-```
 
 <br/>
 
-## 二、进阶使用
-- [1、初始化app](#1初始化app)
-- [2、绑定路由](#2绑定路由)
-- [3、创建子路由](#3创建子路由)
-- [4、使用中间件](#4使用中间件)
-- [5、升级WebSocket](#5升级WebSocket)
-- [6、openapi & swagger ui](#6openapi--swagger-ui)
-- [7、静态文件服务器](#7静态文件服务器)
-- [8、单元测试](#8单元测试)
-- [9、命名行启动](#9命名行启动)
+### 4、路由组
+**Pywss** 通过 `app.party` 实现了简单的路由组，以便支持在大型项目下的多级路由管理，参考如下。
 
-### 1、初始化app
 ```python
 import pywss
 
-# 初始化app
-app = pywss.App()
+def handler(ctx: pywss.Context):
+    ctx.write(ctx.route)
 
-# 启动服务
-app.run(port=8080)  
+def main():
+    app = pywss.App()
+
+    v1 = app.party("/api/v1")  # 创建 /api/v1 路由组
+    v1.get("/user", handler)  # /api/v1/user
+
+    v2 = app.party("/api/v1")  # 创建 /api/v2 路由组
+    v2.get("/user", handler)  # /api/v2/user
+
+    app.run()
+
+if __name__ == '__main__':
+    main()
 ```
-参数说明:
-- `host`: 默认 0.0.0.0
-- `port`: 默认 8080
-- `grace`: 退出滞留时间，默认为0
-
 
 <br/>
 
-### 2、绑定路由
+### 5、中间件
+**Pywss** 通过 `ctx.next` 实现了功能模块的链式调用，在此基础之上，拓展了中间件的能力。
+
+让我们来实现一个简单输出请求耗时的日志中间件。代码参考如下：
+
 ```python
+import time
 import pywss
 
-# 初始化App
-app = pywss.App()
-
-# 注册路由 - get/post/head/put/delete/patch/options/any
-app.get("/exact/match", lambda ctx: ctx.write({"hello": "world"}))
-app.get("/part/{match}", lambda ctx: ctx.write({"hello": ctx.paths["match"]}))
-app.get("/blur/match/*", lambda ctx: ctx.write({"hello": "world"}))
-
-# Restful Style
-class RouteV1:
-
-    def http_get(self, ctx: pywss.Context):
-        ctx.write({"hello": "world"})
-
-    def http_post(self, ctx: pywss.Context):
-        ctx.write({"hello": "world"})
-
-app.view("/v1", RouteV1())
-
-app.run(port=8080)
+def logHandlerMiddleware(ctx: pywss.Context):
+    start = int(time.time())
+    ctx.next()  # 执行下一个业务模块，执行完成后会继续执行后面的代码
+    ctx.log.info(f"{ctx.method}{ctx.route} cost: {int(time.time()) - start}")
 ```
-路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
 
-此外，路由支持多种匹配方式：  
-- `/hello/world`：精确匹配
-- `/hello/{world}`：局部匹配（注意：对应路径参数可通过`ctx.paths["world"]`获取`）
-- `/hello/*`：模糊匹配（注意：路由最后一位必须是`*`）
+接着我们可以通过以下三种方式来注册中间件服务：
+- `app.use(logHandlerMiddleware)`：通过 `use` 方法可以注册全局生效的中间件
+- `app.party("/route", logHandlerMiddleware)`：通过 `party` 路由组可以注册局部生效的中间件
+- `app.get("/route", logHandlerMiddleware, handler)`：通过绑定指定路由，可以注册指定路由生效的中间件
 
-<br/>
-
-### 3、创建子路由
-pywss 支持通过`app.party`来实现丰富的路由管理
+一份完整的代码参考如下：
 ```python
+import time
 import pywss
+import random
 
-def hello(ctx: pywss.Context):
-    ctx.write({"hello": ctx.path})
+def logHandlerMiddleware(ctx: pywss.Context):
+    start = int(time.time())
+    ctx.next()  # 执行下一个业务模块，执行完成后会继续执行后面的代码
+    ctx.log.info(f"{ctx.method}{ctx.route} cost: {int(time.time()) - start}")
 
-app = pywss.App()
+def main():
+    app = pywss.App()
+    app.use(logHandlerMiddleware)
+    app.get("*", lambda ctx: time.sleep(random.randint(1, 3)))
+    app.run()
 
-v1 = app.party("/api/v1")
-v1.get("/hello", lambda ctx: ctx.write({"hello": "v1"}))
-v1.post("/hello/{name}", hello)
-
-v2 = app.party("/api/v2")
-v2.get("/hello", lambda ctx: ctx.write({"hello": "v2"}))
-v2.post("/hello/{name}", hello)
-
-app.run(port=8080)
-```
-在终端界面执行：
-```shell script
-$ curl localhost:8080/api/v1/hello
-{"hello": "v1"}
-
-$ curl -X POST localhost:8080/api/v1/hello/pywss
-{"hello": "/api/v1/hello/pywss"}
-
-$ curl localhost:8080/api/v2/hello
-{"hello": "v2"}
-
-$ curl -X POST localhost:8080/api/v2/hello/pywss
-{"hello": "/api/v2/hello/pywss"}
+if __name__ == '__main__':
+    main()
 ```
 
 <br/>
 
-### 4、使用中间件
-pywss 支持通过`use`注册全局中间件，也支持单个路由绑定中间件。  
+### 6、升级WebSocket
+**WebSocket** 底层是基于 HTTP GET 升级实现，是长连接的一种实现方式。
 
-使用中间件时，注意需要调用`ctx.next()`才能继续往后执行，否则会中断此次请求。 
-```python
-import pywss, time
+**Pywss** 则通过 `WebSocketUpgrade` 完成此处升级。
+升级后将激活 `ctx.ws_read` 和 `ctx.ws_write` 两个接口方法，并通过这两个接口方法与客户端进行交互。
 
-# 日志中间件，单次请求结束后输出cost耗时 - 根据响应码判断输出不同级别日志
-def log_handler(ctx: pywss.Context):  
-    start = time.time()
-    ctx.next()  # 调用 next 进入到下一个 handler
-    cost = time.time() - start
-    if ctx.response_status_code < 300:
-        ctx.log.info(cost)
-    elif ctx.response_status_code < 400:
-        ctx.log.warning(cost)
-    else:
-        ctx.log.error(cost)
-
-# 认证中间件
-def auth_handler(ctx: pywss.Context):  
-    # 校验请求参数
-    if ctx.paths["name"] != "pywss":  
-        ctx.set_status_code(pywss.StatusUnauthorized)
-        return
-    ctx.next()
-
-app = pywss.App()
-
-# 注册全局中间件
-app.use(log_handler)  
-
-# 中间件也可以直接路由处注册
-app.get("/hello/{name}", auth_handler, lambda ctx: ctx.write({"hello": "world"}))  
-
-app.run()
-```
-
-<br/>
-
-### 5、升级WebSocket
-WebSocket 本质基于 HTTP GET 升级实现，Pywss 则通过`WebSocketUpgrade`完成此处升级。    
+让我们来实现一个简单的 **WebSocket** 升级代码，参考如下：
 
 ```python
 import pywss
@@ -229,14 +220,17 @@ def websocket(ctx: pywss.Context):
         ctx.log.info(data)
         ctx.ws_write(b"hello")
 
+def main():
+    app = pywss.App()
+    app.get("/websocket", websocket)
+    app.run()
 
-app = pywss.App()
-
-app.get("/websocket", websocket)
-
-app.run()
+if __name__ == '__main__':
+    main()
 ``` 
-测试需要`打开浏览器 -> F12 -> 控制台`，输入以下代码：
+
+接着让我们模拟客户端，需要 `打开浏览器 -> F12 -> 进入控制台`，输入以下代码：
+
 ```
 ws = new WebSocket("ws://127.0.0.1:8080/websocket");
 ws.onmessage = function (ev) {
@@ -256,7 +250,9 @@ ws.onopen = function() {
 
 <br/>
 
-### 6、openapi & swagger ui
+### 7、SwaggerUI
+**Pywss** 实现了部分 **OpenAPI** 的能力。
+
 ```python
 import pywss
 
@@ -277,29 +273,24 @@ def hello(ctx: pywss.Context):
         "hello": "world",
         "page_size": ctx.params.get("page_size", 10),
         "username": ctx.params.get("username", "username"),
-        "name": ctx.paths.get("name", "name"),
+        "name": ctx.route_keys.get("name", "name"),
         "Auth": ctx.headers.get("Auth", "Auth"),
     })
 
-app = pywss.App()
+def main():
+    app = pywss.App()
+    app.openapi()  # 开启 openapi
+    app.post("/hello/{name}", hello)
+    app.run()
 
-# 开启 openapi
-app.openapi(  
-    title="OpenAPI",
-    version="0.0.1",
-    openapi_json_route="/openapi.json",
-    openapi_ui_route="/docs",
-)
-
-app.post("/hello/{name}", hello)
-
-app.run()
+if __name__ == '__main__':
+    main()
 ```
 打开浏览器，访问 [localhost:8080/docs](http://localhost:8080/docs)
 
 <br/>
 
-### 7、静态文件服务器
+### 8、静态文件服务器
 ```python
 import pywss
 
@@ -310,7 +301,7 @@ app.static("/static", rootDir="/rootDir")
 
 app.run()
 ```
-假设已注册目录`/rootDir`结构如下，则可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
+假设目录`/rootDir`结构如下，则可以通过 [localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问
 ```text
 - rootDir
     - index.html
@@ -320,7 +311,7 @@ app.run()
 
 <br/>
 
-### 8、单元测试
+### 9、单元测试
 ```python
 import pywss
 
@@ -340,7 +331,7 @@ assert resp.status_code == 204
 
 <br/>
 
-### 8、命令行启动
+### 10、命令行启动
 如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
 - 查看帮助指令
 ```shell
@@ -371,9 +362,9 @@ pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
     * `ctx.fd`: `socket.socket`类型，一般用于写操作
     * `ctx.rfd`: `socket.makefile`类型，一般用于读操作
     * `ctx.method`: `str`类型，请求方法，如 `GET/POST/PUT/DELETE`
-    * `ctx.path`: `str`类型，请求路径，如 `/api/v1/query`
-    * `ctx.paths`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
-    * `ctx.route`: `str`类型，匹配路由的路径，如 `GET/api/v1/query`
+    * `ctx.path`: `str`类型，请求路径，如 `/api/v1/query?key=value`
+    * `ctx.route_keys`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
+    * `ctx.route`: `str`类型，匹配路由的路径，如 `/api/v1/query`
     * `ctx.cookies`: `dict`类型，用于存储请求`cookies`数据
     * `ctx.body()`: `bytes`类型，获取用户请求报文`body`
     * `ctx.json()`: 解析用户请求，等同于`json.loads(self.body())`，需要遵循一定`json`格式
