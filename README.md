@@ -198,6 +198,20 @@ if __name__ == '__main__':
     main()
 ```
 
+除此之外，**Pywss** 还内置了部分常用中间件~
+
+```python
+import pywss
+
+app = pywss.App()
+
+app.use(
+    pywss.NewRecoverHandler(),  # recover
+    pywss.NewCORSHandler(),     # cors
+    pywss.NewJWTHandler(),      # jwt
+)
+```
+
 <br/>
 
 ### 6、升级WebSocket
