@@ -10,16 +10,15 @@
 **Pywss 是一个轻量级的 Python Web 框架。**     
 
 其主要特性有：   
-- [x] Http Server
-- [x] WebSocket Upgrade
-- [x] Swagger UI
-- [x] Middleware
-- [x] Route Party
-- [x] Http API Test
+- [x] 支持 Http 服务器和 WebSocket 协议升级，能够轻松处理 Web 应用程序的请求和响应。
+- [x] 集成了 Swagger UI，方便开发者快速生成 API 文档并进行调试。
+- [x] 支持中间件，可方便地扩展框架功能。
+- [x] 提供了 Route Party，能够简单明了地管理路由，让开发者更加专注于业务逻辑的实现。
+- [x] 提供了 Http API 测试功能，能够方便地测试 API 的正确性和性能。
 
-此外，**Pywss** 底层并没有实现 **WSGI** 接口协议，
-其编程风格也不同于 **Flask**、**Django** 等主流框架。
-如果你有过类似 **Gin**、**Iris** 等框架的编程经验，那你可能发现了一个宝藏项目~
+与 Flask、Django 等主流框架不同的是，Pywss 的底层并没有实现 WSGI 接口协议。  
+其编程风格更类似于 Gin、Iris 等框架，因此对于熟悉这些框架的开发者来说，Pywss 是一个非常值得探索的项目。
+
 
 <br/>
 
