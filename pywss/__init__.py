@@ -19,7 +19,7 @@ from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
 
-__version__ = '0.1.15'
+__version__ = '0.1.16'
 
 
 class Context:
@@ -291,6 +291,7 @@ class App:
         route = f"/{route.strip().strip('/')}" if route else route
         route = f"{self.base_route}{route}"
         route = f"/{route.strip().strip('/')}"
+        route = route.rstrip("/")
         self.full_match_routes[f"{method}{route}"] = list(self.base_handlers) + list(handlers)
 
     def build(self) -> None:

@@ -14,11 +14,11 @@ def NewCORSHandler(
     allowCredentials = "true" if allow_credentials else "false"
 
     def corsHandler(ctx):
+        ctx.set_header("Access-Control-Allow-Origin", allowOrigins)
+        ctx.set_header("Access-Control-Allow-Methods", allowMethods)
+        ctx.set_header("Access-Control-Expose-Headers", allowHeaders)
+        ctx.set_header("Access-Control-Allow-Credentials", allowCredentials)
         if ctx.method == MethodOptions:
-            ctx.set_header("Access-Control-Allow-Origin", allowOrigins)
-            ctx.set_header("Access-Control-Allow-Methods", allowMethods)
-            ctx.set_header("Access-Control-Expose-Headers", allowHeaders)
-            ctx.set_header("Access-Control-Allow-Credentials", allowCredentials)
             return
         ctx.next()
 
