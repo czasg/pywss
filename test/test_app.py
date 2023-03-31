@@ -484,7 +484,7 @@ class TestBase(unittest.TestCase):
 
     def test_websocket_err(self):
         def websocket(ctx: pywss.Context):
-            err = pywss.WebSocketContextWrap(ctx)
+            err = pywss.WebSocketUpgrade(ctx)
             if err:
                 ctx.set_status_code(pywss.StatusBadRequest)
                 return
