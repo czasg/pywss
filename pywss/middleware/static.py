@@ -1,7 +1,8 @@
 # coding: utf-8
 import os
+import pywss
 
-from pywss.statuscode import StatusNotFound, StatusServiceUnavailable, MethodHead
+from pywss.constant import StatusNotFound, StatusServiceUnavailable, MethodHead
 
 
 def NewStaticHandler(root, default="application/octet-stream", limit=100):
@@ -13,7 +14,7 @@ def NewStaticHandler(root, default="application/octet-stream", limit=100):
     applicationJson = tuple("json,yml,yaml".split(","))
     imagePng = tuple("jpg,jpeg,png,gif,avif,svg,svgz,wbmp,webp,ico,bmp".split(","))
 
-    def staticHandler(ctx):
+    def staticHandler(ctx: pywss.Context):
         if ctx.headers.get("Content-Range", None):
             ctx.set_status_code(StatusServiceUnavailable)
             ctx.write("Not Support Header Content-Range")

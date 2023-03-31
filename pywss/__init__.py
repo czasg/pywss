@@ -1,5 +1,6 @@
 # coding: utf-8
-import os, re
+import os
+import re
 import json
 import time
 import loggus
@@ -11,9 +12,9 @@ from _io import BufferedReader
 from datetime import timedelta
 from collections import defaultdict
 from pywss.headers import *
-from pywss.statuscode import *
+from pywss.constant import *
 from pywss.middleware import *
-from pywss.websocket import WebSocketUpgrade, WebSocketContextWrap
+from pywss.websocket import WebSocketUpgrade
 from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.closing import Closing
 from pywss.routing import Route
@@ -25,43 +26,44 @@ __version__ = '0.1.16'
 class Context:
     _handler_index = 0
     _flush_header = False
+    _stream = False
 
     def __init__(
             self, app, log,
             fd, rfd, address,
-            http_method, http_path, http_version,
-            route, route_keys, headers,
-            register_route, register_handlers
+            http_method, http_url, http_version,
+            route, route_params, headers,
+            app_route, handlers
     ):
+        # app
         self.app: 'App' = app
         self.log: loggus.Entry = log
         self.fd: socket.socket = fd
         self.rfd: BufferedReader = rfd
         self.address: tuple = address
+        # request
         self.method: str = http_method
-        self.path: str = http_path  # /route?key=value
-        self.version: str = http_version
+        self.url: str = http_url  # /route?key=value
+        self.url_params: dict = parse_params(http_url)
         self.route: str = route  # /route
-        self.route_keys: dict = route_keys
+        self.route_params: dict = route_params
+        self.version: str = http_version
         self.headers: dict = headers
-        self._route: str = register_route
-        self._handlers: list = register_handlers
-
         self.cookies: dict = parse_cookies(headers)
-        self.params: dict = parse_params(http_path)
-        self._stream: bool = False  # make True when using self.stream(), then self.body() will always empty
-        self.data: Data = Data()  # data save for user
-
-        self.content_length: int = int(headers.get("Content-Length", 0))
+        self.content_length: int = int(headers.get(HeaderContentLength, 0))
         self.content: bytes = b""  # default empty, use self.body() to instead
-
+        # response
         self.response_status_code: int = 200
         self.response_headers: dict = {
             "Server": "Pywss",
             "PywssVersion": __version__,
-            "Content-Length": 0,
+            HeaderContentLength: 0,
         }
         self.response_body: list = []
+        # ctx
+        self._route: str = app_route
+        self._handlers: list = handlers
+        self.data: Data = Data()  # data save for user
 
     def next(self) -> None:
         if self._handler_index >= len(self._handlers):
@@ -70,12 +72,15 @@ class Context:
         self._handler_index += 1
         self._handlers[index](self)
 
+    def close(self):
+        self.fd.close()
+
     def json(self):
         return json.loads(self.body().decode())  # not check Content-Type: application/json
 
     def form(self) -> dict:
         resp = {}
-        ct = self.headers.get("Content-Type").strip()
+        ct = self.headers.get(HeaderContentType, "").strip()
 
         if ct == "application/x-www-form-urlencoded":
             for value in self.body().decode().strip().split("&"):
@@ -97,7 +102,7 @@ class Context:
         # parse form-data
         for data in self.body().decode().split(f"--{boundary}"):
             data = data.strip()
-            if not data.startswith("Content-Disposition"):
+            if not data.startswith(HeaderContentDisposition):
                 continue
             h, v = data.split("\r\n\r\n", 1)
             name = re.search("name=\"(.*?)\"", h).group(1)
@@ -109,7 +114,7 @@ class Context:
             return self.content  # should be empty
         if not self.content and self.content_length:
             self.content = self.rfd.read(self.content_length)
-        if not self.content and self.headers.get("Transfer-Encoding", "").lower() == "chunked":
+        if not self.content and self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
             size = int(self.rfd.readline(), 16)
             while size > 0:
                 self.content += self.rfd.read(size)
@@ -129,7 +134,7 @@ class Context:
                 cl -= rl
             self._stream = True
             return
-        if not self.content and self.headers.get("Transfer-Encoding", "").lower() == "chunked":
+        if not self.content and self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
             size = int(self.rfd.readline(), 16)
             while size > 0:
                 yield self.rfd.read(size)
@@ -144,11 +149,13 @@ class Context:
             header.append(key[0].upper() + key[1:].lower())
         self.response_headers["-".join(header)] = v
 
-    def set_content_length(self, size: int) -> None:
-        self.response_headers["Content-Length"] = self.response_headers.get("Content-Length", 0) + size
+    def set_content_length(self, size: int, inherit=True) -> None:
+        if inherit:
+            size += self.response_headers.get(HeaderContentLength, 0)
+        self.response_headers[HeaderContentLength] = size
 
     def set_content_type(self, v) -> None:
-        self.response_headers.setdefault("Content-Type", v)
+        self.response_headers.setdefault(HeaderContentType, v)
 
     def set_cookie(
             self, key, value, maxAge=None, expires=None, path="/", domain=None, secure=False, httpOnly=False
@@ -202,16 +209,16 @@ class Context:
             if v is None:
                 continue
             buf.append(f"{k}={v}")
-        self.response_headers["Set-Cookie"] = "; ".join(buf)
+        self.response_headers[HeaderSetCookie] = "; ".join(buf)
 
     def set_status_code(self, status_code) -> None:
         self.response_status_code = status_code
 
     def redirect(self, url, status_code=StatusFound) -> None:
-        if "?" not in url and "?" in self.path:
-            url = f"{url}?{self.path.split('?', 1)[1]}"
+        if "?" not in url and "?" in self.url:
+            url = f"{url}?{self.url.split('?', 1)[1]}"
         self.set_status_code(status_code)
-        self.set_header("Location", url)
+        self.set_header(HeaderLocation, url)
 
     def write(self, body) -> None:
         if isinstance(body, (str, bytes)):
@@ -238,7 +245,7 @@ class Context:
         if isinstance(file, str) and os.path.exists(file):
             if attachment:
                 filename = os.path.split(file)[-1]
-                self.set_header("Content-Disposition", f'attachment; filename="{filename}"')
+                self.set_header(HeaderContentDisposition, f'attachment; filename="{filename}"')
             file = open(file, "rb")
         if not isinstance(file, BufferedReader):
             raise Exception("invalid file type")
@@ -423,13 +430,17 @@ class App:
 
     def openapi(
             self,
+            enable=True,
             title="OpenAPI",
             version="0.0.1",
             openapi_json_route="/openapi.json",
             openapi_ui_route="/docs",
             openapi_ui_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui-bundle.js",
             openapi_ui_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui.css",
+
     ) -> None:
+        if not enable:
+            return
         self.openapi_data = {
             "openapi": "3.0.2",
             "info": {
@@ -451,13 +462,13 @@ class App:
         try:
             rfd = request.makefile("rb", -1)
             while True:
-                http_method, http_path, http_version, err = parse_request_line(rfd)
+                http_method, http_url, http_version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
                     return
-                route = register_route = f"/{http_path.split('?', 1)[0].lstrip('/')}"
-                route_keys = dict()
-                method_route = f"{http_method.upper()}{route.rstrip('/')}"
+                route = app_route = f"/{http_url.split('?', 1)[0].lstrip('/')}"  # /route
+                route_params = dict()
+                method_route = f"{http_method.upper()}{route.rstrip('/')}"  # GET/route
                 log = log.update(route=method_route)
                 http_headers, err = parse_headers(rfd)
                 if err:
@@ -465,24 +476,24 @@ class App:
                     log.error(err)
                     return
                 # check keep alive
-                if http_headers.get("Connection", "").lower() == "close":
+                if http_headers.get(HeaderConnection, "").lower() == "close":
                     break
                 # full match
                 handlers = self.full_match_routes.get(method_route, None)
                 # parser match
                 if not handlers:
                     for r, v in self.parse_match_routes:
-                        fix, ps = r.match(method_route)
+                        fix, rp = r.match(method_route)
                         if fix:
-                            register_route = r.route
+                            app_route = r.route
                             handlers = v
-                            route_keys = ps
+                            route_params = rp
                             break
                 # head match
                 if not handlers:
                     for r, v in self.head_match_routes:
                         if method_route.startswith(r):
-                            register_route = r
+                            app_route = r
                             handlers = v
                             break
                 if not handlers:
@@ -492,9 +503,9 @@ class App:
                 ctx = Context(
                     self, log,
                     request, rfd, address,
-                    http_method, http_path, http_version,
-                    route, route_keys, http_headers,
-                    register_route, handlers
+                    http_method, http_url, http_version,
+                    route, route_params, http_headers,
+                    app_route, handlers
                 )
                 ctx.next()
                 ctx.flush()

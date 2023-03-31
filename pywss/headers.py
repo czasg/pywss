@@ -1,10 +1,11 @@
 # coding: utf-8
 from urllib.parse import unquote
+from pywss.constant import *
 
 
 def parse_cookies(headers):
     cookies = {}
-    for value in headers.get("Cookie", "").split(";"):
+    for value in headers.get(HeaderCookie, "").split(";"):
         values = value.strip().split("=", 1)
         if len(values) != 2:
             continue

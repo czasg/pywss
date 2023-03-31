@@ -1,5 +1,6 @@
 # coding: utf-8
 import time
+import pywss
 import threading
 
 from copy import deepcopy
@@ -9,8 +10,8 @@ def NewCacheHandler(expire=60, maxCache=30):
     cache = dict()
     lock = threading.Lock()
 
-    def cacheHandler(ctx):
-        cache_key = f"{ctx.method}{ctx.path}{ctx.version}{ctx.content_length}"
+    def cacheHandler(ctx: pywss.Context):
+        cache_key = f"{ctx.method}{ctx.url}{ctx.version}{ctx.content_length}"
         if cache_key in cache:
             with lock:
                 code, headers, body, stamp = cache[cache_key]

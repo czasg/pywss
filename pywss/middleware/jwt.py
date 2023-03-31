@@ -5,7 +5,7 @@ import pywss
 import base64
 import hashlib
 
-from pywss.statuscode import StatusForbidden
+from pywss.constant import StatusForbidden
 
 
 def NewJWTHandler(
@@ -19,13 +19,13 @@ def NewJWTHandler(
 
     def jwtHandler(ctx: pywss.Context):
         ctx.data.jwt = jwt
-        if ignore_route and ctx.path in ignore_route:
+        if ignore_route and ctx.route in ignore_route:
             ctx.next()
             return
-        if ignore_startswith and ctx.path.startswith(ignore_startswith):
+        if ignore_startswith and ctx.route.startswith(ignore_startswith):
             ctx.next()
             return
-        if ignore_endswith and ctx.path.endswith(ignore_endswith):
+        if ignore_endswith and ctx.route.endswith(ignore_endswith):
             ctx.next()
             return
         try:

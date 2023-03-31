@@ -12,7 +12,7 @@ def register(app: pywss.App):
 
 
 def auth(ctx: pywss.Context):
-    ref = ctx.params.get("callback") or ctx.headers.get("Referer")
+    ref = ctx.url_params.get("callback") or ctx.headers.get("Referer")
     if not ref:
         ctx.set_status_code(pywss.StatusBadRequest)
         return
