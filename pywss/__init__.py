@@ -234,8 +234,11 @@ class Context:
         self.set_content_type("application/json")
         self.response_body.append(data)
 
-    def write_file(self, file) -> None:
+    def write_file(self, file, attachment=False) -> None:
         if isinstance(file, str) and os.path.exists(file):
+            if attachment:
+                filename = os.path.split(file)[-1]
+                self.set_header("Content-Disposition", f'attachment; filename="{filename}"')
             file = open(file, "rb")
         if not isinstance(file, BufferedReader):
             raise Exception("invalid file type")
