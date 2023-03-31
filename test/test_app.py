@@ -1,11 +1,10 @@
 # coding: utf-8
 import time
-import json, os
+import json
 import loggus
 import socket
 import pywss
 import unittest
-import tempfile
 import threading
 from datetime import timedelta
 
@@ -333,8 +332,8 @@ class TestBase(unittest.TestCase):
 
     def test_ctx_headers(self):
         def header(ctx: pywss.Context):
-            self.assertEqual(ctx.params["test"], ["test", "test", "test"])
-            self.assertEqual(ctx.params["test1"], "test")
+            self.assertEqual(ctx.url_params["test"], ["test", "test", "test"])
+            self.assertEqual(ctx.url_params["test1"], "test")
             self.assertEqual(ctx.headers["Cookie"], "test=test")
             ctx.set_cookie("test", "test")
             ctx.set_header("test", "test")
@@ -535,7 +534,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.body, "/test/")
 
         app = pywss.App()
-        app.get("/{test}/", lambda ctx: ctx.write(ctx.route_keys["test"]))
+        app.get("/{test}/", lambda ctx: ctx.write(ctx.route_params["test"]))
         resp = pywss.HttpTestRequest(app).get("/123")
         self.assertEqual(resp.body, "123")
         resp = pywss.HttpTestRequest(app).get("/456/")

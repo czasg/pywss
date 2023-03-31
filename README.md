@@ -95,7 +95,7 @@ python3 main.py
 |特殊路由匹配机制|说明|
 |---|---|
 |全等匹配|`app.get("/full/match", handler)`|
-|局部匹配|`app.get("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_keys`中|
+|局部匹配|`app.get("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_params`中|
 |头部匹配|`app.get("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
 
 **_注意_**：   
@@ -112,11 +112,11 @@ import pywss
 class UserView:
 
     def http_get(self, ctx: pywss.Context):
-        uid = ctx.route_keys["uid"]
+        uid = ctx.route_params["uid"]
         ctx.write({"uid": uid, "msg": "query success"})
 
     def http_post(self, ctx: pywss.Context):
-        uid = ctx.route_keys["uid"]
+        uid = ctx.route_params["uid"]
         ctx.write({"uid": uid, "msg": "create success"})
 
 def main():
@@ -288,9 +288,9 @@ import pywss
 def hello(ctx: pywss.Context):
     ctx.write({
         "hello": "world",
-        "page_size": ctx.params.get("page_size", 10),
-        "username": ctx.params.get("username", "username"),
-        "name": ctx.route_keys.get("name", "name"),
+        "page_size": ctx.url_params.get("page_size", 10),
+        "username": ctx.url_params.get("username", "username"),
+        "name": ctx.route_params.get("name", "name"),
         "Auth": ctx.headers.get("Auth", "Auth"),
     })
 
@@ -375,14 +375,14 @@ pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
     * `ctx.fd`: `socket.socket`类型，一般用于写操作
     * `ctx.rfd`: `socket.makefile`类型，一般用于读操作
     * `ctx.method`: `str`类型，请求方法，如 `GET/POST/PUT/DELETE`
-    * `ctx.path`: `str`类型，请求路径，如 `/api/v1/query?key=value`
-    * `ctx.route_keys`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
+    * `ctx.url`: `str`类型，请求路径，如 `/api/v1/query?key=value`
+    * `ctx.route_params`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
     * `ctx.route`: `str`类型，匹配路由的路径，如 `/api/v1/query`
     * `ctx.cookies`: `dict`类型，用于存储请求`cookies`数据
     * `ctx.body()`: `bytes`类型，获取用户请求报文`body`
     * `ctx.json()`: 解析用户请求，等同于`json.loads(self.body())`，需要遵循一定`json`格式
     * `ctx.form()`: 解析用户请求，需要遵循一定`form`格式
-    * `ctx.params`: `dict`类型，用于存储解析的`query`参数
+    * `ctx.url_params`: `dict`类型，用于存储解析的`query`参数
         * `http://github.com/czasg/pywss?code=1&callback=2`->`{"code": "1", "callback": "2"}`
         * `http://github.com/czasg/pywss?code=1&code=2`->`{"code": ["1", "2"]}`
     * `ctx.headers`: `dict`类型，用于存储解析的`header`参数

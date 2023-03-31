@@ -1,5 +1,7 @@
 # coding: utf-8
-from pywss.statuscode import StatusInternalServerError
+import pywss
+
+from pywss.constant import StatusInternalServerError
 
 
 def NewRecoverHandler(
@@ -7,7 +9,7 @@ def NewRecoverHandler(
         default_content=None,
         traceback=False,
 ):
-    def recoverHandler(ctx):
+    def recoverHandler(ctx: pywss.Context):
         try:
             ctx.next()
         except:

@@ -1,5 +1,7 @@
 # coding: utf-8
-from pywss.statuscode import MethodOptions
+import pywss
+
+from pywss.constant import MethodOptions
 
 
 def NewCORSHandler(
@@ -13,7 +15,7 @@ def NewCORSHandler(
     allowHeaders = ",".join(allow_headers)
     allowCredentials = "true" if allow_credentials else "false"
 
-    def corsHandler(ctx):
+    def corsHandler(ctx: pywss.Context):
         ctx.set_header("Access-Control-Allow-Origin", allowOrigins)
         ctx.set_header("Access-Control-Allow-Methods", allowMethods)
         ctx.set_header("Access-Control-Expose-Headers", allowHeaders)

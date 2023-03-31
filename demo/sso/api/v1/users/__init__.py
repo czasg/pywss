@@ -20,8 +20,8 @@ def register(app: pywss.App):
 
 def get_users(ctx: pywss.Context):
     resp = Response()
-    page_size = int(ctx.params.get("page_size", 10))
-    page_num = int(ctx.params.get("page_num", 0))
+    page_size = int(ctx.url_params.get("page_size", 10))
+    page_num = int(ctx.url_params.get("page_num", 0))
     with Session() as session:
         resp.data = []
         for uid, alias, username in session.query(User.id, User.alias, User.username). \

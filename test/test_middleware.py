@@ -164,3 +164,7 @@ class TestBase(unittest.TestCase):
             except Exception as e:
                 raiseErr = e
             self.assertIsNotNone(raiseErr)
+
+
+if __name__ == '__main__':
+    unittest.main()

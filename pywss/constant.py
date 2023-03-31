@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # http method
 MethodGet = "GET"
 MethodPost = "POST"
@@ -8,6 +6,16 @@ MethodPut = "PUT"
 MethodDelete = "DELETE"
 MethodPatch = "PATCH"
 MethodOptions = "OPTIONS"
+
+# http header
+HeaderContentLength = "Content-Length"
+HeaderContentType = "Content-Type"
+HeaderContentDisposition = "Content-Disposition"
+HeaderConnection = "Connection"
+HeaderTransferEncoding = "Transfer-Encoding"
+HeaderSetCookie = "Set-Cookie"
+HeaderLocation = "Location"
+HeaderCookie = "Cookie"
 
 # http status code
 StatusContinue = 100
