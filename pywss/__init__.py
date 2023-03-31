@@ -70,6 +70,9 @@ class Context:
         self._handler_index += 1
         self._handlers[index](self)
 
+    def close(self):
+        self.fd.close()
+
     def json(self):
         return json.loads(self.body().decode())  # not check Content-Type: application/json
 
