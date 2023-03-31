@@ -34,13 +34,6 @@ def WebSocketUpgrade(ctx):
     return None
 
 
-# abandoned
-def WebSocketContextWrap(ctx):
-    warnings.warn("WebSocketContextWrap is deprecated, use WebSocketUpgrade instead",
-                  DeprecationWarning)
-    return WebSocketUpgrade(ctx)
-
-
 def _createWebSocketResponse(secKey):
     secKey = secKey + MAGIC_STRING
     secKey = hashlib.sha1((secKey).encode('utf-8')).digest()

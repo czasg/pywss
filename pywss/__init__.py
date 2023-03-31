@@ -14,7 +14,7 @@ from collections import defaultdict
 from pywss.headers import *
 from pywss.constant import *
 from pywss.middleware import *
-from pywss.websocket import WebSocketUpgrade, WebSocketContextWrap
+from pywss.websocket import WebSocketUpgrade
 from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.closing import Closing
 from pywss.routing import Route
