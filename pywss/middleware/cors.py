@@ -1,13 +1,15 @@
 # coding: utf-8
 import pywss
 
-from pywss.constant import MethodOptions
+from pywss.constant import *
 
 
 def NewCORSHandler(
         allow_origins: tuple = ("*",),
-        allow_methods: tuple = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT",),
-        allow_headers: tuple = ("Accept", "Accept-Language", "Content-Language", "Content-Type",),
+        allow_methods: tuple = (MethodDelete, MethodGet, MethodHead, MethodOptions,
+                                MethodPatch, MethodPost, MethodPut,),
+        allow_headers: tuple = (HeaderAccept, HeaderAcceptLanguage,
+                                HeaderContentLanguage, HeaderContentType,),
         allow_credentials: bool = True,
 ):
     allowOrigins = ",".join(allow_origins)
@@ -16,10 +18,10 @@ def NewCORSHandler(
     allowCredentials = "true" if allow_credentials else "false"
 
     def corsHandler(ctx: pywss.Context):
-        ctx.set_header("Access-Control-Allow-Origin", allowOrigins)
-        ctx.set_header("Access-Control-Allow-Methods", allowMethods)
-        ctx.set_header("Access-Control-Expose-Headers", allowHeaders)
-        ctx.set_header("Access-Control-Allow-Credentials", allowCredentials)
+        ctx.set_header(HeaderAccessControlAllowOrigin, allowOrigins)
+        ctx.set_header(HeaderAccessControlAllowMethods, allowMethods)
+        ctx.set_header(HeaderAccessControlAllowHeaders, allowHeaders)
+        ctx.set_header(HeaderAccessControlAllowCredentials, allowCredentials)
         if ctx.method == MethodOptions:
             return
         ctx.next()
