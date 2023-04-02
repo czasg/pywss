@@ -82,11 +82,12 @@ class Context:
     def form(self) -> dict:
         resp = {}
         ct = self.headers.get(HeaderContentType, "").strip()
+        body = unquote(self.body().decode()).strip()
 
         if ct == "application/x-www-form-urlencoded":
-            for value in self.body().decode().strip().split("&"):
+            for value in body.split("&"):
                 k, v = value.split("=", 1)
-                resp[unquote(k)] = unquote(v)
+                resp[k] = v
             return resp
         elif not ct.startswith("multipart/form-data"):
             raise Exception(f"not support form Content-Type:{ct}")
@@ -96,17 +97,24 @@ class Context:
         for v in ct.split(";"):
             v = v.strip()
             if v.startswith("boundary="):
-                boundary = v.replace("boundary=", "")
+                boundary = v[9:].strip('"')
                 break
         if not boundary:
-            raise Exception(f"invalid form-data, with not boundary")
+            raise Exception(f"invalid form-data, without boundary")
         # parse form-data
-        for data in self.body().decode().split(f"--{boundary}"):
+        for data in body.split(f"--{boundary}"):
             data = data.strip()
             if not data.startswith(HeaderContentDisposition):
                 continue
             h, v = data.split("\r\n\r\n", 1)
-            name = re.search("name=\"(.*?)\"", h).group(1)
+            name = ""
+            for k in h.split(";"):
+                k = k.strip()
+                if k.startswith("name="):
+                    name = k[5:].strip('"')
+                    break
+            if not name:
+                raise Exception("invalid form-data, without name")
             resp[name] = v
         return resp
 
