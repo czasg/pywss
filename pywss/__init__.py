@@ -484,7 +484,7 @@ class App:
             openapi_ui_css_url,
         )))
 
-    def _handler_request(self, request: socket.socket, address: tuple) -> None:
+    def handler_request(self, request: socket.socket, address: tuple) -> None:
         log = self.log
         try:
             rfd = request.makefile("rb", -1)
@@ -575,7 +575,7 @@ class App:
                         if not ready:
                             continue
                         request, address = sock.accept()
-                        threading.Thread(target=self._handler_request, args=(request, address), daemon=True).start()
+                        threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
                 time.sleep(1)
