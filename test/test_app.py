@@ -75,13 +75,11 @@ class TestBase(unittest.TestCase):
 
             def __init__(self):
                 self.count = 0
+                self.use = [self.add_count]
 
             def add_count(self, ctx: pywss.Context):
                 self.count += 1
                 ctx.next()
-
-            def use(self):
-                return [self.add_count]
 
             def http_get(self, ctx: pywss.Context):
                 ctx.write(f"get-view-{self.count}")
@@ -91,34 +89,6 @@ class TestBase(unittest.TestCase):
 
         app = pywss.App()
         app.view("/view", ViewIns())
-        resp = pywss.HttpTestRequest(app).get("/view")
-        self.assertEqual(resp.body, "get-view-1")
-        resp = pywss.HttpTestRequest(app).post("/view")
-        self.assertEqual(resp.body, "post-view-2")
-
-        # view - class
-        class ViewCls:
-            count = 0
-
-            @classmethod
-            def add_count(cls, ctx: pywss.Context):
-                cls.count += 1
-                ctx.next()
-
-            @classmethod
-            def use(cls):
-                return [cls.add_count]
-
-            @classmethod
-            def http_get(cls, ctx: pywss.Context):
-                ctx.write(f"get-view-{cls.count}")
-
-            @classmethod
-            def http_post(cls, ctx: pywss.Context):
-                ctx.write(f"post-view-{cls.count}")
-
-        app = pywss.App()
-        app.view("/view", ViewCls)
         resp = pywss.HttpTestRequest(app).get("/view")
         self.assertEqual(resp.body, "get-view-1")
         resp = pywss.HttpTestRequest(app).post("/view")

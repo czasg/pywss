@@ -8,6 +8,9 @@ MethodPatch = "PATCH"
 MethodOptions = "OPTIONS"
 
 # http header
+HeaderAccept = "Accept"
+HeaderAcceptLanguage = "Accept-Language"
+HeaderContentLanguage = "Content-Language"
 HeaderContentLength = "Content-Length"
 HeaderContentType = "Content-Type"
 HeaderContentDisposition = "Content-Disposition"
@@ -16,6 +19,10 @@ HeaderTransferEncoding = "Transfer-Encoding"
 HeaderSetCookie = "Set-Cookie"
 HeaderLocation = "Location"
 HeaderCookie = "Cookie"
+HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+HeaderAccessControlAllowMethods = "Access-Control-Allow-Methods"
+HeaderAccessControlAllowHeaders = "Access-Control-Allow-Headers"
+HeaderAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
 
 # http status code
 StatusContinue = 100
