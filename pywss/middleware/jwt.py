@@ -5,7 +5,7 @@ import pywss
 import base64
 import hashlib
 
-from pywss.constant import StatusForbidden
+from pywss.constant import *
 
 
 def NewJWTHandler(
@@ -29,7 +29,7 @@ def NewJWTHandler(
             ctx.next()
             return
         try:
-            token = ctx.headers.get("Authorization")
+            token = ctx.headers.get(HeaderAuthorization)
             ctx.data.jwt_payload = jwt.decrypt(token)
         except:
             ctx.set_status_code(StatusForbidden)
