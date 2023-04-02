@@ -10,6 +10,7 @@ import selectors
 
 from _io import BufferedReader
 from datetime import timedelta
+from importlib import import_module
 from collections import defaultdict
 from pywss.headers import *
 from pywss.constant import *
@@ -32,7 +33,7 @@ class Context:
             self, app, log,
             fd, rfd, address,
             http_method, http_url, http_version,
-            route, route_params, headers,
+            route, route_params, http_headers,
             app_route, handlers
     ):
         # app
@@ -48,9 +49,9 @@ class Context:
         self.route: str = route  # /route
         self.route_params: dict = route_params
         self.version: str = http_version
-        self.headers: dict = headers
-        self.cookies: dict = parse_cookies(headers)
-        self.content_length: int = int(headers.get(HeaderContentLength, 0))
+        self.headers: dict = http_headers
+        self.cookies: dict = parse_cookies(http_headers)
+        self.content_length: int = int(http_headers.get(HeaderContentLength, 0))
         self.content: bytes = b""  # default empty, use self.body() to instead
         # response
         self.response_status_code: int = 200
@@ -295,7 +296,7 @@ class App:
         self.data: Data = Data()
         self.log = loggus.GetLogger()
 
-    def register(self, method, route, handlers) -> None:
+    def _register(self, method, route, handlers) -> None:
         if len(handlers) < 1:
             raise Exception("not found handlers")
         route = f"/{route.strip().strip('/')}" if route else route
@@ -384,29 +385,29 @@ class App:
             handlers.append(staticHandler(rootDir))
         if not route.endswith("*"):
             route = f"{route.strip().rstrip('/')}/*"
-        self.register(MethodGet, route, handlers)
-        self.register(MethodHead, route, handlers)
+        self._register(MethodGet, route, handlers)
+        self._register(MethodHead, route, handlers)
 
     def get(self, route, *handlers) -> None:
-        self.register(MethodGet, route, handlers)
+        self._register(MethodGet, route, handlers)
 
     def post(self, route, *handlers) -> None:
-        self.register(MethodPost, route, handlers)
+        self._register(MethodPost, route, handlers)
 
     def head(self, route, *handlers) -> None:
-        self.register(MethodHead, route, handlers)
+        self._register(MethodHead, route, handlers)
 
     def put(self, route, *handlers) -> None:
-        self.register(MethodPut, route, handlers)
+        self._register(MethodPut, route, handlers)
 
     def delete(self, route, *handlers) -> None:
-        self.register(MethodDelete, route, handlers)
+        self._register(MethodDelete, route, handlers)
 
     def patch(self, route, *handlers) -> None:
-        self.register(MethodPatch, route, handlers)
+        self._register(MethodPatch, route, handlers)
 
     def options(self, route, *handlers) -> None:
-        self.register(MethodOptions, route, handlers)
+        self._register(MethodOptions, route, handlers)
 
     def any(self, route, *handlers) -> None:
         self.get(route, *handlers)
@@ -423,10 +424,36 @@ class App:
         view = handlers[-1]
         handlers = list(handlers[:-1])
         if hasattr(view, "use"):
-            handlers += list(getattr(view, "use")() or [])
+            handlers += list(getattr(view, "use", []))
         for method in ("get", "post", "head", "put", "delete", "patch", "options", "any"):
             if hasattr(view, f"http_{method}"):
                 getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
+
+    def view_dirs(self, path: str, prefix=True):
+        if not os.path.exists(path):
+            raise Exception(f"{path} not exists")
+        for base, _, files in os.walk(path):
+            base_modules = re.findall("([a-zA-Z0-9-_{}]+)", base)
+            route_modules = base_modules
+            if not prefix:
+                prefix_length = len(re.findall("([a-zA-Z0-9-_{}]+)", path))
+                route_modules = base_modules[prefix_length:]
+            for filename in files:
+                if not filename.endswith(".py"):
+                    continue
+                filename = filename[:-3]
+                if filename.startswith(("_", "test")) and filename != "__init__":
+                    continue
+                route = filename.replace("__init__", "")
+                module = import_module(".".join([*base_modules, filename]))
+                view_name = getattr(module, "__view__", "View")
+                view_module = getattr(module, view_name, None)
+                if not view_module:
+                    continue
+                if callable(view_module):
+                    view_module = view_module()
+                route = getattr(module, "__route__", route).strip("/")
+                self.view("/".join([*route_modules, route]), view_module)
 
     def openapi(
             self,
@@ -457,7 +484,7 @@ class App:
             openapi_ui_css_url,
         )))
 
-    def handler_request(self, request: socket.socket, address: tuple) -> None:
+    def _handler_request(self, request: socket.socket, address: tuple) -> None:
         log = self.log
         try:
             rfd = request.makefile("rb", -1)
@@ -548,7 +575,7 @@ class App:
                         if not ready:
                             continue
                         request, address = sock.accept()
-                        threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
+                        threading.Thread(target=self._handler_request, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
                 time.sleep(1)
