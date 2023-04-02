@@ -7,6 +7,7 @@ import pywss
 import unittest
 import threading
 from datetime import timedelta
+from pywss.constant import *
 
 loggus.SetLevel(loggus.PANIC)
 
@@ -353,6 +354,18 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers.get("Content-Type"), "application/json")
         self.assertEqual(json.loads(resp.body), {"test": "test"})
+
+        app = pywss.App()
+        app.post("/form", lambda ctx: ctx.write(ctx.form()))
+        resp = pywss.HttpTestRequest(app).post("/form", headers={
+            HeaderContentType: 'multipart/form-data; boundary="boundary"'
+        }, data="""
+--boundary
+Content-Disposition: form-data; name="key1"\r\n\r\nvalue1
+--boundary
+Content-Disposition: form-data; name="key2"; filename="example.txt"\r\n\r\nvalue2
+--boundary--""")
+        self.assertEqual(json.loads(resp.body), {"key1": "value1", "key2": "value2"})
 
     def test_ctx_form_data(self):
         def upload(ctx: pywss.Context):
