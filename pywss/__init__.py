@@ -432,12 +432,14 @@ class App:
         view = handlers[-1]
         handlers = list(handlers[:-1])
         if hasattr(view, "use"):
-            handlers += list(getattr(view, "use", []))
+            handlers += list(getattr(view, "use"))
         for method in ("get", "post", "head", "put", "delete", "patch", "options", "any"):
+            if hasattr(view, f"http_{method}_use"):
+                handlers += list(getattr(view, f"http_{method}_use"))
             if hasattr(view, f"http_{method}"):
                 getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
 
-    def view_dirs(self, path: str, prefix=True):
+    def register_modules(self, path, prefix=True):
         if not os.path.exists(path):
             raise Exception(f"{path} not exists")
         for base, _, files in os.walk(path):
