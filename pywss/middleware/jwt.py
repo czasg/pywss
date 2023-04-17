@@ -14,6 +14,7 @@ def NewJWTHandler(
         ignore_route: tuple = (),
         ignore_startswith: tuple = (),
         ignore_endswith: tuple = (),
+        ignore_method_route: tuple = (),
 ):
     jwt = JWT(secret, expire)
 
@@ -28,6 +29,10 @@ def NewJWTHandler(
         if ignore_endswith and ctx.route.endswith(ignore_endswith):
             ctx.next()
             return
+        for m, r in ignore_method_route:
+            if m == ctx.method and ctx.route in r:
+                ctx.next()
+                return
         try:
             token = ctx.headers.get(HeaderAuthorization)
             ctx.data.jwt_payload = jwt.decrypt(token)

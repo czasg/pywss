@@ -470,7 +470,7 @@ class App:
             enable=True,
             title="OpenAPI",
             version="0.0.1",
-            openapi_json_route="/openapi.json",
+            openapi_json_route="/docs/openapi.json",
             openapi_ui_route="/docs",
             openapi_ui_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui-bundle.js",
             openapi_ui_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui.css",
