@@ -226,7 +226,7 @@ class TestBase(unittest.TestCase):
             response=["test"]
         )(lambda ctx: ctx.write("test")))
 
-        resp = pywss.HttpTestRequest(app).get("/openapi.json")
+        resp = pywss.HttpTestRequest(app).get("/docs/openapi.json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(json.loads(resp.body)["info"]["title"], "test")
         self.assertTrue("/test/{test}" in json.loads(resp.body)["paths"])
