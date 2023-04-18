@@ -6,15 +6,16 @@ import base64
 import hashlib
 
 from pywss.constant import *
+from typing import Union
 
 
 def NewJWTHandler(
         secret: str = "pywss",
         expire: int = 3600,
-        ignore_route: tuple = (),
+        ignore_route: Union[list, tuple] = (),
         ignore_startswith: tuple = (),
         ignore_endswith: tuple = (),
-        ignore_method_route: tuple = (),
+        ignore_method_route: Union[list, tuple] = (),
 ):
     jwt = JWT(secret, expire)
 
