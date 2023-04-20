@@ -135,7 +135,18 @@ def docs(
                 }
             }
             for code, resp in responses.items()
-        }
+        },
+        "security": [
+            {
+                "bearerAuth": [],
+            },
+            {
+                "basicAuth": [],
+            },
+            {
+                "ApiKeyAuth": [],
+            },
+        ]
     }
 
     def wrap(func):
