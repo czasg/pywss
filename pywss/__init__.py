@@ -322,6 +322,13 @@ class App:
                 self.head_match_routes += v.head_match_routes
                 self.parse_match_routes += v.parse_match_routes
                 self.openapi_data = merge_dict(self.openapi_data, v.openapi_data)
+
+        def split_method_route(route):
+            if "/" not in route:
+                return route, "/"
+            m, r = route.split("/", 1)
+            return m, "/" + r.strip("/")
+
         for route, v in self.full_match_routes.items():
             if isinstance(v, App):
                 continue
@@ -331,8 +338,7 @@ class App:
                     (r, v)
                 )
                 if hasattr(v[-1], "__openapi_path__"):
-                    i = route.index("/")
-                    _method, _route = route[:i], route[i:]
+                    _method, _route = split_method_route(route)
                     path = v[-1].__openapi_path__
                     for node in r.route_list:
                         if not node.name:
@@ -363,8 +369,7 @@ class App:
             else:
                 routes[route] = v
                 if hasattr(v[-1], "__openapi_path__"):
-                    i = route.index("/")
-                    _method, _route = route[:i], route[i:]
+                    _method, _route = split_method_route(route)
                     if _route not in self.openapi_data["paths"]:
                         self.openapi_data["paths"][_route] = {}
                     self.openapi_data["paths"][_route][_method.lower()] = v[-1].__openapi_path__
@@ -485,6 +490,23 @@ class App:
                 "version": version
             },
             "paths": defaultdict(dict),
+            "components": {
+                "securitySchemes": {
+                    "bearerAuth": {
+                        "type": "http",
+                        "scheme": "bearer",
+                    },
+                    "basicAuth": {
+                        "type": "http",
+                        "scheme": "basic",
+                    },
+                    "ApiKeyAuth": {
+                        "type": "apiKey",
+                        "in": "header",
+                        "name": "X-API-KEY",
+                    }
+                }
+            }
         }
         self.get(openapi_json_route, lambda ctx: ctx.write(self.openapi_data))
         self.get(openapi_ui_route, lambda ctx: ctx.write(openapi_ui_template(
