@@ -46,10 +46,21 @@ def transfer_list(object: list):
         return {"example": object}
 
 
-def get_object_content_type(object):
-    if isinstance(object, (dict, list)):
-        return "application/json"
-    return "application/octet-stream"
+def get_object_content_type(request_type, object):
+    if not request_type and not object:
+        return {}
+    if not request_type:
+        if isinstance(object, (dict, list)):
+            request_type = "application/json"
+        elif isinstance(object, str):
+            request_type = "text/html"
+        else:
+            request_type = "application/octet-stream"
+    return {
+        request_type: {
+            "schema": get_schema(object),
+        }
+    }
 
 
 def get_object_type(object):
@@ -119,20 +130,12 @@ def docs(
         "tags": tags,
         "parameters": get_parameters(params),
         "requestBody": {
-            "content": {
-                request_type or get_object_content_type(request): {
-                    "schema": get_schema(request),
-                }
-            }
+            "content": get_object_content_type(request_type, request),
         },
         "responses": {
             f"{code.split(':', 1)[0]}": {
                 "description": code[code.index(':') + 1:] if ":" in code else "No Response Description",
-                "content": {
-                    responses_type or get_object_content_type(resp): {
-                        "schema": get_schema(resp),
-                    }
-                }
+                "content": get_object_content_type(responses_type, resp),
             }
             for code, resp in responses.items()
         },
