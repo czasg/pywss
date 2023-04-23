@@ -6,10 +6,8 @@ from pywss.constant import *
 
 def NewCORSHandler(
         allow_origins: tuple = ("*",),
-        allow_methods: tuple = (MethodDelete, MethodGet, MethodHead, MethodOptions,
-                                MethodPatch, MethodPost, MethodPut,),
-        allow_headers: tuple = (HeaderAccept, HeaderAcceptLanguage,
-                                HeaderContentLanguage, HeaderContentType,),
+        allow_methods: tuple = ("*",),
+        allow_headers: tuple = ("*",),
         allow_credentials: bool = True,
 ):
     allowOrigins = ",".join(allow_origins)
