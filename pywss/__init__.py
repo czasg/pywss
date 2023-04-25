@@ -9,6 +9,7 @@ import threading
 import selectors
 
 from _io import BufferedReader
+from types import FunctionType
 from datetime import timedelta
 from importlib import import_module
 from collections import defaultdict
@@ -444,7 +445,7 @@ class App:
             if hasattr(view, f"http_{method}"):
                 getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
 
-    def register_modules(self, path, prefix=True):
+    def view_modules(self, path, *handlers, prefix=True):
         if not os.path.exists(path):
             raise Exception(f"{path} not exists")
         for base, _, files in os.walk(path):
@@ -465,10 +466,10 @@ class App:
                 view_module = getattr(module, view_name, None)
                 if not view_module:
                     continue
-                if callable(view_module):
+                if callable(view_module) and type(view_module) is not FunctionType:
                     view_module = view_module()
                 route = getattr(module, "__route__", route).strip("/")
-                self.view("/".join([*route_modules, route]), view_module)
+                self.view("/".join([*route_modules, route]), *handlers, view_module)
 
     def openapi(
             self,
