@@ -83,6 +83,7 @@ python3 main.py
 |options|`app.options("/http-options", handler)`|
 |any|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
 |view|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见视图部分|
+|view_modules|`app.view_modules("api")`，基于文件管理风格实现，具体使用见视图部分|
 |static|`app.static("/file-server", ".")`，注册静态文件服务，具体使用见静态文件服务部分|
 
 路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
@@ -127,6 +128,71 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+此外，为了更好的管理大型项目，**Pywss** 支持 `app.view_modules` 来实现 **文件即路由** 的管理风格。下面是一个案例：
+
+对于如下目录结构：
+```text
+- api
+  - v1
+    - user.py
+    - role.py
+  - v2
+    - permission.py
+``` 
+
+对应代码内容：
+```text
+#################
+#### user.py ####
+#################
+import pywss
+
+__route__="/user"  # 指定路由，可选，默认为 /user
+__view__="View"  # 指定视图对象，可选，默认为 View
+
+class View:
+
+    @pywss.openapi.docs(summary="获取用户列表")
+    def http_get(ctx: pywss.Context):
+        pass
+
+#################
+#### role.py ####
+#################
+imprt pywss
+
+__route__="/role/{rid}"  # 指定路由，可选，默认为 /role
+__view__="View"  # 指定视图对象，可选，默认为 View
+
+class View:
+
+    @pywss.openapi.docs(summary="获取角色列表")
+    def http_get(ctx: pywss.Context):
+        pass
+
+#################
+# permission.py #
+#################
+import pywss
+
+__route__="/perm"  # 指定路由，可选，默认为 /permission
+__view__="View"  # 指定视图对象，可选，默认为 View
+
+class View:
+
+    @pywss.openapi.docs(summary="获取权限列表")
+    def http_get(ctx: pywss.Context):
+        pass
+```
+此时，项目路由将转化为：
+```text
+- GET/api/v1/user
+- GET/api/v1/role/{rid}
+- GET/api/v2/perm
+```
+
+具体使用场景可参考：[pywss-be](https://github.com/czasg/pywss-react-admin-be)
 
 <br/>
 
