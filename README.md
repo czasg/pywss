@@ -1,33 +1,41 @@
-## Pywss - Web Socket Server By Python
+# Website
 
-A WebSocket-Server framework developed similar to Flask
+This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
+### Installation
 
- ```how to install: pip install pywss```
-
-
-Server code: 
 ```
-from pywss import Pywss, json, ConnectManager
-
-ws = Pywss(__name__, ssl_pem="www.czasg.xyz.pem", ssl_key="www.czasg.xyz.key")
-
-
-@ws.route('/ws/chat')
-def ws_chat(request, data):
-    json_data = json.loads(data)
-    if json_data.get('start') == True:
-        request.conn.send_to_all({'online': ConnectManager.online()})
-        return {'sock_id': request.conn.name}
-    msg = json_data.get('msg')
-    if msg:
-        request.conn.send_to_all({'from': request.conn.name, 'msg': msg})
-
-
-@ws.after_request
-def broadcast(): ConnectManager.send_to_all({'online': (ConnectManager.online() or 1) - 1})
-
-
-if __name__ == '__main__':
-    ws.serve_forever()
+$ yarn
 ```
+
+### Local Development
+
+```
+$ yarn start
+```
+
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+### Build
+
+```
+$ yarn build
+```
+
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+### Deployment
+
+Using SSH:
+
+```
+$ USE_SSH=true yarn deploy
+```
+
+Not using SSH:
+
+```
+$ GIT_USER=<Your GitHub username> yarn deploy
+```
+
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
