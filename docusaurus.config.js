@@ -10,7 +10,7 @@ const config = {
     tagline: 'pywss docs',
     favicon: 'img/dd.ico',
     url: 'https://czasg.github.io',
-    baseUrl: '/pywss/',
+    baseUrl: '/pywss/docs',
     organizationName: 'czasg', // Usually your GitHub org/user name.
     projectName: 'pywss', // Usually your repo name.
 
@@ -28,7 +28,7 @@ const config = {
             ({
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
-                    routeBasePath: '/docs',
+                    routeBasePath: '/',
                     editUrl: 'https://github.com/czasg/pywss/edit/docs',
                 },
                 blog: false,
@@ -54,7 +54,7 @@ const config = {
                 logo: {
                     alt: 'cat',
                     src: 'img/dd.ico',
-                    href: '/docs',
+                    href: '/',
                 },
                 items: [
                     {
