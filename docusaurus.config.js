@@ -7,7 +7,7 @@ const config = {
     tagline: 'pywss docs',
     favicon: 'img/dd.ico',
     url: 'https://czasg.github.io',
-    baseUrl: '/pywss/docs',
+    baseUrl: '/pywss',
     organizationName: 'czasg', // Usually your GitHub org/user name.
     projectName: 'pywss', // Usually your repo name.
 
