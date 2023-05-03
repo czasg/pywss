@@ -8,19 +8,26 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 ## 安装
-Pywss 依赖`python 3.6+`版本的部分特性。如果你刚好使用的是 3.6 及以上版本的话，那么恭喜你，你可以通过`pip`实现快速安装。
-```shell script
+Pywss 依赖`python 3.6+`版本的部分特性。
+
+如果你刚好使用的是 3.6 及以上版本的话，那么恭喜你，你可以通过`pip`实现快速安装。
+```shell script title="安装指令"
 pip3 install pywss
 ```
 Pywss 目前仅依赖一个日志库 `loggus`，该库是作者对结构化日志库的探索成果，暂不成熟，但好在能用。
+
 后续再考虑切回原生日志库`logging`~
 
+
 ## 快速开始
+本节从万恶之源 hello 开始，让我们快速搭建一个简单的 web app 吧~
+
+首先，创建`main.py`并写入以下源码。
 
 <Tabs>
   <TabItem value="main.py" label="main.py" default>
 
-```python title="源码"
+```python showLineNumbers title="web源码"
 import pywss
 
 def helloHandler(ctx: pywss.Context):
@@ -42,7 +49,7 @@ if __name__ == '__main__':
   </TabItem>
   <TabItem value="GET/hi" label="GET/hi">
 
-```shell script
+```shell script title="请求 /hi 接口"
 >>> curl localhost:8080/hi
 hi~
 ```
@@ -50,10 +57,25 @@ hi~
   </TabItem>
   <TabItem value="POST/hello" label="POST/hello">
 
-```shell script
+```shell script title="请求 /hello 接口"
 >>> curl -X POST localhost:8080/hello
 hello~
 ```
 
   </TabItem>
 </Tabs>
+
+我们来简单解读下`main.py`源码，首先是在第7行初始化了一个`app`，并在第10行执行`app.run`启动 web app。
+这两行代码包含了整个app初始到启动的生命周期。
+
+除此之外，最特殊的就是第8、9行的注册路由方法，分别由：
+- `app.get(/hi, ...` 注册 Http Get 方法，并指定路由 `/hi`。
+- `app.post(/hello, ...` 注册 Http Post 方法，并指定路由 `/hello`。
+
+至此，一个简单的 web app 就搭建完成了。
+虽然本节只展示了一个简单的 hello app，但也大致的向读者介绍了 Pywss 的构成与简单使用。
+
+
+## HTTP请求生命周期
+
+
