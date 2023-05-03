@@ -1,0 +1,59 @@
+---
+title: 快速开始
+hide_title: true
+hide_table_of_contents: false
+slug: /fast-start
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## 安装
+Pywss 依赖`python 3.6+`版本的部分特性。如果你刚好使用的是 3.6 及以上版本的话，那么恭喜你，你可以通过`pip`实现快速安装。
+```shell script
+pip3 install pywss
+```
+Pywss 目前仅依赖一个日志库 `loggus`，该库是作者对结构化日志库的探索成果，暂不成熟，但好在能用。
+后续再考虑切回原生日志库`logging`~
+
+## 快速开始
+
+<Tabs>
+  <TabItem value="main.py" label="main.py" default>
+
+```python title="源码"
+import pywss
+
+def helloHandler(ctx: pywss.Context):
+  ctx.write("hello~")
+
+def main(defaultPort = 8080):
+    app = pywss.App()
+    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 支持匿名函数
+    app.post("/hello", helloHandler)
+    app.run(port=defaultPort)
+
+if __name__ == '__main__':
+    """
+    python3 main.py 启动服务
+    """
+    main()
+```
+
+  </TabItem>
+  <TabItem value="GET/hi" label="GET/hi">
+
+```shell script
+>>> curl localhost:8080/hi
+hi~
+```
+
+  </TabItem>
+  <TabItem value="POST/hello" label="POST/hello">
+
+```shell script
+>>> curl -X POST localhost:8080/hello
+hello~
+```
+
+  </TabItem>
+</Tabs>

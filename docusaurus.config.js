@@ -3,7 +3,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-    title: 'Pywss 文档',
+    title: 'Pywss',
     tagline: 'pywss docs',
     favicon: 'img/dd.ico',
     url: 'https://czasg.github.io',
