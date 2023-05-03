@@ -1,4 +1,6 @@
-## Pywss - Python Web/WebSocket Server
+![pywss](./pywss.png)
+
+## Pywss
 
 ![Project status](https://img.shields.io/badge/python-3.6+-green.svg)
 [![codecov](https://codecov.io/gh/czasg/pywss/branch/master/graph/badge.svg?token=JSXIQXY1EQ)](https://codecov.io/gh/czasg/pywss)
