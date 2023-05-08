@@ -4,31 +4,67 @@ hide_title: true
 hide_table_of_contents: false
 slug: /advance-use
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-### 1、路由方法
+## Context
+在 Pywss 中，`Context` 贯穿于单次请求的整个生命周期，也是 Pywss 用于管理请求的上下文对象。
+
+其主要属性有：
+
+|属性|类型|说明|
+|---|---|---|
+|**`ctx.app`**|`pywss.App`|根app对象|
+|**`ctx.fd`**|`socket.socket`|sock句柄，一般用于写操作|
+|**`ctx.rfd`**|`socket.makefile`|sock句柄，一般用于读操作|
+|**`ctx.address`**|`tuple`|请求地址信息|
+|**`ctx.method`**|`str`|HTTP请求方法，eg：`GET/POST/PUT/DELETE/HEAD/PATCH/OPTIONS`|
+|**`ctx.version`**|`str`|HTTP协议版本号，eg：`HTTP/1.1`|
+|**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。eg：`/api/v1/query?key=value`|
+|**`ctx.url_params`**|`dict`|HTTP请求参数，是基于`ctx.url`解析的结果。eg：对于`/api/v1/query?key=value`地址，此属性值为`{"key": "value"}`|
+|**`ctx.route`**|`str`|HTTP请求Route路由，注意是**不包含请求参数在内**的路由，eg：`/api/v1/query`|
+|**`ctx.route_params`**|`dict`|用于存储[局部匹配](#特殊路由匹配机制)下的路径参数，eg：对于`/api/v1/{name}/{age}`路由，此属性值为`{"name": "xx", "age": "xx"}`|
+|**`ctx.headers`**|`dict`|HTTP请求头|
+|**`ctx.cookies`**|`dict`|HTTP请求Cookie，是基于`ctx.headers["Cookie"]`解析的结果|
+|**`ctx.content_length`**|`int`|HTTP请求Body大小，是基于`ctx.headers["Content-Length"]`解析的结果|
+|**`ctx.content`**|`byte`|HTTP请求Body。对于需要获取原生请求场景，推荐使用`ctx.body()`|
+|**`ctx.data`**|`dict`|用于Context上下文信息传递|
+|**`ctx.body()`**|`func`|获取原始请求Body|
+|**`ctx.json()`**|`func`|解析JSON请求，以JSON形式返回请求Body|
+|**`ctx.form()`**|`func`|解析表单请求，并以JSON形式返回请求Body|
+|**`ctx.set_status_code()`**|`func`|指定HTTP响应报文状态码|
+|**`ctx.set_header()`**|`func`|指定HTTP响应头|
+|**`ctx.set_content_type()`**|`func`|指定HTTP响应类型|
+|**`ctx.set_cookie()`**|`func`|指定HTTP响应Cookie|
+|**`ctx.write()`**|`func`|指定HTTP响应体|
+|**`ctx.flush()`**|`func`|一般不需要自己调用，在某些特殊场景下有用，比如提前结束请求|
+
+
+## 路由方法
 在快速开始中，我们已经看到了一个简单的应用是如何注册路由并绑定业务模块的。
 
-除了上述`get`、`post`方法之外，**Pywss** 还实现了：
+除了`get`、`post`方法之外，**Pywss** 还实现了：
 
 |路由方法|说明|
 |---|---|
-|get|`app.get("/http-get", handler)`|
-|post|`app.post("/http-post", handler)`|
-|head|`app.head("/http-head", handler)`|
-|put|`app.put("/http-put", handler)`|
-|delete|`app.delete("/http-delete", handler)`|
-|patch|`app.patch("/http-patch", handler)`|
-|options|`app.options("/http-options", handler)`|
-|any|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
-|view|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见视图部分|
-|view_modules|`app.view_modules("api")`，基于文件管理风格实现，具体使用见视图部分|
-|static|`app.static("/file-server", ".")`，注册静态文件服务，具体使用见静态文件服务部分|
+|**get**|`app.get("/http-get", handler)`|
+|**post**|`app.post("/http-post", handler)`|
+|**head**|`app.head("/http-head", handler)`|
+|**put**|`app.put("/http-put", handler)`|
+|**delete**|`app.delete("/http-delete", handler)`|
+|**patch**|`app.patch("/http-patch", handler)`|
+|**options**|`app.options("/http-options", handler)`|
+|**any**|`app.any("/http-any", handler)`，包括 Get、Post、Head、Put、Delete、Patch、Options 等在内的全部方法|
+|**view**|`app.view("/http-view", ViewObject)`，基于视图风格实现，具体使用见 [**视图机制**](#视图机制) 部分|
+|**view_modules**|`app.view_modules("api")`，基于 **文件即路由** 的设计理念实现，用于在大型项目下的路由管理。具体使用见 [**视图机制**](#视图机制) 部分|
+|**static**|`app.static("/file-server", ".")`，注册静态文件服务，具体使用见 [**文件服务**](#文件服务) 部分|
 
 路由处理函数`handler`仅接收一个参数，就是`pywss.Context`。
 
+
 <br/>
 
-### 2、特殊路由匹配机制
+## 特殊路由匹配机制
 除了上述常规路由方法之外，**特殊路由匹配机制** 也是现代 web 框架必不可少的特点。
 
 |特殊路由匹配机制|说明|
@@ -42,7 +78,7 @@ slug: /advance-use
 
 <br/>
 
-### 3、视图机制
+## 视图机制
 **Pywss** 通过 `app.view` 实现了简单的视图机制，以便更加友好的支持 Restful 风格代码，参考如下：
 
 ```python
@@ -82,7 +118,7 @@ if __name__ == '__main__':
 对应代码内容：
 ```text
 #################
-#### user.py ####
+### er.py ####
 #################
 import pywss
 
@@ -96,7 +132,7 @@ class View:
         pass
 
 #################
-#### role.py ####
+### le.py ####
 #################
 imprt pywss
 
@@ -134,7 +170,7 @@ class View:
 
 <br/>
 
-### 4、路由组
+## 路由组
 **Pywss** 通过 `app.party` 实现了简单的路由组，以便支持在大型项目下的多级路由管理，参考如下。
 
 ```python
@@ -160,7 +196,7 @@ if __name__ == '__main__':
 
 <br/>
 
-### 5、中间件
+## 中间件
 **Pywss** 通过 `ctx.next` 实现了功能模块的链式调用，在此基础之上，拓展了中间件的能力。
 
 让我们来实现一个简单输出请求耗时的日志中间件。代码参考如下：
@@ -217,7 +253,7 @@ app.use(
 
 <br/>
 
-### 6、升级WebSocket
+## 升级WebSocket
 **WebSocket** 底层是基于 HTTP GET 升级实现，是长连接的一种实现方式。
 
 **Pywss** 则通过 `WebSocketUpgrade` 完成此处升级。
@@ -272,7 +308,7 @@ ws.onopen = function() {
 
 <br/>
 
-### 7、SwaggerUI
+## SwaggerUI
 **Pywss** 实现了部分 **OpenAPI** 的能力。
 
 ```python
@@ -313,7 +349,7 @@ if __name__ == '__main__':
 
 <br/>
 
-### 8、文件服务
+## 文件服务
 **Pywss** 通过 `app.static` 实现了简单的静态文件服务器，代码参考如下：
 ```python
 import pywss
@@ -329,7 +365,7 @@ app.run()
 
 <br/>
 
-### 9、单元测试
+## 单元测试
 ```python
 import pywss
 
@@ -349,7 +385,7 @@ assert resp.status_code == 204
 
 <br/>
 
-### 10、命令行启动
+## 命令行启动
 如果你只是想快速且简单的起一个服务，那么你还可以通过命令`pywss`的方式：
 - 查看帮助指令
 ```shell
@@ -372,36 +408,3 @@ pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
 通过`http://localhost:8080/hello`访问
 
 <br/>
-
-## 三、参数说明
-### 1、请求参数
-* Context
-    * `ctx.app`: app
-    * `ctx.fd`: `socket.socket`类型，一般用于写操作
-    * `ctx.rfd`: `socket.makefile`类型，一般用于读操作
-    * `ctx.method`: `str`类型，请求方法，如 `GET/POST/PUT/DELETE`
-    * `ctx.url`: `str`类型，请求路径，如 `/api/v1/query?key=value`
-    * `ctx.route_params`: `dict`类型，请求路径参数，如 `/api/v1/query/{name}`
-    * `ctx.route`: `str`类型，匹配路由的路径，如 `/api/v1/query`
-    * `ctx.cookies`: `dict`类型，用于存储请求`cookies`数据
-    * `ctx.body()`: `bytes`类型，获取用户请求报文`body`
-    * `ctx.json()`: 解析用户请求，等同于`json.loads(self.body())`，需要遵循一定`json`格式
-    * `ctx.form()`: 解析用户请求，需要遵循一定`form`格式
-    * `ctx.url_params`: `dict`类型，用于存储解析的`query`参数
-        * `http://github.com/czasg/pywss?code=1&callback=2`->`{"code": "1", "callback": "2"}`
-        * `http://github.com/czasg/pywss?code=1&code=2`->`{"code": ["1", "2"]}`
-    * `ctx.headers`: `dict`类型，用于存储解析的`header`参数
-
-### 2、响应参数
-* Context
-    * `ctx.set_status_code`: 设置响应状态码
-    * `ctx.set_header`: 设置响应头
-    * `ctx.set_content_type`: 设置响应类型
-    * `ctx.set_cookie`: 设置响应`cookie`
-    * `ctx.write`: 用于写请求
-    * `ctx.write_text`: 同`ctx.write`
-    * `ctx.write_json`: 同`ctx.write`
-    * `ctx.write_file`: 同`ctx.write`
-    * `ctx.ws_read`: WebSocket 读请求，需要`pywss.WebSocketUpgrade`升级后使用
-    * `ctx.ws_write`: WebSocket 写请求，需要`pywss.WebSocketUpgrade`升级后使用
-    * `ctx.flush`: 一般不需要自己调用
