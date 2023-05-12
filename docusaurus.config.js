@@ -39,7 +39,12 @@ const config = {
     themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
-            // Replace with your project's social card
+            docs: {
+                sidebar: {
+                    hideable: false,
+                    autoCollapseCategories: true,
+                },
+            },
             colorMode: {
                 defaultMode: 'light',
                 disableSwitch: false,

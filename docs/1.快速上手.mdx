@@ -1,0 +1,134 @@
+---
+title: 快速上手
+hide_title: true
+hide_table_of_contents: false
+slug: /start
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## 安装
+Pywss 依赖 python 3.6+ 版本的部分特性。
+
+如果你刚好使用的是 3.6 及以上版本的话，那么恭喜你，你可以通过`pip`实现快速安装。
+
+<Tabs className="unique-tabs">
+<TabItem value="pip安装" label="pip安装" default>
+
+```shell script
+pip3 install pywss
+```
+
+</TabItem>
+<TabItem value="源码安装" label="源码安装" default>
+
+```shell script
+python setup.py install
+```
+
+</TabItem>
+</Tabs>
+
+Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)，该库是作者对结构化日志库的探索成果，暂时够用😅。
+
+后续会考虑切回原生日志库 logging，减少心智负担😅。
+
+
+## 创建应用
+本节继续以 hello world 为例，从零开始快速速搭建一个 web 应用。
+
+首先，在本地创建 **main.py** 文件并写入以下源码。
+
+<Tabs className="unique-tabs">
+  <TabItem value="main.py" label="main.py" default>
+
+```python showLineNumbers title="应用源码"
+import pywss
+
+def helloHandler(ctx: pywss.Context):
+  ctx.write({"hello": "world"})
+
+def main(defaultPort = 8080):
+    app = pywss.App()
+    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 支持匿名函数
+    app.post("/hello", helloHandler)
+    app.run(port=defaultPort)
+
+if __name__ == '__main__':
+    """
+    python3 main.py 启动服务
+    """
+    main()
+```
+
+  </TabItem>
+  <TabItem value="GET/hi" label="GET/hi">
+
+```shell script title="请求 /hi 接口"
+>>> curl localhost:8080/hi
+hi~
+```
+
+  </TabItem>
+  <TabItem value="POST/hello" label="POST/hello">
+
+```shell script title="请求 /hello 接口"
+>>> curl -X POST localhost:8080/hello
+{"hello": "world"}
+```
+
+  </TabItem>
+</Tabs>
+
+我们来简单解读下`main.py`源码，首先是在第7行初始化了一个`app`，并在第10行执行`app.run`启动 web 应用。
+这两行代码，囊括了 app 从初始化到启动的整个周期。
+
+其次是中间的业务模块。
+
+最特殊的就是第8、9行的注册路由方法：
+- `app.get(/hi, ...` 表示注册 **Http Get** 方法，并指定路由 `/hi`。
+- `app.post(/hello, ...` 表示注册 **Http Post** 方法，并指定路由 `/hello`。
+
+服务启动后，我们可以通过 curl 来验证服务。结果见上。
+
+至此，一个简单的 hello world 应用就搭建完成了。
+
+
+
+## **Context** 上下文
+在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） 贯穿于单次请求的整个生命周期，是 Pywss 用于管理请求的上下文对象。
+
+而对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
+
+所以，**ctx** 是一个包含了 **HTTP 请求报文解析、HTTP 响应报文构建、信息传递** 的上下文对象。
+
+其主要属性有：
+
+|属性|类型|说明|
+|---|---|---|
+|**`ctx.app`**|`pywss.App`|根app对象|
+|**`ctx.fd`**|`socket.socket`|sock句柄，一般用于写操作|
+|**`ctx.rfd`**|`socket.makefile`|sock句柄，一般用于读操作|
+|**`ctx.address`**|`tuple`|请求地址信息|
+|**`ctx.method`**|`str`|HTTP请求方法，由 GET/POST/PUT/DELETE/HEAD/PATCH/OPTIONS 组成|
+|**`ctx.version`**|`str`|HTTP协议版本号，参考：`HTTP/1.1`|
+|**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。参考：`/api/v1/query?key=value`|
+|**`ctx.url_params`**|`dict`|HTTP请求参数，是基于`ctx.url`解析的结果。举例说明：对于`/api/v1/query?key=value`地址，`ctx.url_params`等于**`{"key": "value"}`**|
+|**`ctx.route`**|`str`|HTTP请求Route路由，注意是**不包含请求参数在内**的路由，参考：`/api/v1/query`|
+|**`ctx.route_params`**|`dict`|用于存储[局部匹配](#特殊路由匹配机制)下的路径参数，举例说明：对于`/api/v1/{name}/{age}`路由，`ctx.route_params`等于**`{"name": "xx", "age": "xx"}`**|
+|**`ctx.headers`**|`dict`|HTTP请求头|
+|**`ctx.cookies`**|`dict`|HTTP请求Cookie，是基于`ctx.headers["Cookie"]`解析的结果|
+|**`ctx.content_length`**|`int`|HTTP请求Body大小，是基于`ctx.headers["Content-Length"]`解析的结果|
+|**`ctx.content`**|`byte`|HTTP请求Body。对于需要获取原生请求场景，推荐使用`ctx.body()`|
+|**`ctx.data`**|`pywss.Data`|基于字典实现，用于Context上下文信息传递。使用方式参考 `ctx.data.key = value`|
+|**`ctx.body()`**|`func`|获取原始请求Body|
+|**`ctx.json()`**|`func`|解析JSON请求，以JSON形式返回请求Body|
+|**`ctx.form()`**|`func`|解析表单请求，并以JSON形式返回请求Body|
+|**`ctx.set_status_code()`**|`func`|指定HTTP响应报文状态码|
+|**`ctx.set_header()`**|`func`|指定HTTP响应头|
+|**`ctx.set_content_type()`**|`func`|指定HTTP响应类型|
+|**`ctx.set_cookie()`**|`func`|指定HTTP响应Cookie|
+|**`ctx.write()`**|`func`|指定HTTP响应体|
+|**`ctx.flush()`**|`func`|一般不需要自己调用，在某些特殊场景下有用，比如提前结束请求|
+
+## 优雅的使用 **ctx.next**
