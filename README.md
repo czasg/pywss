@@ -5,8 +5,8 @@
 <br/>
   
 ![Project status](https://img.shields.io/badge/python-3.6+-green.svg)
-[![codecov](https://codecov.io/gh/czasg/pywss/branch/master/graph/badge.svg?token=JSXIQXY1EQ)](https://codecov.io/gh/czasg/pywss)
-[![PyPI version](https://badge.fury.io/py/pywss.svg)](https://badge.fury.io/py/pywss)
+![PyPI](https://img.shields.io/pypi/v/pywss?color=green)
+![Codecov](https://img.shields.io/codecov/c/github/czasg/pywss?token=JSXIQXY1EQ)
 [![GitHub issues](https://img.shields.io/github/issues/czasg/pywss)](https://github.com/czasg/pywss/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/czasg/pywss)](https://github.com/czasg/pywss/issues-closed)
 [![GitHub license](https://img.shields.io/github/license/czasg/pywss)](https://github.com/czasg/pywss/blob/main/LICENSE)
