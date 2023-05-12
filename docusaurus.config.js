@@ -42,22 +42,22 @@ const config = {
             // Replace with your project's social card
             colorMode: {
                 defaultMode: 'light',
-                disableSwitch: true,
+                disableSwitch: false,
                 respectPrefersColorScheme: false,
             },
             navbar: {
-                style: 'dark',
                 title: 'Pywss 文档',
                 logo: {
                     alt: 'cat',
                     src: 'img/dd.ico',
                     href: '/',
                 },
+                hideOnScroll: false,
                 items: [
                     {
-                        href: 'https://github.com/czasg/pywss',
-                        label: 'GitHub',
                         position: 'right',
+                        type: 'html',
+                        value: `<a class="header-github-link" target="_blank" href="https://github.com/czasg/pywss"/>`,
                     },
                 ],
             },
