@@ -73,7 +73,7 @@ import TabItem from '@theme/TabItem';
 |局部匹配|`app.get("/partial/match/{name}", handler)`，注意，局部变量会存储在`ctx.route_params`中|
 |头部匹配|`app.get("/head/match/*", handler)`，注意，此处需以 `*` 结尾|
 
-**_注意_**：   
+**_注意_**：
 上述匹配机制无法同时生效，且存在优先级，即**全等匹配**优先、其次**局部匹配**、最后**头部匹配**~
 
 <br/>
@@ -113,13 +113,12 @@ if __name__ == '__main__':
     - role.py
   - v2
     - permission.py
-``` 
+```
 
-对应代码内容：
-```text
-#################
-### er.py ####
-#################
+<Tabs>
+  <TabItem value="user.py" label="user.py" default>
+
+```python
 import pywss
 
 __route__="/user"  # 指定路由，可选，默认为 /user
@@ -130,10 +129,12 @@ class View:
     @pywss.openapi.docs(summary="获取用户列表")
     def http_get(ctx: pywss.Context):
         pass
+```
 
-#################
-### le.py ####
-#################
+  </TabItem>
+  <TabItem value="role.py" label="role.py">
+
+```python
 imprt pywss
 
 __route__="/role/{rid}"  # 指定路由，可选，默认为 /role
@@ -144,10 +145,12 @@ class View:
     @pywss.openapi.docs(summary="获取角色列表")
     def http_get(ctx: pywss.Context):
         pass
+```
 
-#################
-# permission.py #
-#################
+  </TabItem>
+  <TabItem value="permission.py" label="permission.py">
+
+```python
 import pywss
 
 __route__="/perm"  # 指定路由，可选，默认为 /permission
@@ -158,7 +161,12 @@ class View:
     @pywss.openapi.docs(summary="获取权限列表")
     def http_get(ctx: pywss.Context):
         pass
+hello~
 ```
+
+  </TabItem>
+</Tabs>
+
 此时，项目路由将转化为：
 ```text
 - GET/api/v1/user
@@ -284,7 +292,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-``` 
+```
 
 接着让我们模拟客户端，需要 `打开浏览器 -> F12 -> 进入控制台`，输入以下代码：
 
@@ -357,7 +365,7 @@ import pywss
 app = pywss.App()
 
 # 注册静态资源，需要指定文件根目录
-app.static("/static", rootDir="/rootDir") 
+app.static("/static", rootDir="/rootDir")
 
 app.run()
 ```
@@ -374,10 +382,10 @@ app = pywss.App()
 app.get("/test", lambda ctx: ctx.set_status_code(204))
 
 # 基于app创建HttpRequest
-req = pywss.HttpTestRequest(app)  
+req = pywss.HttpTestRequest(app)
 
 # 发起Get请求，获取resp
-resp = req.get("/test")  
+resp = req.get("/test")
 
 assert resp.status_code == 204
 ```
@@ -398,7 +406,7 @@ pywss -h
 ```shell
 pywss --static=".:/" --port=8080
 ```
-通过`http://localhost:8080/`访问  
+通过`http://localhost:8080/`访问
 
 - 启动web服务：
     - `--route`表示`method : route : code : body`，即指定响应信息
