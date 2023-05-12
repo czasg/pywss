@@ -29,9 +29,9 @@ python setup.py install
 </TabItem>
 </Tabs>
 
-Pywss 目前仅依赖一个日志库 `loggus`，该库是作者对结构化日志库的探索成果，暂不成熟，但好在能用。
+Pywss 目前仅依赖一个日志库 `loggus`，该库是作者对结构化日志库的探索成果，暂时够用😅。
 
-后续再考虑切回原生日志库`logging`~
+后续会考虑切回原生日志库`logging`~
 
 
 ## 快速开始
@@ -84,7 +84,7 @@ hello~
 这两行代码包含了整个app初始到启动的生命周期。
 
 除此之外，最特殊的就是第8、9行的注册路由方法，分别由：
-- `app.get(/hi, ...` 注册 Http Get 方法，并指定路由 `/hi`。
-- `app.post(/hello, ...` 注册 Http Post 方法，并指定路由 `/hello`。
+- `app.get(/hi, ...` 表示注册 Http Get 方法，并指定路由 `/hi`。
+- `app.post(/hello, ...` 表示注册 Http Post 方法，并指定路由 `/hello`。
 
 至此，一个简单的 web app 就搭建完成了。
