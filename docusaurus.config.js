@@ -62,7 +62,7 @@ const config = {
                     {
                         position: 'right',
                         type: 'html',
-                        value: `<a class="header-github-link" target="_blank" href="https://github.com/czasg/pywss"/>`,
+                        value: '<a class="header-github-link" target="_blank" href="https://github.com/czasg/pywss"> </a>',
                     },
                 ],
             },
