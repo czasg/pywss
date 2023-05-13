@@ -46,7 +46,7 @@ Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)�
 import pywss
 
 def helloHandler(ctx: pywss.Context):
-  ctx.write({"hello": "world"})
+    ctx.write({"hello": "world"})
 
 def main(defaultPort = 8080):
     app = pywss.App()
@@ -98,7 +98,7 @@ hi~
 ## **Context** 上下文
 在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） 贯穿于单次请求的整个生命周期，是 Pywss 用于管理请求的上下文对象。
 
-而对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
+对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
 
 所以，**ctx** 是一个包含了 **HTTP 请求报文解析、HTTP 响应报文构建、信息传递** 的上下文对象。
 
@@ -130,5 +130,6 @@ hi~
 |**`ctx.set_cookie()`**|`func`|指定HTTP响应Cookie|
 |**`ctx.write()`**|`func`|指定HTTP响应体|
 |**`ctx.flush()`**|`func`|一般不需要自己调用，在某些特殊场景下有用，比如提前结束请求|
+
 
 ## 优雅的使用 **ctx.next**
