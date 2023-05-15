@@ -132,3 +132,69 @@ hi~
 
 
 ## 优雅的使用 **ctx.next**
+
+:::caution 前提说明
+
+本节源代码取自 **v0.1.18** 版本，最新代码请参考 [Github-Pywss](https://github.com/czasg/pywss)
+
+:::
+
+### 原理简介
+
+**`ctx.next`** 本质是一个简单的链式调用功能。
+
+其源代码也是非常的简洁，其核心逻辑仅由5行代码实现：
+
+```python showLineNumbers title="ctx.next 源码"
+def next(self) -> None:
+    if self._handler_index >= len(self._handlers):
+        return
+    index = self._handler_index
+    self._handler_index += 1
+    self._handlers[index](self)
+```
+
+在此处不再拓展，具体实现可以参考[源码](https://github.com/czasg/pywss)。
+
+
+### 使用方法
+
+基于 **`ctx.next`** 链式调用的特性，一般可以用于实现**中间件拓展**。
+
+在 pywss 中，实现了两种方式来拓展中间件能力：
+
+- app use：**全局注册**，针对全部路由生效
+- route bind：**局部注册**，针对指定路由生效
+
+```python title="全局注册" showLineNumbers {11}
+import pywss
+import time
+
+def logMiddleware(ctx: pywss.Context):
+    entryTime = time.time()
+    ctx.next()
+    cost = time.time() - entryTime
+    print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
+
+app = pywss.App()
+app.use(logMiddleware)
+app.get("/hi", lambda ctx: ctx.write("Hi~"))
+app.get("/hello", lambda ctx: ctx.write("HelloWorld"))
+app.run()
+```
+
+```python title="局部注册" showLineNumbers {12}
+import pywss
+import time
+
+def logMiddleware(ctx: pywss.Context):
+    entryTime = time.time()
+    ctx.next()
+    cost = time.time() - entryTime
+    print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
+
+app = pywss.App()
+app.get("/hi", lambda ctx: ctx.write("Hi~"))  # 未注册日志中间件
+app.get("/hello", logMiddleware, lambda ctx: ctx.write("HelloWorld"))
+app.run()
+```
