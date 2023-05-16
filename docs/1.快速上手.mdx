@@ -35,7 +35,7 @@ Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)�
 
 
 ## 创建应用
-本节继续以 hello world 为例，从零开始快速速搭建一个 web 应用。
+本节继续以 hello world 为例，从零开始快速搭建一个 web 应用。
 
 首先，在本地创建 **main.py** 文件并写入以下源码。
 
@@ -141,9 +141,9 @@ hi~
 
 ### 原理简介
 
-**`ctx.next`** 本质是一个简单的链式调用功能。
+**`ctx.next`** 本质是一个链式调用。
 
-其源代码也是非常的简洁，其核心逻辑仅由5行代码实现：
+其源代也是非常的简洁，核心逻辑仅由几行代码实现：
 
 ```python showLineNumbers title="ctx.next 源码"
 def next(self) -> None:
@@ -154,12 +154,12 @@ def next(self) -> None:
     self._handlers[index](self)
 ```
 
-在此处不再拓展，具体实现可以参考[源码](https://github.com/czasg/pywss)。
+具体逻辑此处不展开，感兴趣的同学可以参考[源码](https://github.com/czasg/pywss)。
 
 
 ### 使用方法
 
-基于 **`ctx.next`** 链式调用的特性，一般可以用于实现**中间件拓展**。
+基于 **`ctx.next`** 链式调用的特性，我们可以非常容易的实现**中间件拓展**。
 
 在 pywss 中，实现了两种方式来拓展中间件能力：
 
