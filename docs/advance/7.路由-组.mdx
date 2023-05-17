@@ -1,0 +1,40 @@
+---
+title: 路由-组
+hide_title: true
+hide_table_of_contents: false
+slug: route-group
+---
+
+对于某些大型项目，其路由可能多达上百。那么在这种时候，如何优雅的（分级）管理路由是很重要的。
+
+Pywss 通过 `app.party` 提供了**路由组**的能力，以便支持在大型项目下的多级路由管理。
+
+```python
+import pywss
+
+app = pywss.App()
+api = app.party("/api")
+
+# v1 模块
+def v1_1(ctx: pywss.Context):...
+def v1_2(ctx: pywss.Context):...
+v1 = api.party("/v1")
+v1.get("/1", v1_1)
+v1.get("/2", v1_2)
+
+# v2 模块
+def v2_1(ctx: pywss.Context):...
+def v2_2(ctx: pywss.Context):...
+v2 = api.party("/v2")
+v2.get("/1", v2_1)
+v2.get("/2", v2_2)
+
+app.run()  # 仍然是 app 启动
+"""
+此时绑定的路由有：
+- /api/v1/1
+- /api/v1/2
+- /api/v2/1
+- /api/v2/2
+"""
+```

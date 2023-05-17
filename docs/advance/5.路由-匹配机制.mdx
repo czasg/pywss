@@ -34,6 +34,36 @@ Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包�
 上述匹配机制无法同时生效，且存在优先级，即 **全等匹配** > **局部匹配** > **头部匹配**
 
 ## 局部匹配 - 路径参数
-Pywss 通过中括号可以指定**局部匹配**，
+Pywss 在路由配置时，通过中括号可以指定 **局部匹配**。
+
+在指定 **局部匹配** 后会生成 **"路径参数"**，此参数可以在 `ctx.route_params` 中获取。
+
+```python title="获取路径参数"
+import pywss
+
+def hello(ctx: pywss.Context):
+    name = ctx.route_params["name"]
+    ctx.write({"hello": name})
+
+app = pywss.App()
+app.get("/hello/{name}", hello)
+app.run()
+```
+
+受限于实现机制，在局部匹配中**暂不支持对类型的校验**。
 
 ## 头部匹配
+Pywss 在路由匹配时，通过在尾部配置 **`*`** 可以指定 **头部匹配**。
+
+```python title="头部匹配"
+import pywss
+
+def hello(ctx: pywss.Context):
+    name = ctx.route.replace("/hello", "", 1)
+    ctx.write({"hello": name})
+
+app = pywss.App()
+app.get("/hello/*", hello)
+app.run()
+```
+在此模式下，任意以 `/route/` 开头的路由均可以命中此路由。
