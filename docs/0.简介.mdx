@@ -5,14 +5,14 @@ hide_table_of_contents: false
 slug: /
 ---
 
-:::note 当前最新版本 
+:::note 当前最新版本
 
 ![PyPI](https://img.shields.io/pypi/v/pywss?color=green)
 ![Codecov](https://img.shields.io/codecov/c/github/czasg/pywss?token=JSXIQXY1EQ)
 
 :::
 
-## Pywss    
+## Pywss
 Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python Web 框架，它基于 Python3.6+ 特性构建。
 
 与 Flask、Django 等主流框架不同的是，Pywss 的底层并没有实现 WSGI 接口协议。
@@ -20,14 +20,14 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 
 其关键特性有：
 - **简单**：拒绝海量参数，减少心智负担。了解上下文（**`pywss.Context`**）即刻启程。
-- **快速**：抛弃各种沉重的标准&规范，纯手撸 **socket**（小白也能看懂的源码）
+- **快速**：抛弃各种沉重的标准&规范，最后你会发现还是很慢。所以不妨掌握一门其他语言，比如：Go~
 - **优雅**：**`ctx.next()`** 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
 - **接口测试**：提供了 Http API 测试模块，能够再不启动服务器的前提下执行单元测试。
 
 
-## Example   
+## Example
 以下展示了一些最基本的用例，如果你有一定后端编程基础，相信你（30s）看完这些用例，大概就知道 Pywss 做了什么事情了。
 
 ```python title="最简应用"
