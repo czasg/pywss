@@ -50,7 +50,7 @@ def helloHandler(ctx: pywss.Context):
 
 def main(defaultPort = 8080):
     app = pywss.App()
-    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 支持匿名函数
+    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 匿名函数也是不错的选择
     app.post("/hello", helloHandler)
     app.run(port=defaultPort)
 
@@ -84,7 +84,7 @@ hi~
 
 这两行代码，囊括了 app 从 **初始化 -> 启动** 的整个周期。
 
-其次是业务模块，也就是第8、9行的注册路由方法，即：
+其次是业务模块，也就是第8、9行的注册路由方法，其中：
 - `app.get(/hi, ...` 表示注册 **Http Get** 方法，并指定路由 `/hi`。
 - `app.post(/hello, ...` 表示注册 **Http Post** 方法，并指定路由 `/hello`。
 
@@ -154,7 +154,7 @@ def next(self) -> None:
     self._handlers[index](self)
 ```
 
-具体逻辑此处不展开，感兴趣的同学可以参考[源码](https://github.com/czasg/pywss)。
+具体实现流程此处不展开，感兴趣的同学可以参考[源码](https://github.com/czasg/pywss)。
 
 
 ### 使用方法
