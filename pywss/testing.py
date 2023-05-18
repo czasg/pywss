@@ -18,7 +18,7 @@ class HttpTestResponse:
                 self.http_version, self.status_code, self.status_code_msg = head.split(" ", 2)
                 self.status_code = int(self.status_code)
             elif msg == "\r\n":
-                self.body = "\r\n".join(message_list[index:])
+                self.body = "".join(message_list[index:])
                 break
             else:
                 k, v = msg.strip().split(":", 1)
