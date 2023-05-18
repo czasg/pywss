@@ -29,7 +29,6 @@ __version__ = '0.1.18'
 class Context:
     _handler_index = 0
     _flush_header = False
-    _stream = False
 
     def __init__(
             self, app, log,
@@ -154,8 +153,6 @@ class Context:
         return resp
 
     def body(self) -> bytes:
-        if self._stream:
-            return self.content  # should be empty
         if not self.content and self.content_length:
             self.content = self.rfd.read(self.content_length)
         if not self.content and self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
@@ -168,24 +165,19 @@ class Context:
         return self.content
 
     def stream(self, size=65536):
-        if self._stream:
-            return self.content  # should be empty
-        if not self.content and self.content_length:
+        if self.content_length:
             cl = self.content_length
             while cl > 0:
                 rl = min(size, cl)
                 yield self.rfd.read(rl)
                 cl -= rl
-            self._stream = True
-            return
-        if not self.content and self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
+        elif self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
             size = int(self.rfd.readline(), 16)
             while size > 0:
                 yield self.rfd.read(size)
                 assert self.rfd.read(2) == b"\r\n"
                 size = int(self.rfd.readline(), 16)
             assert self.rfd.read(2) == b"\r\n"
-            self._stream = True
 
     def set_header(self, k, v) -> None:
         header = []
