@@ -132,12 +132,12 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.body, "test-for-pywss")
         # self.stream() by Content-Length
         app = pywss.App()
-        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))) or ctx.body() or ctx.stream())
+        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))))
         resp = pywss.HttpTestRequest(app).post("/post-body", data="test")
         self.assertEqual(resp.body, "test")
         # self.stream() by Transfer-Encoding
         app = pywss.App()
-        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))) or ctx.body() or ctx.stream())
+        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream()))))
         resp = pywss.HttpTestRequest(app).post(
             "/post-body",
             headers={
