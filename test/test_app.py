@@ -148,6 +148,15 @@ class TestBase(unittest.TestCase):
         )
         self.assertEqual(resp.body, "test-for-pywss")
 
+    def test_app_stream_lines(self):
+        app = pywss.App()
+        app.post("/post-body", lambda ctx: ctx.write(b"".join(list(ctx.stream(readline=True)))))
+        resp = pywss.HttpTestRequest(app).post(
+            "/post-body",
+            data="4\r\ntest\r\n5\r\n-for-\r\n5\r\npywss\r\n0\r\n\r\n",
+        )
+        self.assertEqual(resp.body, "4\r\ntest\r\n5\r\n-for-\r\n5\r\npywss\r\n0\r\n\r\n")
+
     def test_app_bad_request(self):
         s, c = socket.socketpair()
         with s, c:

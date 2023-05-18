@@ -164,20 +164,20 @@ class Context:
             assert self.rfd.read(2) == b"\r\n"
         return self.content
 
-    def stream(self, size=65536):
-        if self.content_length:
-            cl = self.content_length
-            while cl > 0:
-                rl = min(size, cl)
-                yield self.rfd.read(rl)
-                cl -= rl
-        elif self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
+    def stream(self, size=65536, readline=False):
+        if self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
             size = int(self.rfd.readline(), 16)
             while size > 0:
                 yield self.rfd.read(size)
                 assert self.rfd.read(2) == b"\r\n"
                 size = int(self.rfd.readline(), 16)
             assert self.rfd.read(2) == b"\r\n"
+            return
+        cl = self.content_length
+        while cl > 0:
+            data = self.rfd.readline(cl) if readline else self.rfd.read(min(size, cl))
+            yield data
+            cl -= len(data)
 
     def set_header(self, k, v) -> None:
         header = []
