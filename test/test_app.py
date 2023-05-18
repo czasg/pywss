@@ -381,6 +381,22 @@ Content-Disposition: form-data; name="key2"; filename="example.txt"\r\n\r\nvalue
             c.sendall(requestBody)
             self.assertIn(b"HTTP/1.1 200", c.recv(1024))
 
+    def test_ctx_file(self):
+        def upload(ctx: pywss.Context):
+            self.assertEqual(ctx.file()["file"].name, "file")
+            self.assertEqual(ctx.file()["file"].filename, "file")
+            self.assertEqual(ctx.file()["file"].content, b"test")
+
+        app = pywss.App()
+        app.post("/upload", upload)
+        app.build()
+        s, c = socket.socketpair()
+        with s, c:
+            threading.Thread(target=app.handler_request, args=(s, None)).start()
+            requestBody = b'POST /upload HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: python-requests/2.22.0\r\nAccept-Encoding: gzip, deflate\r\nAccept: */*\r\nConnection: keep-alive\r\nContent-Length: 144\r\nContent-Type: multipart/form-data; boundary=445e813923e368417a24e9a6476b3c54\r\n\r\n--445e813923e368417a24e9a6476b3c54\r\nContent-Disposition: form-data; name="file"; filename="file"\r\n\r\ntest\r\n--445e813923e368417a24e9a6476b3c54--\r\n'
+            c.sendall(requestBody)
+            self.assertIn(b"HTTP/1.1 200", c.recv(1024))
+
     def test_middleware(self):
         def auth(ctx: pywss.Context):
             password = ctx.headers.get("Auth", None)

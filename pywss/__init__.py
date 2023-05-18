@@ -8,6 +8,7 @@ import socket
 import threading
 import selectors
 
+from typing import Dict
 from _io import BufferedReader
 from types import FunctionType
 from datetime import timedelta
@@ -117,6 +118,39 @@ class Context:
             if not name:
                 raise Exception("invalid form-data, without name")
             resp[name] = v
+        return resp
+
+    def file(self) -> Dict[str, 'File']:
+        ct = self.headers.get(HeaderContentType, "").strip()
+        if not ct.startswith("multipart/form-data"):
+            raise Exception(f"not support form Content-Type:{ct}")
+        resp = {}
+        boundary = ""
+        for v in ct.split(";"):
+            v = v.strip()
+            if v.startswith("boundary="):
+                boundary = v[9:].strip('"')
+                break
+        if not boundary:
+            raise Exception(f"invalid form-data, without boundary")
+        # parse form-data
+        for data in self.body().split(f"--{boundary}".encode()):
+            data = data.strip()
+            if not data.startswith(HeaderContentDisposition.encode()):
+                continue
+            h, v = data.split(b"\r\n\r\n", 1)
+            h = unquote(h.decode()).strip()
+            name = ""
+            filename = ""
+            for k in h.split(";"):
+                k = k.strip()
+                if k.startswith("name="):
+                    name = k[5:].strip('"')
+                elif k.startswith("filename="):
+                    filename = k[9:].strip('"')
+            if not name:
+                raise Exception("invalid form-data, without name")
+            resp[name] = File(name, filename, v)
         return resp
 
     def body(self) -> bytes:
@@ -622,3 +656,11 @@ class Data(dict):
 
     def __getattr__(self, item):
         return self.get(item, None)
+
+
+class File:
+
+    def __init__(self, name, filename, content):
+        self.name: str = name
+        self.filename: str = filename
+        self.content: bytes = content
