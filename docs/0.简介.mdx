@@ -24,11 +24,12 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 - **优雅**：**`ctx.next()`** 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
-- **接口测试**：提供了 Http API 测试模块，能够再不启动服务器的前提下执行单元测试。
+- **接口测试**：提供了 Http API 测试模块，不启动服务也能测试接口功能辣！
 
 
 ## Example
 以下展示了一些最基本的用例，如果你有一定后端编程基础，相信你看完这些用例，大概就知道 Pywss 做了什么事情了。
+
 
 ```python title="最简应用"
 import pywss
@@ -37,6 +38,7 @@ app = pywss.App()
 app.get("/hello", lambda ctx: ctx.write("HelloWorld"))
 app.run()
 ```
+
 
 ```python title="基于 next 实现 log 中间件"
 import pywss
@@ -48,6 +50,7 @@ def logMiddleware(ctx: pywss.Context):
     cost = time.time() - entryTime
     print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
 ```
+
 
 ```python title="基于 next 实现 cors 中间件"
 import pywss

@@ -16,14 +16,16 @@ Pywss 依赖 python 3.6+ 版本的部分特性。
 <TabItem value="pip安装" label="pip安装" default>
 
 ```shell script
-pip3 install pywss
+>>> pip3 install pywss
 ```
 
 </TabItem>
 <TabItem value="源码安装" label="源码安装" default>
 
 ```shell script
-python setup.py install
+>>> git clone https://github.com/czasg/pywss.git
+>>> cd pywss
+>>> python3 setup.py install
 ```
 
 </TabItem>
@@ -123,6 +125,8 @@ hi~
 |**`ctx.body()`**|`func`|获取原始请求Body|
 |**`ctx.json()`**|`func`|解析JSON请求，以JSON形式返回请求Body|
 |**`ctx.form()`**|`func`|解析表单请求，并以JSON形式返回请求Body|
+|**`ctx.file()`**|`func`|解析表单请求，并以**`Dict[str, pywss.File]`**形式返回|
+|**`ctx.stream()`**|`func`|针对某些大文件场景，支持流式操作|
 |**`ctx.set_status_code()`**|`func`|指定HTTP响应报文状态码|
 |**`ctx.set_header()`**|`func`|指定HTTP响应头|
 |**`ctx.set_content_type()`**|`func`|指定HTTP响应类型|
