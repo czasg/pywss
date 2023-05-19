@@ -20,7 +20,7 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 
 其关键特性有：
 - **简单**：拒绝海量参数，减少心智负担。了解上下文（**`pywss.Context`**）即刻启程。
-- **快速**：纯手撸 socket，拒绝中间商赚取性能差价。（小白也能懂的源码）
+- **快速**：纯手撸 socket，拒绝中间商赚取性能差价。（小白也能懂的源码）(有性能追求的同学，可以学学**Go**)
 - **优雅**：**`ctx.next()`** 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
@@ -40,7 +40,7 @@ app.run()
 ```
 
 
-```python title="基于 next 实现 log 中间件"
+```python title="基于 next 实现 log 中间件" {6}
 import pywss
 import time
 
@@ -52,7 +52,7 @@ def logMiddleware(ctx: pywss.Context):
 ```
 
 
-```python title="基于 next 实现 cors 中间件"
+```python title="基于 next 实现 cors 中间件" {11}
 import pywss
 import time
 
