@@ -170,7 +170,7 @@ def next(self) -> None:
 - app use：**全局注册**，针对全部路由生效
 - route bind：**局部注册**，针对指定路由生效
 
-```python title="全局注册" showLineNumbers {11}
+```python title="全局注册" showLineNumbers {6,11}
 import pywss
 import time
 
@@ -187,7 +187,7 @@ app.get("/hello", lambda ctx: ctx.write("HelloWorld"))
 app.run()
 ```
 
-```python title="局部注册" showLineNumbers {12}
+```python title="局部注册" showLineNumbers {6,12}
 import pywss
 import time
 

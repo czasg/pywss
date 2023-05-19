@@ -1,0 +1,27 @@
+---
+title: 响应
+hide_title: true
+hide_table_of_contents: false
+slug: response
+---
+
+## 状态码
+```python
+ctx.set_status_code(200)
+```
+
+## 响应头
+```python
+ctx.set_header("Content-Type", "application/json")
+```
+
+## 响应体
+```python
+ctx.write("data")
+```
+
+## 重定向
+```python
+ctx.redirect("/")
+```
+
