@@ -7,6 +7,19 @@ slug: /start
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+export const Highlight = ({children}) => (
+  <span
+    style={{
+      backgroundColor: '#f1f0d8',
+      borderRadius: '10px',
+      color: '#000',
+      padding: '0.4rem',
+      fontWeight: 700,
+    }}>
+    {children}
+  </span>
+);
+
 ## 安装
 Pywss 依赖 python 3.6+ 版本的部分特性。
 
@@ -158,7 +171,7 @@ def next(self) -> None:
     self._handlers[index](self)
 ```
 
-具体实现流程此处不展开，感兴趣的同学可以参考[源码](https://github.com/czasg/pywss)。
+具体实现流程此处不展开，感兴趣的同学可以阅读[源码](https://github.com/czasg/pywss)。
 
 
 ### 使用方法
@@ -167,8 +180,8 @@ def next(self) -> None:
 
 在 pywss 中，实现了两种方式来拓展中间件能力：
 
-- app use：**全局注册**，针对全部路由生效
-- route bind：**局部注册**，针对指定路由生效
+- **app use 全局注册** ，针对全部路由生效
+- **route bind 局部注册** ，针对指定路由生效
 
 ```python title="全局注册" showLineNumbers {6,11}
 import pywss

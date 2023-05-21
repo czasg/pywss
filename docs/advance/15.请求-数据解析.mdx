@@ -18,7 +18,7 @@ MIME 即**互联网媒体类型**，也称作**内容类型**（Content-Type）�
 Pywss 支持多种数据类型解析。
 
 ## Byte
-Pywss 应用可以通过 **`ctx.body()`** 获取原生请求体数据。此方法依赖 **`Content-Length`** 读取数据。
+Pywss 服务可以通过 **`ctx.body()`** 获取原生请求体数据。此方法依赖 **`Content-Length`** 读取数据。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端" label="服务端" default>
@@ -51,7 +51,7 @@ reqoests.post(
 
 
 ## Json
-Pywss 应用可以通过 **`ctx.json()`** 获取原生请求体数据，并将其转化为 **_JSON_** 类型。
+Pywss 服务可以通过 **`ctx.json()`** 获取原生请求体数据，并将其转化为 **_JSON_** 类型。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端" label="服务端" default>
@@ -86,7 +86,7 @@ reqoests.post(
 
 
 ## Form
-Pywss 应用可以通过 **`ctx.form()`** 获取原生请求体数据，并将其转化为 **_FORM_** 表单类型。
+Pywss 服务可以通过 **`ctx.form()`** 获取原生请求体数据，并将其转化为 **_FORM_** 表单类型。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端" label="服务端" default>
@@ -121,7 +121,7 @@ reqoests.post(
 
 
 ## File
-Pywss 应用可以通过 **`ctx.file()`** 获取原生请求体数据，并将其转化为 **_FILE_** 类型。
+Pywss 服务可以通过 **`ctx.file()`** 获取原生请求体数据，并将其转化为 **_FILE_** 类型。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端" label="服务端" default>
@@ -184,7 +184,7 @@ reqoests.post(
 
 
 ## Stream
-Pywss 应用可以通过 **`ctx.stream()`** 流式读取原生请求体数据。这在大数据上传场景下会很有用。
+Pywss 服务可以通过 **`ctx.stream()`** 流式读取原生请求体数据。这在大数据上传场景下会很有用。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端-流式读取" label="服务端-流式读取" default>

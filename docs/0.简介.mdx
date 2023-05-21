@@ -5,6 +5,19 @@ hide_table_of_contents: false
 slug: /
 ---
 
+export const Highlight = ({children}) => (
+  <span
+    style={{
+      backgroundColor: '#f1f0d8',
+      borderRadius: '10px',
+      color: '#000',
+      padding: '0.4rem',
+      fontWeight: 700,
+    }}>
+    {children}
+  </span>
+);
+
 :::note 当前最新版本
 
 ![PyPI](https://img.shields.io/pypi/v/pywss?color=green)
@@ -19,9 +32,9 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 其编程风格也更类似于 Gin、Iris 等框架，因此对于熟悉这些框架的开发者来说，Pywss 是一个非常值得探索的项目。
 
 其关键特性有：
-- **简单**：拒绝海量参数，减少心智负担。了解上下文（**`pywss.Context`**）即刻启程。
+- **简单**：拒绝海量参数，减少心智负担。了解上下文 <Highlight>pywss.Context</Highlight> 即刻启程。
 - **快速**：纯手撸 socket，拒绝中间商赚取性能差价。(实在有性能追求的同学，不妨再探索下其他语言~**Go**~)
-- **优雅**：**`ctx.next()`** 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
+- **优雅**：<Highlight>ctx.next</Highlight> 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
 - **接口测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
@@ -31,7 +44,7 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 以下展示了一些最基本的用例，如果你有一定后端编程基础，相信你看完这些用例，大概就知道 Pywss 做了什么事情了。
 
 
-```python title="一个简单的应用"
+```python title="一个简单的应用" showLineNumbers
 import pywss
 
 app = pywss.App()
@@ -40,7 +53,7 @@ app.run()
 ```
 
 
-```python title="优雅实现 log 中间件"
+```python title="优雅实现 log 中间件" showLineNumbers {6}
 import pywss
 import time
 
@@ -52,11 +65,11 @@ def logMiddleware(ctx: pywss.Context):
 ```
 
 
-```python title="优雅实现 cors 中间件"
+```python title="优雅实现 cors 中间件" showLineNumbers {11}
 import pywss
 import time
 
-def corsHandler(ctx: pywss.Context):
+def corsMiddleware(ctx: pywss.Context):
     ctx.set_header(pywss.HeaderAccessControlAllowOrigin, "*")
     ctx.set_header(pywss.HeaderAccessControlAllowMethods, "*")
     ctx.set_header(pywss.HeaderAccessControlAllowHeaders, "*")
@@ -67,7 +80,7 @@ def corsHandler(ctx: pywss.Context):
 ```
 
 
-```python title="swagger"
+```python title="swagger" showLineNumbers {3,8}
 import pywss
 
 @pywss.openapi.docs("接口说明")
@@ -81,7 +94,7 @@ app.run()
 ```
 
 
-```python title="websocket"
+```python title="websocket" showLineNumbers {4}
 import pywss
 
 def helloWS(ctx: pywss.Context):
@@ -97,7 +110,7 @@ app.run()
 ```
 
 
-```python title="接口测试"
+```python title="接口测试" showLineNumbers {6}
 import pywss
 
 app = pywss.App()

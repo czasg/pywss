@@ -60,9 +60,9 @@ app.run()
 ```python {8-10}
 import pywss
 
-from .v1 import register_v1
-from .v2 import register_v2
-from .v3 import register_v3
+from v1 import register_v1
+from v2 import register_v2
+from v3 import register_v3
 
 app = pywss.App()
 v1 = app.party("/api/v1")
