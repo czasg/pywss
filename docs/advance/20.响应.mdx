@@ -6,22 +6,61 @@ slug: response
 ---
 
 ## 状态码
+在 Pywss 中，通过 **`ctx.set_status_code`** 可以指定 **响应报文状态码**。
 ```python
-ctx.set_status_code(200)
+>>> ctx.set_status_code(200)
+>>> ctx.set_status_code(pywss.StatusOK)
+```
+```python
+>>> ctx.set_status_code(403)
+>>> ctx.set_status_code(pywss.StatusForbidden)
 ```
 
 ## 响应头
+在 Pywss 中，通过 **`ctx.set_header`** 可以指定 **响应报文头**。
 ```python
-ctx.set_header("Content-Type", "application/json")
+>>> ctx.set_header("Content-Type", "application/json")
+```
+```python
+>>> ctx.set_header("X-Api-Key", "api-token")
 ```
 
+**_注意_**：`set_header` 内置转化逻辑，故支持输入全小写。
+
 ## 响应体
-```python
-ctx.write("data")
+在 Pywss 中，通过 **`ctx.write`** 可以指定 **响应报文数据**。
+
+实际上，ctx 提供了多种数据的写入渠道，包括：
+
+- **`ctx.write_text`**
+- **`ctx.write_json`**
+- **`ctx.write_file`**
+
+大部分场景下，建议使用统一的 `ctx.write` 入口。
+
+```python title="Content-Type: text/html"
+>>> ctx.write("data")
+>>> ctx.write_text("data")
+```
+```python title="Content-Type: application/json"
+>>> ctx.write({"key": "value"})
+>>> ctx.write_json({"key": "value"})
+```
+```python title='Content-Disposition: attachment; filename="file.txt"'
+>>> ctx.write(open("file.txt", "rb"))
+>>> ctx.write_file("file.txt")
 ```
 
 ## 重定向
+在 HTTP 响应中，重定向是常见需求。
+
+我们可以通过指定**状态码**和**响应头**来实现。
+- `ctx.set_status_code(302)`
+- `ctx.set_header("Location", "/new/route")`
+
+在 Pywss 中，**`ctx.redirect`** 提供了开箱即用的能力。
 ```python
-ctx.redirect("/")
+>>> ctx.redirect("/")
+>>> ctx.redirect("http://github.com")
 ```
 

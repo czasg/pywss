@@ -5,20 +5,18 @@ hide_table_of_contents: false
 slug: route-match
 ---
 
-export const Highlight = ({children, color}) => (
+export const Highlight = ({children}) => (
   <span
     style={{
-      backgroundColor: color,
+      backgroundColor: '#f1f0d8',
       borderRadius: '10px',
-      color: '#fff',
+      color: 'red',
       padding: '0.4rem',
       fontWeight: 700,
     }}>
     {children}
   </span>
 );
-
-<Highlight color="red">中括号</Highlight>
 
 :::note 什么是特殊路由匹配机制？
 
@@ -55,7 +53,7 @@ Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包�
 - **头部匹配**
 
 ## 局部匹配
-Pywss 在配置路由时，通过 <Highlight color="red">中括号</Highlight> 区分 **局部匹配**。
+Pywss 在配置路由时，通过 <Highlight>中括号</Highlight> 区分 **局部匹配**。
 
 在指定 **局部匹配** 后会生成 **"路径参数"**，此参数可以在 `ctx.route_params` 中获取。
 
@@ -74,7 +72,7 @@ app.run()
 受限于实现机制，在局部匹配中**暂不支持对类型的校验**。
 
 ## 头部匹配
-Pywss 在配置路由时，通过尾部配置 **`*`** 可以区分 **头部匹配**。
+Pywss 在配置路由时，通过尾部配置 <Highlight>*</Highlight> 可以区分 **头部匹配**。
 
 ```python title="头部匹配"
 import pywss
