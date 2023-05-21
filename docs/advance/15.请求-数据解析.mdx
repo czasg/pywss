@@ -194,7 +194,7 @@ import pywss
 
 def handler(ctx: pywss.Context):
     for data in ctx.stream(size=32):  # 按指定大小读取数据
-        print(data)
+        print(len(data) == 32, data)
 
 app = pywss.App()
 app.post("/stream", handler)

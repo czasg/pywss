@@ -18,6 +18,9 @@ export const Highlight = ({children}) => (
   </span>
 );
 
+
+## 特殊路由匹配机制
+
 :::note 什么是特殊路由匹配机制？
 
 通常来说 **匹配机制** 有：
@@ -31,15 +34,13 @@ export const Highlight = ({children}) => (
 
 :::
 
-## 特殊路由匹配机制
-
 **特殊路由匹配机制** 是现代 web 框架必不可少的特点。
 
 对于大多数的框架而言，它们都支持**正则匹配**，虽然这会带来更丰富的能力，但这无疑也会引入一定的性能问题。
 
 Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包括：
 
-|路由匹配机制|说明|
+|匹配机制|说明|
 |---|---|
 |**全等匹配**|`app.get("/full/match", handler)`|
 |**局部匹配**|`app.get("/party/match/{name}", handler)`，变量 **name** 会存储在**`ctx.route_params`**中|
@@ -53,7 +54,7 @@ Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包�
 - **头部匹配**
 
 ## 局部匹配
-Pywss 在配置路由时，通过 <Highlight>中括号</Highlight> 区分 **局部匹配**。
+Pywss 在配置路由时，通过 <Highlight>大括号</Highlight> 区分 **局部匹配**。
 
 在指定 **局部匹配** 后会生成 **"路径参数"**，此参数可以在 `ctx.route_params` 中获取。
 

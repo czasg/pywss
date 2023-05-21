@@ -7,3 +7,79 @@ slug: request-upgrade
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+export const Highlight = ({children}) => (
+  <span
+    style={{
+      backgroundColor: '#f1f0d8',
+      borderRadius: '10px',
+      color: '#000',
+      padding: '0.4rem',
+      fontWeight: 700,
+    }}>
+    {children}
+  </span>
+);
+
+## WebSocket
+
+:::note 什么是 WebSocket?
+
+WebSocket是一种网络传输协议，可在单个TCP连接上进行全双工通信，位于OSI模型的应用层。
+
+WebSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就可以建立持久性的连接，并进行双向数据传输。
+
+:::
+
+**WebSocket** 底层是基于 <Highlight>HTTP GET</Highlight> 升级实现，是长连接的一种实现方式。
+
+**Pywss** 则通过 <Highlight>WebSocketUpgrade</Highlight> 完成此处升级。
+升级后将激活 `ctx.ws_read` 和 `ctx.ws_write` 两个接口方法，并通过这两个接口方法与客户端进行交互。
+
+让我们来实现一个简单的 **WebSocket** 升级代码，参考如下：
+
+```python
+import pywss
+
+def websocket(ctx: pywss.Context):
+    # 升级 WebSocket
+    err = pywss.WebSocketUpgrade(ctx)
+    if err:
+        ctx.log.error(err)
+        ctx.set_status_code(pywss.StatusBadRequest)
+        return
+    # 轮询获取消息，实际使用场景建议引入心跳/探活机制
+    while True:
+        data = ctx.ws_read()
+        ctx.log.info(data)
+        ctx.ws_write(b"hello")
+
+def main():
+    app = pywss.App()
+    app.get("/websocket", websocket)
+    app.run()
+
+if __name__ == '__main__':
+    main()
+```
+
+接着让我们模拟客户端，需要 `打开浏览器 -> F12 -> 进入控制台`，输入以下代码：
+
+```
+ws = new WebSocket("ws://127.0.0.1:8080/websocket");
+ws.onmessage = function (ev) {
+    console.log(ev.data);
+}
+ws.onclose = function (ev) {
+    console.log('Connect Closed')
+}
+ws.onopen = function() {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send('hello??')
+    }
+}
+```
+
+其他具体使用场景/用例，可以参考 [多人在线协同编辑luckysheet](https://github.com/czasg/pywss/tree/master/demo/luckysheet)、
+[多人聊天室](https://github.com/czasg/pywss/tree/master/demo/chat)
+
+<br/>
