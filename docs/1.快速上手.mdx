@@ -82,13 +82,13 @@ hi~
   </TabItem>
 </Tabs>
 
-我们来简单解读下`main.py`源码，首先是在第7行初始化了一个`app`，并在第10行执行`app.run`启动 web 应用。
+在 **`main.py`** 中我们可以看到，首先是在第7行初始化了一个`app`，并在第10行执行`app.run`启动 web 应用。
 
 这两行代码，囊括了 app 从 **初始化 -> 启动** 的整个周期。
 
-其次是业务模块，也就是第8、9行的注册路由方法，其中：
-- `app.get(/hi, ...` 表示注册 **Http Get** 方法，并指定路由 `/hi`。
-- `app.post(/hello, ...` 表示注册 **Http Post** 方法，并指定路由 `/hello`。
+其次是**注册路由模块**，也就是第8、9行的注册路由方法，其中：
+- **`app.get(/hi, ...`** 表示注册 **Http Get** 方法，并指定路由 `/hi`。
+- **`app.post(/hello, ...`** 表示注册 **Http Post** 方法，并指定路由 `/hello`。
 
 通过 `python3 main.py` 启动服务后，我们可以通过 curl 来验证服务。结果见上。
 
@@ -107,31 +107,31 @@ hi~
 
 |属性|类型|说明|
 |---|---|---|
-|**`ctx.app`**|`pywss.App`|根app对象|
-|**`ctx.fd`**|`socket.socket`|sock句柄，一般用于写操作|
-|**`ctx.rfd`**|`socket.makefile`|sock句柄，一般用于读操作|
+|**`ctx.app`**|`pywss.App`|根 **app** 对象|
+|**`ctx.fd`**|`socket.socket`|sock句柄，用于**写操作**，一般不直接使用|
+|**`ctx.rfd`**|`socket.makefile`|sock句柄，用于**读操作**，一般不直接使用|
 |**`ctx.address`**|`tuple`|请求地址信息|
 |**`ctx.method`**|`str`|HTTP请求方法，由 GET/POST/PUT/DELETE/HEAD/PATCH/OPTIONS 组成|
-|**`ctx.version`**|`str`|HTTP协议版本号，参考：`HTTP/1.1`|
-|**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。参考：`/api/v1/query?key=value`|
+|**`ctx.version`**|`str`|HTTP协议版本号，参考值：`HTTP/1.1`|
+|**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。参考值：`/api/v1/query?key=value`|
 |**`ctx.url_params`**|`dict`|HTTP请求参数，是基于`ctx.url`解析的结果。举例说明：对于`/api/v1/query?key=value`地址，`ctx.url_params`等于**`{"key": "value"}`**|
 |**`ctx.route`**|`str`|HTTP请求Route路由，注意是**不包含请求参数在内**的路由，参考：`/api/v1/query`|
 |**`ctx.route_params`**|`dict`|用于存储[局部匹配](#特殊路由匹配机制)下的路径参数，举例说明：对于`/api/v1/{name}/{age}`路由，`ctx.route_params`等于**`{"name": "xx", "age": "xx"}`**|
 |**`ctx.headers`**|`dict`|HTTP请求头|
 |**`ctx.cookies`**|`dict`|HTTP请求Cookie，是基于`ctx.headers["Cookie"]`解析的结果|
 |**`ctx.content_length`**|`int`|HTTP请求Body大小，是基于`ctx.headers["Content-Length"]`解析的结果|
-|**`ctx.content`**|`byte`|HTTP请求Body。对于需要获取原生请求场景，推荐使用`ctx.body()`|
-|**`ctx.data`**|`pywss.Data`|基于字典实现，用于Context上下文信息传递。使用方式参考 `ctx.data.key = value`|
+|**`ctx.content`**|`byte`|HTTP请求Body。一般不直接使用，对于需要获取原生请求场景，**推荐使用`ctx.body()`**|
+|**`ctx.data`**|`pywss.Data`|基于字典实现，**用于Context上下文信息传递**。使用方式参考 `ctx.data.key = value`|
 |**`ctx.body()`**|`func`|获取原始请求Body|
-|**`ctx.json()`**|`func`|解析JSON请求，以JSON形式返回请求Body|
-|**`ctx.form()`**|`func`|解析表单请求，并以JSON形式返回请求Body|
-|**`ctx.file()`**|`func`|解析表单请求，并以**`Dict[str, pywss.File]`**形式返回|
-|**`ctx.stream()`**|`func`|针对某些大文件场景，支持流式操作|
-|**`ctx.set_status_code()`**|`func`|指定HTTP响应报文状态码|
-|**`ctx.set_header()`**|`func`|指定HTTP响应头|
-|**`ctx.set_content_type()`**|`func`|指定HTTP响应类型|
-|**`ctx.set_cookie()`**|`func`|指定HTTP响应Cookie|
-|**`ctx.write()`**|`func`|指定HTTP响应体|
+|**`ctx.json()`**|`func`|**解析请求**，并以 **JSON** 形式返回|
+|**`ctx.form()`**|`func`|**解析请求**，并以 **FORM** 形式返回|
+|**`ctx.file()`**|`func`|**解析请求**，并以 **`Dict[str, pywss.File]`** 形式返回|
+|**`ctx.stream()`**|`func`|**流式读取请求**，用于某些大数据场景|
+|**`ctx.set_status_code()`**|`func`|指定HTTP响应报文**状态码**|
+|**`ctx.set_header()`**|`func`|指定HTTP**响应头**|
+|**`ctx.set_content_type()`**|`func`|指定HTTP**响应类型**|
+|**`ctx.set_cookie()`**|`func`|指定HTTP**响应Cookie**|
+|**`ctx.write()`**|`func`|指定HTTP**响应体**|
 |**`ctx.flush()`**|`func`|一般不需要自己调用，在某些特殊场景下有用，比如提前结束请求|
 
 

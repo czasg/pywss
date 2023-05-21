@@ -18,7 +18,7 @@ MIME 即**互联网媒体类型**，也称作**内容类型**（Content-Type）�
 Pywss 支持多种数据类型解析。
 
 ## Byte
-Pywss 应用可以通过 **`ctx.body()`** 获取原生请求体数据。
+Pywss 应用可以通过 **`ctx.body()`** 获取原生请求体数据。此方法依赖 **`Content-Length`** 读取数据。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端" label="服务端" default>
@@ -130,9 +130,9 @@ Pywss 应用可以通过 **`ctx.file()`** 获取原生请求体数据，并将�
 import pywss
 
 def handler(ctx: pywss.Context):
-    file: pywss.File = ctx.file()["file"]
-    assert file.name = "file"
-    assert file.filename = "file.txt"
+    file: pywss.File = ctx.file()["upload-file"]
+    assert file.name == "upload-file"
+    assert file.filename == "file.txt"
     assert isinstance(file.content, byte)
 
 app = pywss.App()
@@ -157,7 +157,7 @@ import requests
 reqoests.post(
     "http://localhost:8080/file",
     files={
-        "file": open("file.txt", "rb"),
+        "upload-file": open("file.txt", "rb"),
     }
 )
 ```
@@ -184,7 +184,7 @@ reqoests.post(
 
 
 ## Stream
-Pywss 应用可以通过 **`ctx.stream()`** 流式读取原生请求体数据。这在大文件上传场景下会很有用。
+Pywss 应用可以通过 **`ctx.stream()`** 流式读取原生请求体数据。这在大数据上传场景下会很有用。
 
 <Tabs className="unique-tabs">
 <TabItem value="服务端-流式读取" label="服务端-流式读取" default>
@@ -193,7 +193,7 @@ Pywss 应用可以通过 **`ctx.stream()`** 流式读取原生请求体数据。
 import pywss
 
 def handler(ctx: pywss.Context):
-    for data in ctx.stream(size=32):  # 按指定大小返回数据
+    for data in ctx.stream(size=32):  # 按指定大小读取数据
         print(data)
 
 app = pywss.App()
@@ -208,9 +208,8 @@ app.run()
 import pywss
 
 def handler(ctx: pywss.Context):
-    for data in ctx.stream(readline=True):  # 逐行返回数据
+    for data in ctx.stream(readline=True):  # 逐行读取数据
         print(data)
-        assert b"0036757B8FF4120B5F2344F3886EA2AD" in data
 
 app = pywss.App()
 app.post("/stream", handler)

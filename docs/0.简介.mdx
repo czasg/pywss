@@ -20,18 +20,18 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 
 其关键特性有：
 - **简单**：拒绝海量参数，减少心智负担。了解上下文（**`pywss.Context`**）即刻启程。
-- **快速**：纯手撸 socket，拒绝中间商赚取性能差价。（小白也能懂的源码）(有性能追求的同学，可以学学**Go**)
+- **快速**：纯手撸 socket，拒绝中间商赚取性能差价。(实在有性能追求的同学，不妨再探索下其他语言~**Go**~)
 - **优雅**：**`ctx.next()`** 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
-- **接口测试**：提供了 Http API 测试模块，不启动服务也能测试接口功能辣！
+- **接口测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
 
 
 ## Example
 以下展示了一些最基本的用例，如果你有一定后端编程基础，相信你看完这些用例，大概就知道 Pywss 做了什么事情了。
 
 
-```python title="最简应用"
+```python title="一个简单的应用"
 import pywss
 
 app = pywss.App()
@@ -40,19 +40,19 @@ app.run()
 ```
 
 
-```python title="基于 next 实现 log 中间件" {6}
+```python title="优雅实现 log 中间件"
 import pywss
 import time
 
 def logMiddleware(ctx: pywss.Context):
-    entryTime = time.time()
-    ctx.next()  # 执行完后面handler后再执行下面代码
-    cost = time.time() - entryTime
+    startTime = time.time()
+    ctx.next()  # 执行下一个handler
+    cost = time.time() - startTime
     print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
 ```
 
 
-```python title="基于 next 实现 cors 中间件" {11}
+```python title="优雅实现 cors 中间件"
 import pywss
 import time
 
@@ -63,5 +63,48 @@ def corsHandler(ctx: pywss.Context):
     ctx.set_header(pywss.HeaderAccessControlAllowCredentials, "true")
     if ctx.method == pywss.MethodOptions:
         return
-    ctx.next()  # 执行下一轮handler，若不调用，则当前handler为最后执行逻辑
+    ctx.next()  # 执行下一个handler，若不调用，则当前handler为最后执行逻辑
+```
+
+
+```python title="swagger"
+import pywss
+
+@pywss.openapi.docs("接口说明")
+def hello(ctx: pywss.Context):
+    pass
+
+app = pywss.App()
+app.openapi()  # 启动openapi
+app.get("/hello", hello)
+app.run()
+```
+
+
+```python title="websocket"
+import pywss
+
+def helloWS(ctx: pywss.Context):
+    err = pywss.WebSocketUpgrade(ctx)
+    if err:
+        return
+    ctx.ws_read()
+    crx.ws_write()
+
+app = pywss.App()
+app.get("/hello/ws", helloWS)
+app.run()
+```
+
+
+```python title="接口测试"
+import pywss
+
+app = pywss.App()
+app.get("/hello", lambda ctx: ctx.write("HelloWorld"))
+
+req = pywss.HttpTestRequest(app)  # 基于app创建HttpRequest
+resp = req.get("/hello")  # 发起Get请求，获取resp
+assert resp.status_code == 200
+assert resp.body == "HelloWorld"
 ```

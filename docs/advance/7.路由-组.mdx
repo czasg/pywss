@@ -17,9 +17,9 @@ import TabItem from '@theme/TabItem';
 
 Pywss 通过 `app.party` 提供了**路由组**的能力，用于支持**多级路由管理**。
 
-以下通过一个案例来拆分多级路由。
+下面通过一个案例来展示 多级路由管理。
 
-```python {4-15}
+```python title="案例" {4-15}
 import pywss
 
 def register_route(app: pywss.App):
@@ -41,12 +41,12 @@ register_route(app)
 app.run()
 ```
 
-在上面的路由模块中，我们可以看到包含了三个版本的接口:
+在上面的路由模块中，我们可以看到包含了**三个版本**的接口:
 - **`/api/v1`**
 - **`/api/v2`**
 - **`/api/v3`**
 
-并且这三个版本的接口都提供了四种能力:
+并且这三个版本的接口都提供了**四种能力**:
 - **`/docs`**
 - **`/author`**
 - **`/github`**

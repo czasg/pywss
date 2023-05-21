@@ -5,6 +5,21 @@ hide_table_of_contents: false
 slug: route-match
 ---
 
+export const Highlight = ({children, color}) => (
+  <span
+    style={{
+      backgroundColor: color,
+      borderRadius: '10px',
+      color: '#fff',
+      padding: '0.4rem',
+      fontWeight: 700,
+    }}>
+    {children}
+  </span>
+);
+
+<Highlight color="red">中括号</Highlight>
+
 :::note 什么是特殊路由匹配机制？
 
 通常来说 **匹配机制** 有：
@@ -26,17 +41,21 @@ slug: route-match
 
 Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包括：
 
-|特殊路由匹配机制|说明|
+|路由匹配机制|说明|
 |---|---|
 |**全等匹配**|`app.get("/full/match", handler)`|
 |**局部匹配**|`app.get("/party/match/{name}", handler)`，变量 **name** 会存储在**`ctx.route_params`**中|
 |**头部匹配**|`app.get("/head/match/*", handler)`，此处需以 `*` 结尾|
 
 **_注意_**：
-上述匹配机制无法同时生效，且存在优先级，即 **全等匹配** > **局部匹配** > **头部匹配**
+上述匹配机制无法同时生效，且存在优先级，即 **全等匹配** > **局部匹配** > **头部匹配**。
+
+**全等匹配**此处不在赘述。下面主要介绍：
+- **局部匹配**
+- **头部匹配**
 
 ## 局部匹配
-Pywss 在配置路由时，通过中括号区分 **局部匹配**。
+Pywss 在配置路由时，通过 <Highlight color="red">中括号</Highlight> 区分 **局部匹配**。
 
 在指定 **局部匹配** 后会生成 **"路径参数"**，此参数可以在 `ctx.route_params` 中获取。
 
