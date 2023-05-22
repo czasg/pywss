@@ -35,9 +35,9 @@ WebSocket使得客户端和服务器之间的数据交换变得更加简单，�
 **WebSocket** 底层是基于 <Highlight>HTTP GET</Highlight> 升级实现，是长连接的一种实现方式。
 
 **Pywss** 则通过 **`pywss.WebSocketUpgrade`** 完成此处升级。
-升级后将激活 `ctx.ws_read` 和 `ctx.ws_write` 两个接口方法，并通过这两个接口方法与客户端进行交互。
+升级后将激活 `ctx.ws_read` 和 `ctx.ws_write` 两个接口方法，后续服务端通过这两个接口方法与客户端进行交互。
 
-让我们来实现一个简单的 **WebSocket** 升级代码，参考如下：
+让我们来实现一个简单的 **WebSocket** 用例，参考如下：
 
 ```python title="服务端" showLineNumbers
 import pywss

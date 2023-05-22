@@ -6,7 +6,7 @@ slug: response
 ---
 
 ## 状态码
-在 Pywss 中，通过 **`ctx.set_status_code`** 可以指定 **响应报文状态码**。
+在 Pywss 中，通过 **`ctx.set_status_code`** 可以指定 **响应码**。
 ```python
 >>> ctx.set_status_code(200)
 >>> ctx.set_status_code(pywss.StatusOK)
@@ -17,7 +17,7 @@ slug: response
 ```
 
 ## 响应头
-在 Pywss 中，通过 **`ctx.set_header`** 可以指定 **响应报文头**。
+在 Pywss 中，通过 **`ctx.set_header`** 可以指定 **响应头**。
 ```python
 >>> ctx.set_header("Content-Type", "application/json")
 ```
@@ -28,7 +28,7 @@ slug: response
 **_注意_**：`set_header` 内置转化逻辑，故**支持Key值输入全小写**。
 
 ## 响应体
-在 Pywss 中，通过 **`ctx.write`** 可以指定 **响应报文数据**。
+在 Pywss 中，通过 **`ctx.write`** 可以指定 **响应数据**。
 
 实际上，ctx 提供了多种数据的写入渠道，包括：
 

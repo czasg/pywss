@@ -111,7 +111,7 @@ hi~
 - 第8行 **`app.get(/hi, ...`** 表示 **注册 Http Get** 方法
     - **绑定路由** `/hi`
     - **绑定业务处理逻辑** `lambda ctx: ctx.write("hi~")`
-- 第9行 **`app.post(/hello, ...`** 表示 **注册 Http Post** 方法，并指定路由 `/hello`。
+- 第9行 **`app.post(/hello, ...`** 表示 **注册 Http Post** 方法
     - **绑定路由** `/hello`
     - **绑定业务处理逻辑** `helloHandler`
 
@@ -190,7 +190,7 @@ def next(self) -> None:
 
 基于 **`ctx.next`** 链式调用的特性，我们可以非常容易的实现**中间件拓展**。
 
-在 pywss 中，实现了两种方式来拓展中间件能力：
+在 pywss 中，提供了两种方式来拓展中间件能力：
 
 - **app use 全局注册** ，针对全部路由生效
 - **route bind 局部注册** ，针对指定路由生效
