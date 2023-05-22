@@ -10,8 +10,8 @@ slug: middleware
 Pywss 基于 **`ctx.next`** 实现了 **中间件** 能力。
 
 在 pywss 应用中，我们可以通过以下两种方式来注册中间件：
-- app use：**全局注册**，针对全部路由生效
-- route bind：**局部注册**，针对指定路由生效
+- **app use 全局注册**，针对全部路由生效
+- **route bind 局部注册**，针对指定路由生效
 
 :::note 分级路由场景
 
@@ -54,9 +54,9 @@ app.run()
 
 ## 中间件开发
 
-本节举例 cors 和 jwt
+本节举例 cors 和 jwt 中间件
 
-```python showLineNumbers {6,7}
+```python title="服务端" showLineNumbers {6,7}
 import pywss
 
 def main():

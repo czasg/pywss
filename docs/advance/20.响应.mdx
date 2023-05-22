@@ -25,7 +25,7 @@ slug: response
 >>> ctx.set_header("X-Api-Key", "api-token")
 ```
 
-**_注意_**：`set_header` 内置转化逻辑，故支持输入全小写。
+**_注意_**：`set_header` 内置转化逻辑，故**支持Key值输入全小写**。
 
 ## 响应体
 在 Pywss 中，通过 **`ctx.write`** 可以指定 **响应报文数据**。
@@ -38,15 +38,15 @@ slug: response
 
 大部分场景下，建议使用统一的 `ctx.write` 入口。
 
-```python title="Content-Type: text/html"
+```python title="String类型"
 >>> ctx.write("data")
 >>> ctx.write_text("data")
 ```
-```python title="Content-Type: application/json"
+```python title="Json类型"
 >>> ctx.write({"key": "value"})
 >>> ctx.write_json({"key": "value"})
 ```
-```python title='Content-Disposition: attachment; filename="file.txt"'
+```python title='File类型'
 >>> ctx.write(open("file.txt", "rb"))
 >>> ctx.write_file("file.txt")
 ```
@@ -58,7 +58,8 @@ slug: response
 - `ctx.set_status_code(302)`
 - `ctx.set_header("Location", "/new/route")`
 
-在 Pywss 中，**`ctx.redirect`** 提供了开箱即用的能力。
+Pywss 提供了开箱即用的重定向功能，可通过 **`ctx.redirect`** 使用。
+
 ```python
 >>> ctx.redirect("/")
 >>> ctx.redirect("http://github.com")

@@ -186,6 +186,10 @@ reqoests.post(
 ## Stream
 Pywss 服务可以通过 **`ctx.stream()`** 流式读取原生请求体数据。这在大数据上传场景下会很有用。
 
+此外，stream 还支持两种读取模块：
+- **按指定大小读取数据**
+- **逐行读取数据**
+
 <Tabs className="unique-tabs">
 <TabItem value="服务端-流式读取" label="服务端-流式读取" default>
 

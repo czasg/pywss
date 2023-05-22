@@ -30,6 +30,8 @@ Pywss 依赖 python 3.6+ 版本的部分特性。
 
 ```shell script
 >>> pip3 install pywss
+>>> pip3 install pywss -i https://pypi.org/simple
+>>> pip3 install pywss -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 </TabItem>
@@ -95,22 +97,32 @@ hi~
   </TabItem>
 </Tabs>
 
-在 **`main.py`** 中我们可以看到，首先是在第7行初始化了一个`app`，并在第10行执行`app.run`启动 web 应用。
+在 **`main.py`** 中我们可以看到：
+
+#### 1.首先是初始化模块
+
+- 在第7行初始化了一个`app`。
+- 在第10行执行`app.run`启动 web 应用。
 
 这两行代码，囊括了 app 从 **初始化 -> 启动** 的整个周期。
 
-其次是**注册路由模块**，也就是第8、9行的注册路由方法，其中：
-- **`app.get(/hi, ...`** 表示注册 **Http Get** 方法，并指定路由 `/hi`。
-- **`app.post(/hello, ...`** 表示注册 **Http Post** 方法，并指定路由 `/hello`。
+#### 2.其次是路由注册模块
 
-通过 `python3 main.py` 启动服务后，我们可以通过 curl 来验证服务。结果见上。
+- 第8行 **`app.get(/hi, ...`** 表示 **注册 Http Get** 方法
+    - **绑定路由** `/hi`
+    - **绑定业务处理逻辑** `lambda ctx: ctx.write("hi~")`
+- 第9行 **`app.post(/hello, ...`** 表示 **注册 Http Post** 方法，并指定路由 `/hello`。
+    - **绑定路由** `/hello`
+    - **绑定业务处理逻辑** `helloHandler`
+
+通过 `python3 main.py` 启动服务后，我们可以通过 `curl` 来验证服务。结果见上。
 
 至此，一个简单的 hello world 应用就搭建完成了。
 
 
 
 ## **Context** 上下文
-在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） 贯穿于单次请求的整个生命周期，是 Pywss 用于管理请求的上下文对象。
+在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） **贯穿于单次请求的整个生命周期**，是 Pywss 用于管理请求的上下文对象。
 
 对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
 
