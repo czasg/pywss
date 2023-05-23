@@ -18,6 +18,19 @@ export const Highlight = ({children}) => (
   </span>
 );
 
+export const Code = ({children, color="red"}) => (
+  <code
+    style={{
+      color: color,
+      borderRadius: '10px',
+      backgroundColor: '#f1f0d8',
+      padding: '0.4rem',
+      fontWeight: 700,
+    }}>
+    {children}
+  </code>
+);
+
 
 ## 特殊路由匹配机制
 
@@ -38,13 +51,13 @@ export const Highlight = ({children}) => (
 
 对于大多数的框架而言，它们都支持**正则匹配**，虽然这会带来更丰富的能力，但这无疑也会引入一定的性能问题。
 
-Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包括：
+Pywss 通过更简单、轻量的方式实现了三种路由匹配机制，包括：
 
 |匹配机制|说明|
 |---|---|
-|**全等匹配**|`app.get("/full/match", handler)`|
-|**局部匹配**|`app.get("/party/match/{name}", handler)`，变量 **name** 会存储在**`ctx.route_params`**中|
-|**头部匹配**|`app.get("/head/match/*", handler)`，此处需以 `*` 结尾|
+|**全等匹配**|<code>app.get(<b>"/full/match"</b>, handler)</code>|
+|**局部匹配**|<code>app.get(<b>"/party/match/{name}"</b>, handler)</code>，详情见 [局部匹配](#局部匹配)|
+|**头部匹配**|<code>app.get(<b>"/head/match/*"</b>, handler)</code>，详情见 [头部匹配](#头部匹配)|
 
 **_注意_**：
 上述匹配机制无法同时生效，且存在优先级，即 **全等匹配** > **局部匹配** > **头部匹配**。
@@ -56,9 +69,9 @@ Pywss 通过更简单、易懂的方式实现了三种路由匹配机制，包�
 ## 局部匹配
 Pywss 在配置路由时，通过 <Highlight>大括号</Highlight> 区分 **局部匹配**。
 
-在指定 **局部匹配** 后会生成 **"路径参数"**，此参数可以在 `ctx.route_params` 中获取。
+在使用 **局部匹配** 时，会生成指定的 **"路径参数"**，此参数存储在 `ctx.route_params` 中。
 
-```python title="获取路径参数"
+```python title="获取路径参数" showLineNumbers
 import pywss
 
 def hello(ctx: pywss.Context):
@@ -70,12 +83,25 @@ app.get("/hello/{name}", hello)
 app.run()
 ```
 
-受限于实现机制，在局部匹配中**暂不支持对类型的校验**。
+局部匹配 **不支持类型校验**，即默认是字符串类型。
+
+理论上来讲，通过类型校验可以实现更加丰富的路由机制，比如：
+
+```text title="路由类型校验" showLineNumbers
+"/api/v1/user/name/{name: any}"
+"/api/v1/user/age/{age: int}"
+```
+
+这种看似很秀，实则意义不大。
+
+因为在这种模式下，`"/api/v1/user/age/unknown"` 将不会命中任何路由，但实际只是用户使用方式不对而已，这会造成困惑。
+
+Pywss 更希望用户能够收到类似 <Code>{"errMsg": "'unknown' is invalid of age"}</Code> 的错误信息。
 
 ## 头部匹配
 Pywss 在配置路由时，通过尾部配置 <Highlight>*</Highlight> 可以区分 **头部匹配**。
 
-```python title="头部匹配"
+```python title="头部匹配" showLineNumbers
 import pywss
 
 def hello(ctx: pywss.Context):

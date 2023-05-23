@@ -40,7 +40,7 @@ export const Highlight = ({children}) => (
 - **pageNum**：对应值为 1
 - **name**：对应值为 pywss
 
-对于 Pywss 应用来说，它们将转化为字典并存储在 `ctx.url_params` 中。
+对于 Pywss 应用来说，它们将转化为**键值对数据**并存储在字典 `ctx.url_params` 中。
 ```shell script title="读取查询参数"
 >>> print(ctx.url_params)
 {

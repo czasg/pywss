@@ -41,7 +41,7 @@ register_route(app)
 app.run()
 ```
 
-在上面案例中我们可以看到注册了 12 个路由。
+在上面案例中我们可以看到服务一共注册了 12 个路由。
 
 其中，包含了**三个版本**的接口:
 - **`/api/v1`**
@@ -54,12 +54,14 @@ app.run()
 - **`/github`**
 - **`/history`**
 
+这是非常常见的多版本接口设计。由于只注册了 12 个路由，整体还是比较清晰的。
+
 下面，我们通过 **`app.party`** 来拆分多级路由。
 
 <Tabs className="unique-tabs">
 <TabItem value="main" label="main.py" default>
 
-```python {8-10}
+```python {8-10} showLineNumbers
 import pywss
 
 from v1 import register as register_v1
@@ -81,7 +83,7 @@ app.run()
 </TabItem>
 <TabItem value="v1" label="v1.py">
 
-```python
+```python showLineNumbers
 import pywss
 
 """
@@ -97,7 +99,7 @@ def register(app: pywss.App):
 </TabItem>
 <TabItem value="v2" label="v2.py">
 
-```python
+```python showLineNumbers
 import pywss
 
 """
@@ -113,7 +115,7 @@ def register(app: pywss.App):
 </TabItem>
 <TabItem value="v3" label="v3.py">
 
-```python
+```python showLineNumbers
 import pywss
 
 """

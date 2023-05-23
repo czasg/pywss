@@ -126,7 +126,7 @@ hi~
 
 对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
 
-所以，**ctx** 是一个包含了 **HTTP 请求报文解析、HTTP 响应报文构建、信息传递** 的上下文对象。
+所以，**ctx** 是一个集 **HTTP 请求报文解析、HTTP 响应报文构建、信息传递** 于一体的上下文对象。
 
 其主要属性有：
 
@@ -170,9 +170,9 @@ hi~
 
 ### 原理简介
 
-**`ctx.next`** 本质是一个链式调用。
+**`ctx.next`** 本质是一个**链式调用**。
 
-其源代也是非常的简洁，核心逻辑仅由几行代码实现：
+其源码也是非常的简洁，核心逻辑仅由几行代码实现：
 
 ```python showLineNumbers title="ctx.next 源码"
 def next(self) -> None:
@@ -183,7 +183,7 @@ def next(self) -> None:
     self._handlers[index](self)
 ```
 
-具体实现流程此处不展开，感兴趣的同学可以阅读[源码](https://github.com/czasg/pywss)。
+具体实现流程此处不展开，感兴趣的同学可以直接阅读[源码](https://github.com/czasg/pywss)。
 
 
 ### 使用方法

@@ -164,7 +164,7 @@ class View:
 ```python showLineNumbers
 import pywss
 
-__route__ = "/user/role"  # 指定路由，否则默认"/user_role"
+__route__ = "/userRole"  # 指定路由，否则默认"/user_role"
 __view__ = "View"  # 默认
 
 class View:
@@ -173,7 +173,7 @@ class View:
         ctx.write({
             "code": 0,
             "method": "GET",
-            "route": "/api/v1/user/role",
+            "route": "/api/v1/userRole",
             "message": "获取用户角色成功",
         })
 
@@ -181,7 +181,7 @@ class View:
         ctx.write({
             "code": 0,
             "method": "POST",
-            "route": "/api/v1/user/role",
+            "route": "/api/v1/userRole",
             "message": "创建用户角色成功",
         })
 
@@ -189,7 +189,7 @@ class View:
         ctx.write({
             "code": 0,
             "method": "DELETE",
-            "route": "/api/v1/user/role",
+            "route": "/api/v1/userRole",
             "message": "删除用户角色成功",
         })
 ```
