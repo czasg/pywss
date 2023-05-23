@@ -1,8 +1,42 @@
 ---
 title: ApiTest
-hide_title: true
+hide_title: false
 hide_table_of_contents: false
 slug: api-test
 ---
 
+:::caution 用前须知
 
+此模块也是临时起意，随便写了下貌似也能用😲，后期再做调整吧。
+
+:::
+
+:::note 为什么需要单元测试？
+
+单元测试有助于验证代码的正确性、提高代码质量、支持重构、提高可维护性，并促进自动化测试。通过编写全面的单元测试套件，开发人员可以更有信心地开发稳定、可靠的软件。
+
+:::
+
+在大部分项目中，单元测试一般是函数级别的。也就是针对某个（工具、核心业务）函数，要求覆盖率达到多少多少...
+
+如果需要实现接口级别的测试，是需要启动服务才能执行的。这种时候一般会转到测试同学去测试。
+
+在 Pywss 中，提供了接口级别的测试模块，可以在不启动服务的前提下，测试接口功能。
+
+```python showLineNumbers
+import pywss
+
+app = pywss.App()
+
+app.get("/test", lambda ctx: ctx.set_status_code(204))
+
+# 基于app创建HttpRequest
+req = pywss.HttpTestRequest(app)
+
+# 发起Get请求，获取resp
+resp = req.get("/test")
+
+assert resp.status_code == 204
+```
+
+可以参考 [pywss](https://github.com/czasg/pywss/blob/master/test/test_app.py)

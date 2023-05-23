@@ -1,8 +1,66 @@
 ---
 title: SwaggerUI
-hide_title: true
+hide_title: false
 hide_table_of_contents: false
 slug: swagger-ui
 ---
+
+:::caution 用前须知
+
+作者对 OpenAPI 相关指标不熟，此模块为临时起意，随便写了下貌似能用😲，后期再做调整吧。
+
+:::
+
+Pywss 实现了部分 OpenAPI 的能力。可以在程序中通过 `@pywss.openapi.docs` 装饰器自动生成文档。
+
+参数说明：
+
+- **summary**：接口摘要
+- **description**：接口描述
+- **params**：参数说明
+- **request**：请求说明
+- **response**：响应说明
+
+注意：需要通过 `app.openapi()` 开启此能力。
+
+```python showLineNumbers title="demo" {3,32}
+import pywss
+
+@pywss.openapi.docs(
+    summary="此处是接口摘要 - 可选",
+    description="此处是接口描述 - 可选",
+    params={
+        "page_size": "此处是参数说明",
+        "username:query": "可以指定参数属于query(默认参数)",
+        "name:path,required": "path表示为路径参数，required表示必填参数",
+        "Auth:header,required": "参数支持：query、path、header、cookie",
+    },
+    request={
+        "name": "用户名",
+        "password": "用户密码",
+    },
+    response={
+        "errCode": "错误码",
+        "errMsg": "错误信息",
+    },
+)
+def hello(ctx: pywss.Context):
+    ctx.write({
+        "hello": "world",
+        "page_size": ctx.url_params.get("page_size", 10),
+        "username": ctx.url_params.get("username", "username"),
+        "name": ctx.route_params.get("name", "name"),
+        "Auth": ctx.headers.get("Auth", "Auth"),
+    })
+
+def main():
+    app = pywss.App()
+    app.openapi()  # 开启 openapi
+    app.post("/hello/{name}", hello)
+    app.run()
+
+if __name__ == '__main__':
+    main()
+```
 
 

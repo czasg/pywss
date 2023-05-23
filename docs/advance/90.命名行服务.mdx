@@ -1,8 +1,26 @@
 ---
 title: 命令行服务
-hide_title: true
+hide_title: false
 hide_table_of_contents: false
 slug: cmd-server
 ---
 
+:::caution 用前须知
 
+你可能不相信，此模块又是临时起意，随便写了下貌似还是能用😲，后期再做调整吧。
+
+:::
+
+Pywss 提供 `pywss` 命令行，用于快速搭建 web 服务。但只支持简单的路由功能。
+
+```shell title="文档手册"
+>>> pywss -h
+```
+
+```shell title="静态文件服务"
+>>> pywss --static=".:/" --port=8080
+```
+
+```shell title="注册路由"
+>>> pywss --route="GET:/hello:200:hello, world" --route="GET:/ok:204:" --port=8080
+```

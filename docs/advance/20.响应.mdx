@@ -20,12 +20,14 @@ slug: response
 在 Pywss 中，通过 **`ctx.set_header`** 可以指定 **响应头**。
 ```python
 >>> ctx.set_header("Content-Type", "application/json")
+>>> ctx.set_header("content-type", "application/json")
 ```
 ```python
 >>> ctx.set_header("X-Api-Key", "api-token")
+>>> ctx.set_header("x-api-key", "api-token")
 ```
 
-**_注意_**：`set_header` 内置转化逻辑，故**支持Key值输入全小写**。
+**_注意_**：`set_header` 内置转化逻辑，故**支持 Header 输入全小写**。（不过，作为一名合格的后端研发，你应该知道这样是不对的）
 
 ## 响应体
 在 Pywss 中，通过 **`ctx.write`** 可以指定 **响应数据**。
@@ -58,7 +60,7 @@ slug: response
 - `ctx.set_status_code(302)`
 - `ctx.set_header("Location", "/new/route")`
 
-Pywss 提供了开箱即用的重定向功能，可通过 **`ctx.redirect`** 使用。
+Pywss 提供了开箱即用的重定向功能，通过 **`ctx.redirect`** 可以直接使用。
 
 ```python
 >>> ctx.redirect("/")

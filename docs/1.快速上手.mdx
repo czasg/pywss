@@ -28,7 +28,7 @@ Pywss 依赖 python 3.6+ 版本的部分特性。
 <Tabs className="unique-tabs">
 <TabItem value="pip安装" label="pip安装" default>
 
-```shell script
+```shell
 >>> pip3 install pywss
 >>> pip3 install pywss -i https://pypi.org/simple
 >>> pip3 install pywss -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -37,7 +37,7 @@ Pywss 依赖 python 3.6+ 版本的部分特性。
 </TabItem>
 <TabItem value="源码安装" label="源码安装" default>
 
-```shell script
+```shell
 >>> git clone https://github.com/czasg/pywss.git
 >>> cd pywss
 >>> python3 setup.py install
@@ -81,7 +81,7 @@ if __name__ == '__main__':
   </TabItem>
   <TabItem value="GET/hi" label="GET/hi">
 
-```shell script title="请求 /hi 接口"
+```shell title="请求 /hi 接口"
 >>> curl localhost:8080/hi
 hi~
 ```
@@ -89,7 +89,7 @@ hi~
   </TabItem>
   <TabItem value="POST/hello" label="POST/hello">
 
-```shell script title="请求 /hello 接口"
+```shell title="请求 /hello 接口"
 >>> curl -X POST localhost:8080/hello
 {"hello": "world"}
 ```
@@ -141,17 +141,17 @@ hi~
 |**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。参考值：`/api/v1/query?key=value`|
 |**`ctx.url_params`**|`dict`|HTTP请求参数，是基于`ctx.url`解析的结果。举例说明：对于`/api/v1/query?key=value`地址，`ctx.url_params`等于**`{"key": "value"}`**|
 |**`ctx.route`**|`str`|HTTP请求Route路由，注意是**不包含请求参数在内**的路由，参考：`/api/v1/query`|
-|**`ctx.route_params`**|`dict`|用于存储[局部匹配](#特殊路由匹配机制)下的路径参数，举例说明：对于`/api/v1/{name}/{age}`路由，`ctx.route_params`等于**`{"name": "xx", "age": "xx"}`**|
+|**`ctx.route_params`**|`dict`|用于存储[局部匹配](advance/route-match)下的路径参数，举例说明：对于`/api/v1/{name}/{age}`路由，`ctx.route_params`等于**`{"name": "xx", "age": "xx"}`**|
 |**`ctx.headers`**|`dict`|HTTP请求头|
 |**`ctx.cookies`**|`dict`|HTTP请求Cookie，是基于`ctx.headers["Cookie"]`解析的结果|
 |**`ctx.content_length`**|`int`|HTTP请求Body大小，是基于`ctx.headers["Content-Length"]`解析的结果|
 |**`ctx.content`**|`byte`|HTTP请求Body。一般不直接使用，对于需要获取原生请求场景，**推荐使用`ctx.body()`**|
 |**`ctx.data`**|`pywss.Data`|基于字典实现，**用于Context上下文信息传递**。使用方式参考 `ctx.data.key = value`|
-|**`ctx.body()`**|`func`|获取原始请求Body|
-|**`ctx.json()`**|`func`|**解析请求**，并以 **JSON** 形式返回|
-|**`ctx.form()`**|`func`|**解析请求**，并以 **FORM** 形式返回|
-|**`ctx.file()`**|`func`|**解析请求**，并以 **`Dict[str, pywss.File]`** 形式返回|
-|**`ctx.stream()`**|`func`|**流式读取请求**，用于某些大数据场景|
+|**`ctx.body()`**|`func`|[**解析请求**](advance/request-parse#byte)，并以 **BYTE** 形式返回|
+|**`ctx.json()`**|`func`|[**解析请求**](advance/request-parse#json)，并以 **JSON** 形式返回|
+|**`ctx.form()`**|`func`|[**解析请求**](advance/request-parse#form)，并以 **FORM** 形式返回|
+|**`ctx.file()`**|`func`|[**解析请求**](advance/request-parse#file)，并以 **`Dict[str, pywss.File]`** 形式返回|
+|**`ctx.stream()`**|`func`|[**流式读取请求**](advance/request-parse#stream)，用于某些大数据场景|
 |**`ctx.set_status_code()`**|`func`|指定HTTP响应报文**状态码**|
 |**`ctx.set_header()`**|`func`|指定HTTP**响应头**|
 |**`ctx.set_content_type()`**|`func`|指定HTTP**响应类型**|

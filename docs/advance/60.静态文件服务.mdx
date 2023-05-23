@@ -1,0 +1,79 @@
+---
+title: 静态文件服务
+hide_title: false
+hide_table_of_contents: false
+slug: static-file
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Pywss 通过 **`app.static`** 实现了简单的静态文件服务器。其原理基于**头部匹配机制**实现（不清楚的同学见路由匹配机制）。
+
+在此方法中，需要特别注意两个参数：
+
+- **route**：路由前缀。
+- **rootDir**：静态文件目录。
+
+:::note 根目录
+
+**rootDir** 指定目录为 **根目录**。
+
+在请求到来时，Pywss 首先将 URL 剔除路由前缀，然后将剩余路由作为文件位置，在根目录中进行查找。
+
+:::
+
+
+
+下面，通过一个案例来搭建一个静态文件服务器
+
+```text title="项目结构"
+- static/
+  - css/
+    style.css
+  - js/
+    jquery.js
+  index.html
+main.py
+```
+
+<Tabs>
+  <TabItem value="main.py" label="main.py" default>
+
+```python showLineNumbers
+import pywss
+
+def main():
+    app = pywss.App()
+    app.get("/", lambda ctx: ctx.redirect("/static/index.html")
+    app.static("/static", rootDir="./static")
+    app.run()
+
+if __name__ == '__main__':
+    """
+    http://localhost:8080/static/index.html
+    """
+    main()
+```
+
+  </TabItem>
+  <TabItem value="index.html" label="index.html">
+
+```html showLineNumbers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/jquery.js"></script>
+</head>
+<body>
+HelloWorld
+</body>
+</html>
+```
+
+  </TabItem>
+</Tabs>
+
+启动服务后，可以通过 [http://localhost:8080/static/index.html](http://localhost:8080/static/index.html) 进行访问。
