@@ -8,7 +8,7 @@ import socket
 import threading
 import selectors
 
-from typing import Dict
+from typing import Dict, Union
 from _io import BufferedReader
 from types import FunctionType
 from datetime import timedelta
@@ -28,7 +28,6 @@ __version__ = '0.1.19'
 
 class Context:
     _handler_index = 0
-    _flush_header = False
 
     def __init__(
             self, app, log,
@@ -57,8 +56,8 @@ class Context:
         # response
         self.response_status_code: int = 200
         self.response_headers: dict = {
-            "Server": "Pywss",
-            "PywssVersion": __version__,
+            "X-Server": "Pywss",
+            "X-Pywss-Version": __version__,
             HeaderContentLength: 0,
         }
         self.response_body: list = []
@@ -66,6 +65,9 @@ class Context:
         self._route: str = app_route
         self._handlers: list = handlers
         self.data: Data = Data()  # data save for user
+        # flush
+        self.flush_header = once(self.__flush_header)
+        self.flush_body = once(self.__flush_body)
 
     def next(self) -> None:
         if self._handler_index >= len(self._handlers):
@@ -288,20 +290,37 @@ class Context:
         self.set_content_length(os.stat(file.fileno())[6])
         self.response_body.append(file)
 
+    def write_chunk(self, data: Union[str, bytes]):
+        if isinstance(data, str):
+            data = data.encode()
+        self.flush_header(type="chunked")
+        self.fd.sendall(f"{hex(len(data))[2:]}".encode() + b'\r\n' + data + b'\r\n')
+
     def ws_read(self) -> bytes:  # impl by WebSocketUpgrade
         raise NotImplementedError
 
     def ws_write(self, body) -> None:  # impl by WebSocketUpgrade
         raise NotImplementedError
 
-    def flush(self) -> None:
-        if not self._flush_header:
-            data = [f"{self.version} {self.response_status_code} Pywss"]
-            for k, v in self.response_headers.items():
-                data.append(f"{k}: {v}")
-            data = "\r\n".join(data) + "\r\n\r\n"
-            self.fd.sendall(data.encode())
-            self._flush_header = True
+    def flush(self):
+        self.flush_header()
+        self.flush_body()
+
+    def __flush_header(self, type=None):
+        if type == "chunked":
+            self.response_headers.pop(HeaderContentLength, None)
+            self.response_headers.setdefault(HeaderContentType, "text/html; charset=utf-8")
+            self.response_headers.setdefault(HeaderTransferEncoding, "chunked")
+        data = [f"{self.version} {self.response_status_code} Pywss"]
+        for k, v in self.response_headers.items():
+            data.append(f"{k}: {v}")
+        data = "\r\n".join(data) + "\r\n\r\n"
+        self.fd.sendall(data.encode())
+
+    def __flush_body(self):
+        if "chunked" in self.response_headers.get(HeaderTransferEncoding, ""):
+            self.fd.send(b'0\r\n\r\n')
+            return
         for body in self.response_body:
             if isinstance(body, bytes):
                 self.fd.sendall(body)
@@ -313,7 +332,6 @@ class Context:
                     self.fd.sendall(chunk)
                     chunk = body.read(8192)
                 body.close()
-        self.response_body = []
 
 
 class App:
@@ -656,3 +674,14 @@ class File:
         self.name: str = name
         self.filename: str = filename
         self.content: bytes = content
+
+
+def once(func):
+    def wrapper(*args, **kwargs):
+        if wrapper.__done__:
+            return True
+        wrapper.__done__ = True
+        return func(*args, **kwargs)
+
+    wrapper.__done__ = False
+    return wrapper
