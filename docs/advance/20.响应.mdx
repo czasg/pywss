@@ -34,9 +34,10 @@ slug: response
 
 实际上，ctx 提供了多种数据的写入渠道，包括：
 
-- **`ctx.write_text`**
-- **`ctx.write_json`**
-- **`ctx.write_file`**
+- **`ctx.write_text`**：-
+- **`ctx.write_json`**：基于 `Content-Type: application/json` 指定响应类型
+- **`ctx.write_file`**：基于 `Content-Disposition: attachment; filename="filename"` 指定响应类型
+- **`ctx.write_chunk`**：基于 `Transfer-Encoding: chunked` 实现块（流）式响应
 
 大部分场景下，建议使用统一的 `ctx.write` 入口。
 
@@ -51,6 +52,12 @@ slug: response
 ```python title='File类型'
 >>> ctx.write(open("file.txt", "rb"))
 >>> ctx.write_file("file.txt")
+```
+```python title='Chunk类型'
+>>> ctx.write_chunk("data-chunk-1")
+>>> ctx.write_chunk("data-chunk-2")
+>>> ctx.write_chunk("data-chunk-3")
+>>> ctx.write_chunk("data-chunk-4")
 ```
 
 ## 重定向
