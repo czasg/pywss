@@ -9,9 +9,11 @@ MethodOptions = "OPTIONS"
 
 # http header
 HeaderAccept = "Accept"
-HeaderAuthorization = "Authorization"
+HeaderAcceptEncoding = "Accept-Encoding"
 HeaderAcceptLanguage = "Accept-Language"
+HeaderAuthorization = "Authorization"
 HeaderContentLanguage = "Content-Language"
+HeaderCacheControl = "Cache-Control"
 HeaderContentLength = "Content-Length"
 HeaderContentType = "Content-Type"
 HeaderContentDisposition = "Content-Disposition"
