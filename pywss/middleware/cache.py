@@ -25,7 +25,7 @@ def NewCacheHandler(expire=60, maxCache=30):
                 ctx.log.info("hit cache")
                 return
         ctx.next()
-        if ctx._flush_header or ctx.response_status_code >= 400:
+        if ctx.response_status_code >= 400:
             return
         try:
             with lock:
