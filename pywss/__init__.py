@@ -477,7 +477,7 @@ class App:
         self.patch(route, *handlers)
         self.options(route, *handlers)
 
-    def mount(self, *handlers):
+    def callme(self, *handlers):
         for handler in handlers:
             handler(self)
 

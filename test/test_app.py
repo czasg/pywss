@@ -276,10 +276,10 @@ class TestBase(unittest.TestCase):
     def test_ctx_cookie(self):
         app = pywss.App()
         app.get("/maxAge", lambda ctx: ctx.set_cookie(
-            "test", "test", path="/test", maxAge=timedelta(days=1)
+            "test", "test", path="view", maxAge=timedelta(days=1)
         ))
         app.get("/expires", lambda ctx: ctx.set_cookie(
-            "test", "test", path="/test", expires=10
+            "test", "test", path="view", expires=10
         ))
         app.get("/secure", lambda ctx: ctx.set_cookie(
             "test", "test", secure=True
