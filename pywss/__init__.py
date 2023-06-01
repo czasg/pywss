@@ -5,6 +5,7 @@ import json
 import time
 import loggus
 import socket
+import inspect
 import threading
 import selectors
 
@@ -476,6 +477,10 @@ class App:
         self.patch(route, *handlers)
         self.options(route, *handlers)
 
+    def callme(self, *handlers):
+        for handler in handlers:
+            handler(self)
+
     def view(self, route, *handlers):
         if len(handlers) < 1:
             raise Exception("not found handlers")
@@ -489,31 +494,52 @@ class App:
             if hasattr(view, f"http_{method}"):
                 getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
 
-    def view_modules(self, path, *handlers, prefix=True):
-        if not os.path.exists(path):
-            raise Exception(f"{path} not exists")
-        for base, _, files in os.walk(path):
-            base_modules = re.findall("([a-zA-Z0-9-_{}]+)", base)
-            route_modules = base_modules
-            if not prefix:
-                prefix_length = len(re.findall("([a-zA-Z0-9-_{}]+)", path))
-                route_modules = base_modules[prefix_length:]
+    def view_modules(
+            self,
+            module: str,
+            *handlers,
+            module_ignore_startswith=("_", "test_"),
+            module_ignore_endswith=("_test"),
+    ):
+        if not re.match("[a-zA-Z0-9._]*", module):
+            raise Exception("invalid module")
+        stack = inspect.stack()
+        caller_frame = stack[1]
+        caller_module = inspect.getmodule(caller_frame[0])
+        caller_module_dir = os.path.dirname(caller_module.__file__)
+        caller_module_path = os.path.join(caller_module_dir, module.replace(".", os.sep))
+        for filepath, _, files in os.walk(caller_module_path):
+            base_module = os.path.basename(filepath)
+            if base_module.startswith(module_ignore_startswith) or \
+                    base_module.endswith(module_ignore_endswith):
+                continue
             for filename in files:
                 if not filename.endswith(".py"):
                     continue
-                filename = filename[:-3]
-                if filename.startswith(("_", "test")) and filename != "__init__":
+                child_module_name = os.path.splitext(filename)[0]
+                child_module_path = ".".join(filter(None, [
+                    caller_module.__package__,
+                    os.path.relpath(filepath, caller_module_dir).replace(os.sep, ".")
+                ]))
+                child_module_route = os.path.relpath(filepath, caller_module_path).strip(".").replace(os.sep, "/")
+                if child_module_name == "__init__":
+                    child_module_name = ""
+                    py_module = import_module(child_module_path)
+                elif child_module_name.startswith(module_ignore_startswith):
                     continue
-                route = filename.replace("__init__", "")
-                module = import_module(".".join([*base_modules, filename]))
-                view_name = getattr(module, "__view__", "View")
-                view_module = getattr(module, view_name, None)
-                if not view_module:
+                elif child_module_name.endswith(module_ignore_endswith):
                     continue
-                if callable(view_module) and type(view_module) is not FunctionType:
-                    view_module = view_module()
-                route = getattr(module, "__route__", route).strip("/")
-                self.view("/".join([*route_modules, route]), *handlers, view_module)
+                else:
+                    py_module = import_module(child_module_path + "." + child_module_name)
+                view_name = getattr(py_module, "__view__", "View")
+                view_handler = getattr(py_module, view_name, None)
+                if not view_handler:
+                    self.log.update(package=py_module.__package__).warning(f"not found package `View Handler`")
+                    continue
+                if callable(view_handler) and type(view_handler) is not FunctionType:
+                    view_handler = view_handler()
+                view_route = getattr(py_module, "__route__", child_module_name).strip("/")
+                self.view(f"{child_module_route}/{view_route}", *handlers, view_handler)
 
     def openapi(
             self,
