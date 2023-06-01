@@ -276,10 +276,10 @@ class TestBase(unittest.TestCase):
     def test_ctx_cookie(self):
         app = pywss.App()
         app.get("/maxAge", lambda ctx: ctx.set_cookie(
-            "test", "test", path="view", maxAge=timedelta(days=1)
+            "test", "test", path="/view", maxAge=timedelta(days=1)
         ))
         app.get("/expires", lambda ctx: ctx.set_cookie(
-            "test", "test", path="view", expires=10
+            "test", "test", path="/view", expires=10
         ))
         app.get("/secure", lambda ctx: ctx.set_cookie(
             "test", "test", secure=True
@@ -289,13 +289,13 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("test=test", resp.headers.get("Set-Cookie"))
         self.assertIn("Expires=", resp.headers.get("Set-Cookie"))
-        self.assertIn("Path=/test", resp.headers.get("Set-Cookie"))
+        self.assertIn("Path=/view", resp.headers.get("Set-Cookie"))
 
         resp = pywss.HttpTestRequest(app).get("/expires")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("test=test", resp.headers.get("Set-Cookie"))
         self.assertIn("Expires=", resp.headers.get("Set-Cookie"))
-        self.assertIn("Path=/test", resp.headers.get("Set-Cookie"))
+        self.assertIn("Path=/view", resp.headers.get("Set-Cookie"))
 
         resp = pywss.HttpTestRequest(app).get("/secure")
         self.assertEqual(resp.status_code, 200)
