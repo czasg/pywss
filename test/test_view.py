@@ -24,15 +24,18 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         app.view_modules("view")
 
-        resp = pywss.HttpTestRequest(app).get("/test-view-modules")
+        resp = pywss.HttpTestRequest(app).get("/test-view")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "test")
         self.assertEqual(int(resp.headers.get("Content-Length")), 4)
 
-        # resp = pywss.HttpTestRequest(app).get("/test-view-modules/test")
-        # self.assertEqual(resp.status_code, 200)
-        # self.assertEqual(resp.body, "test")
-        # self.assertEqual(int(resp.headers.get("Content-Length")), 4)
+        resp = pywss.HttpTestRequest(app).get("/test-view-app")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.body, "test-view-app")
+
+        resp = pywss.HttpTestRequest(app).get("/test-view-func")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.body, "test-view-func")
 
     def test_callme(self):
         def call(_):

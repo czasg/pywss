@@ -536,9 +536,15 @@ class App:
                 if not view_handler:
                     self.log.update(package=py_module.__package__).warning(f"not found package `View Handler`")
                     continue
-                if callable(view_handler) and type(view_handler) is not FunctionType:
-                    view_handler = view_handler()
                 view_route = getattr(py_module, "__route__", child_module_name).strip("/")
+                if type(view_handler) is FunctionType:
+                    view_handler(self.party(f"{child_module_route}/{view_route}", *handlers))
+                    continue
+                if type(view_handler) is type:
+                    if len(inspect.signature(view_handler.__init__).parameters) == 2:
+                        view_handler = view_handler(self)
+                    else:
+                        view_handler = view_handler()
                 self.view(f"{child_module_route}/{view_route}", *handlers, view_handler)
 
     def openapi(
