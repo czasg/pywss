@@ -430,7 +430,9 @@ class App:
     def party(self, route, *handlers) -> 'App':
         route = f"{self.base_route}/{route.strip().strip('/')}"
         if route not in self.full_match_routes:
-            self.full_match_routes[route] = App(route, list(self.base_handlers) + list(handlers))
+            app = App(route, list(self.base_handlers) + list(handlers))
+            app.data = self.data
+            self.full_match_routes[route] = app
         return self.full_match_routes[route]
 
     def use(self, *handlers) -> None:
