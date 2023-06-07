@@ -1,0 +1,211 @@
+---
+title: 文件路由
+hide_title: true
+hide_table_of_contents: false
+slug: file-route
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## 文件路由
+
+:::caution 用前须知
+
+**文件路由** 是作者对路由管理的探索与实践。
+
+关于如何更好的组织项目，作者仍然在学习中。故此模块后续 **可能会有变动**。
+
+:::
+
+:::note 文件路由
+
+**文件路由**，即通过对 **路由文件** 的 **路径、名称** 等文件信息进行管理，实现对路由的有效管理。
+
+:::
+
+为了更好的管理大型项目，Pywss 支持通过 `app.view_modules` 的方式来实现 **文件路由** 的管理风格。
+
+在路由文件中，有两个**内置参数**。
+
+|内置参数|说明|
+|---|---|
+|**`__route__`**|用于指定当前文件路由，默认为当前文件名|
+|**`__view__`**|用于指定当前文件路由视图，默认为：`View`对象|
+
+
+我们继续通过一个案例来说明：
+
+```text title="项目结构"
+- view
+  - api/
+    - v1/
+      user.py
+      user_role.py
+    - v2/
+      permission.py
+main.py
+```
+
+<Tabs>
+  <TabItem value="main.py" label="main.py" default>
+
+```python showLineNumbers {5}
+import pywss
+
+def main():
+    app = pywss.App()
+    app.view_modules("view")  # 指定路由模块
+    app.run()
+
+if __name__ == '__main__':
+    main()
+```
+
+  </TabItem>
+  <TabItem value="user.py" label="/api/v1/user.py（类视图）">
+
+```python showLineNumbers
+import pywss
+
+__route__ = "/user"  # 默认值
+__view__ = "View"  # 默认值
+
+class View:
+
+    def http_get(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "GET",
+            "route": "/api/v1/user",
+            "message": "获取用户成功",
+        })
+
+    def http_post(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "POST",
+            "route": "/api/v1/user",
+            "message": "创建用户成功",
+        })
+
+    def http_delete(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "DELETE",
+            "route": "/api/v1/user",
+            "message": "删除用户成功",
+        })
+```
+
+  </TabItem>
+  <TabItem value="user_role.py" label="/api/v1/user_role.py（类app视图）">
+
+```python showLineNumbers
+import pywss
+
+__route__ = "/userRole"  # 指定路由，否则默认"/user_role"
+__view__ = "View"  # 默认
+
+class View:
+
+    def __init__(self, app: pywss.App):  # 指定一个入参时，会将app作为初始化参数传递进来
+        pass
+
+    def http_get(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "GET",
+            "route": "/api/v1/userRole",
+            "message": "获取用户角色成功",
+        })
+
+    def http_post(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "POST",
+            "route": "/api/v1/userRole",
+            "message": "创建用户角色成功",
+        })
+
+    def http_delete(self, ctx: pywss.Context):
+        ctx.write({
+            "code": 0,
+            "method": "DELETE",
+            "route": "/api/v1/userRole",
+            "message": "删除用户角色成功",
+        })
+```
+
+  </TabItem>
+  <TabItem value="permission.py" label="/api/v2/permission.py（函数视图）">
+
+```python showLineNumbers {7}
+import pywss
+
+__route__ = "/perm"  # 指定路由，否则默认"/permission"
+__view__ = "view"  # 指定视图，否则默认"View"
+
+# 当指定视图是函数时，会将app作为参数传递进来
+def view(app: pywss.App):
+    app.get("/", http_get)
+    app.post("/", http_post)
+    app.delete("/", http_delete)
+
+def http_get(ctx: pywss.Context):
+    ctx.write({
+        "code": 0,
+        "method": "GET",
+        "route": "/api/v2/perm",
+        "message": "获取权限成功",
+    })
+
+def http_post(ctx: pywss.Context):
+    ctx.write({
+        "code": 0,
+        "method": "POST",
+        "route": "/api/v2/perm",
+        "message": "创建用户角色成功",
+    })
+
+def http_delete(ctx: pywss.Context):
+    ctx.write({
+        "code": 0,
+        "method": "DELETE",
+        "route": "/api/v2/perm",
+        "message": "删除用户角色成功",
+    })
+```
+
+  </TabItem>
+</Tabs>
+
+在 `main.py` 中，我们通过 `app.view_modules("view")` 指定**路由模块**。注意此处是模块而不是目录（使用 . 而不是 /）。
+
+当模块只有一级的时候看不出区别，当我们指定二级模块时就可以很好的区别了，比如我们需要指定 **/view/api/v1**，
+这时我们应该使用 `app.view_modules("view.api.v1")` 而不是 `app.view_modules("view/api/v1")`。
+
+为了避免不同路由模块之间的冲突，`view_modules` 仅且支持指定当前调用模块下的子模块。
+
+`view_modules` 会遍历指定**路由模块**，并读取子模块下的两个特定属性 `__view__` 和 `__route__`，然后通过这两个属性来加载视图模块。
+
+同时，为了更加灵活的实现视图机制，`view_modules` 支持三种机制：
+
+#### 类视图
+类视图就是前章节中普通的视图机制。
+
+#### 类app视图
+在某些场景下，可能需要使用到 App 执行初始化。
+
+`view_modules` 加入了类初始化函数的判断逻辑，即当类中指定 `def __init__(self, app: pywss.App)` 初始化函数时，
+会将 app 作为参数传递执行初始化。
+
+#### 函数视图
+对于习惯函数式编程的同学来说，可能会更喜欢此种方式。
+
+`view_modules` 同样会判断视图是否属于函数，如果是函数，则会创建 `party` 并将 App 作为参数传递给视图函数。
+
+<!--
+
+具体使用场景可参考：[pywss-be](https://github.com/czasg/pywss-react-admin-be)
+
+-->
