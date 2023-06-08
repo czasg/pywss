@@ -59,7 +59,7 @@ Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)�
 <Tabs className="unique-tabs">
   <TabItem value="main.py" label="main.py" default>
 
-```python showLineNumbers title="应用源码"
+```python showLineNumbers title="源码"
 import pywss
 
 def helloHandler(ctx: pywss.Context):
@@ -108,10 +108,10 @@ hi~
 
 #### 2.其次是路由注册模块
 
-- 第8行 **`app.get(/hi, ...`** 表示 **注册 Http Get** 方法
+- 第8行 **`app.get()`** 表示 **注册 Http Get** 方法，其参数分别表示：
     - **绑定路由** `/hi`
     - **绑定业务处理逻辑** `lambda ctx: ctx.write("hi~")`
-- 第9行 **`app.post(/hello, ...`** 表示 **注册 Http Post** 方法
+- 第9行 **`app.post()`** 表示 **注册 Http Post** 方法，其参数分别表示：
     - **绑定路由** `/hello`
     - **绑定业务处理逻辑** `helloHandler`
 
@@ -121,7 +121,7 @@ hi~
 
 
 
-## **Context** 上下文
+## 上下文 **Context**
 在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） **贯穿于单次请求的整个生命周期**，是 Pywss 用于管理请求的上下文对象。
 
 对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
@@ -135,17 +135,17 @@ hi~
 |**`ctx.app`**|`pywss.App`|根 **app** 对象|
 |**`ctx.fd`**|`socket.socket`|sock句柄，用于**写操作**，一般不直接使用|
 |**`ctx.rfd`**|`socket.makefile`|sock句柄，用于**读操作**，一般不直接使用|
-|**`ctx.address`**|`tuple`|请求地址信息|
-|**`ctx.method`**|`str`|HTTP请求方法，由 GET/POST/PUT/DELETE/HEAD/PATCH/OPTIONS 组成|
-|**`ctx.version`**|`str`|HTTP协议版本号，参考值：`HTTP/1.1`|
-|**`ctx.url`**|`str`|HTTP请求Url地址，注意是**包含请求参数在内**的全量地址。参考值：`/api/v1/query?key=value`|
-|**`ctx.url_params`**|`dict`|HTTP请求参数，是基于`ctx.url`解析的结果。举例说明：对于`/api/v1/query?key=value`地址，`ctx.url_params`等于**`{"key": "value"}`**|
-|**`ctx.route`**|`str`|HTTP请求Route路由，注意是**不包含请求参数在内**的路由，参考：`/api/v1/query`|
+|**`ctx.address`**|`tuple`|**HTTP地址信息**|
+|**`ctx.method`**|`str`|**HTTP请求方法**，由 GET/POST/PUT/DELETE/HEAD/PATCH/OPTIONS 组成|
+|**`ctx.version`**|`str`|**HTTP协议版本号**，参考值：`HTTP/1.1`|
+|**`ctx.url`**|`str`|**HTTP请求URL地址**，注意是**包含请求参数在内**的全量地址。参考值：`/api/v1/query?key=value`|
+|**`ctx.url_params`**|`dict`|**HTTP请求参数**，是基于`ctx.url`解析的结果。举例说明：对于`/api/v1/query?key=value`地址，`ctx.url_params`等于**`{"key": "value"}`**|
+|**`ctx.route`**|`str`|**HTTP请求路由**，注意是**不包含请求参数在内**的路由，参考：`/api/v1/query`|
 |**`ctx.route_params`**|`dict`|用于存储[局部匹配](advance/route-match)下的路径参数，举例说明：对于`/api/v1/{name}/{age}`路由，`ctx.route_params`等于**`{"name": "xx", "age": "xx"}`**|
-|**`ctx.headers`**|`dict`|HTTP请求头|
-|**`ctx.cookies`**|`dict`|HTTP请求Cookie，是基于`ctx.headers["Cookie"]`解析的结果|
-|**`ctx.content_length`**|`int`|HTTP请求Body大小，是基于`ctx.headers["Content-Length"]`解析的结果|
-|**`ctx.content`**|`byte`|HTTP请求Body。一般不直接使用，对于需要获取原生请求场景，**推荐使用`ctx.body()`**|
+|**`ctx.headers`**|`dict`|**HTTP请求头**|
+|**`ctx.cookies`**|`dict`|**HTTP请求Cookie**，是基于`ctx.headers["Cookie"]`解析的结果|
+|**`ctx.content_length`**|`int`|**HTTP请求大小**，是基于`ctx.headers["Content-Length"]`解析的结果|
+|**`ctx.content`**|`byte`|**HTTP请求数据体**。一般不直接使用，对于需要获取原生请求场景，**推荐使用`ctx.body()`**|
 |**`ctx.data`**|`pywss.Data`|基于字典实现，**用于Context上下文信息传递**。使用方式参考 `ctx.data.key = value`|
 |**`ctx.body()`**|`func`|[**解析请求**](advance/request-parse#byte)，以 **BYTE** 形式返回|
 |**`ctx.json()`**|`func`|[**解析请求**](advance/request-parse#json)，以 **JSON** 形式返回|
@@ -157,10 +157,10 @@ hi~
 |**`ctx.set_content_type()`**|`func`|指定HTTP**响应类型**|
 |**`ctx.set_cookie()`**|`func`|指定HTTP**响应Cookie**|
 |**`ctx.write()`**|`func`|指定HTTP**响应体**，支持 **String、JSON、Chunked** 等，详情见[响应模块](advance/response)|
-|**`ctx.flush()`**|`func`|发送HTTP响应报文，一般不需要自己调用。`flush`仅且只能调用一次，多次调用仅第一次生效~。|
+|**`ctx.flush()`**|`func`|**发送HTTP响应报文**，一般不需要自己调用。`flush`仅且只能调用一次，多次调用仅第一次生效~|
 
 
-## 优雅的使用 **ctx.next**
+## 优雅的使用 **Next**
 
 :::caution 前提说明
 
@@ -171,6 +171,22 @@ hi~
 ### 原理简介
 
 **`ctx.next`** 本质是一个**链式调用**。
+
+```python showLineNumbers title="示例"
+# 定义多个handler
+handler_1 = lambda ctx: ctx.next()  # 触发handler_2
+handler_2 = lambda ctx: ctx.next()  # 触发handler_3
+handler_3 = lambda ctx: ctx.next()  # 无效
+
+# 注册多个handler
+app.get("/hello", handler_1, handler_2, handler_3)
+
+# 通过next链式调用实现同等替换的效果
+ctx.next() -> handler_1(ctx)  # 第一次调用等同于handler_1(ctx)
+ctx.next() -> handler_2(ctx)  # 第二次调用等同于handler_2(ctx)
+ctx.next() -> handler_3(ctx)  # 第三次调用等同于handler_3(ctx)
+ctx.next() -> None            # 第四次调用，无效
+```
 
 其源码也是非常的简洁，核心逻辑仅由几行代码实现：
 
@@ -188,42 +204,46 @@ def next(self) -> None:
 
 ### 使用方法
 
-基于 **`ctx.next`** 链式调用的特性，我们可以非常容易的实现**中间件拓展**。
+基于 **`ctx.next`** 链式调用的特性，我们可以顺序的选择 **执行/不执行** 后面的handler，因此我们可以非常容易的实现**中间件拓展**。
 
 在 pywss 中，提供了两种方式来拓展中间件能力：
 
 - **app use 全局注册** ，针对全部路由生效
 - **route bind 局部注册** ，针对指定路由生效
 
-```python title="全局注册" showLineNumbers {6,11}
+下面通过一个`logHandler`来实战演示下如何通过`next`快速实现一个日志中间件~
+
+```python title="全局注册" showLineNumbers {6,12}
 import pywss
 import time
+import random
 
-def logMiddleware(ctx: pywss.Context):
-    entryTime = time.time()
+def logHandler(ctx: pywss.Context):
+    startTime = time.time()
     ctx.next()
-    cost = time.time() - entryTime
+    cost = time.time() - startTime
     print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
 
 app = pywss.App()
-app.use(logMiddleware)
-app.get("/hi", lambda ctx: ctx.write("Hi~"))
-app.get("/hello", lambda ctx: ctx.write("HelloWorld"))
+app.use(logHandler)
+app.get("/hi", lambda ctx: time.sleep(random.randint(1, 3)) or ctx.write("Hi~"))
+app.post("/hello", lambda ctx: time.sleep(random.randint(1, 3)) or ctx.write("HelloWorld"))
 app.run()
 ```
 
-```python title="局部注册" showLineNumbers {6,12}
+```python title="局部注册" showLineNumbers {6,13}
 import pywss
 import time
+import random
 
-def logMiddleware(ctx: pywss.Context):
-    entryTime = time.time()
+def logHandler(ctx: pywss.Context):
+    startTime = time.time()
     ctx.next()
-    cost = time.time() - entryTime
+    cost = time.time() - startTime
     print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
 
 app = pywss.App()
-app.get("/hi", lambda ctx: ctx.write("Hi~"))  # 未注册日志中间件
-app.get("/hello", logMiddleware, lambda ctx: ctx.write("HelloWorld"))
+app.get("/hi", lambda ctx: time.sleep(random.randint(1, 3)) or ctx.write("Hi~"))
+app.post("/hello", logHandler, lambda ctx: time.sleep(random.randint(1, 3)) or ctx.write("HelloWorld"))
 app.run()
 ```

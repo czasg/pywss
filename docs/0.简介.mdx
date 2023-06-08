@@ -34,10 +34,10 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 其关键特性有：
 - **简单**：拒绝海量参数，减少心智负担。了解上下文 <Highlight>pywss.Context</Highlight> 即刻启程。
 - **快速**：纯手撸 socket，拒绝中间商赚取性能差价。(实在有性能追求的同学，不妨再探索下其他语言~**Go**~)
-- **优雅**：<Highlight>ctx.next</Highlight> 真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
-- **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
-- **支持WebSocket**：开箱即用的 **WebSocket** 能力。
-- **接口测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
+- **优雅**：<Highlight>next</Highlight> 设计真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
+- **标准**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
+- **测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
+- **工具链**：开箱即用的工具库，提供 **WebSocket** 等能力。
 
 
 ## Example
@@ -121,3 +121,24 @@ resp = req.get("/hello")  # 发起Get请求，获取resp
 assert resp.status_code == 200
 assert resp.body == "HelloWorld"
 ```
+
+## Why
+可能大部分会同学对 Python Web 框架感觉到厌烦...
+
+因为它们的选择实在是太多了，你甚至可以轻易的说出五种以上的框架，包括：Flask、Django、Tornado、FastAPI、Bottle等等。
+每个框架都有自己的特点和适用场景。在选择适合你项目需求的框架时，这些丰富的选择往往会成为纠结点。
+
+在这种背景下，Pywss 诞生了，尽管我知道在你的选择中，Pywss 会是末尾甚至排不上位。
+
+<Highlight>但 Pywss 致力于追求真正的轻量级。</Highlight>
+
+<br/>
+<br/>
+
+或许你会觉得 Flask 足够轻量，但如果你不了解 **ThreadLocalData、RequestHook、Blueprints、g** 等相关概念及原理，我甚至会觉得你没有入门。
+
+说到底，当代 Web 框架功能太多了，多到你记不完的参数、写不明白的配置、翻不完的文档...
+
+所以，如果你刚好有一个非正式的项目，也刚好在选择合适的框架...
+
+我会推荐你使用 Pywss ！！

@@ -69,9 +69,9 @@ Pywss 通过更简单、轻量的方式实现了三种路由匹配机制，包�
 ## 局部匹配
 Pywss 在配置路由时，通过 <Highlight>大括号</Highlight> 区分 **局部匹配**。
 
-在使用 **局部匹配** 时，会生成指定的 **"路径参数"**，此参数存储在 `ctx.route_params` 中。
+在使用 **局部匹配** 时，会生成指定的 **"路由参数"**，此参数存储在 `ctx.route_params` 中。
 
-```python title="获取路径参数" showLineNumbers
+```python title="获取路由参数" showLineNumbers
 import pywss
 
 def hello(ctx: pywss.Context):
