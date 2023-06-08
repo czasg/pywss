@@ -1,13 +1,10 @@
 # coding: utf-8
 import time
-import json, os
+import os
 import loggus
-import socket
 import pywss
 import unittest
 import tempfile
-import threading
-from datetime import timedelta
 
 loggus.SetLevel(loggus.PANIC)
 
