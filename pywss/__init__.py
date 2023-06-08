@@ -665,7 +665,14 @@ class App:
     def close(self) -> None:
         self.running = False
 
-    def run(self, host="0.0.0.0", port=8080, grace=0, request_queue_size=5, poll_interval=0.5) -> None:
+    def run(
+            self, host="0.0.0.0", port=8080, grace=0,
+            request_queue_size=5,
+            poll_interval=0.5,
+            log_json=False,
+    ) -> None:
+        if log_json:
+            loggus.SetFormatter(loggus.JsonFormatter)
         Closing.add_close(self.close)
         self.build()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

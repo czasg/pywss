@@ -179,7 +179,7 @@ class TestBase(unittest.TestCase):
     def test_app_run(self):
         app = pywss.App()
         threading.Thread(target=lambda: time.sleep(0.5) or app.close() or pywss.Closing.close()).start()
-        app.run(port=0, grace=1)
+        app.run(port=0, grace=1, log_json=True)
         self.assertEqual(app.running, False)
 
     def test_app_connect_err(self):
