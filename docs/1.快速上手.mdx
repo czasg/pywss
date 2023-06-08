@@ -170,7 +170,7 @@ hi~
 
 ### 原理简介
 
-**`ctx.next`** 本质是一个**链式调用**。
+**`ctx.next`** 本质是一个**嵌套调用**。
 
 ```python showLineNumbers title="示例"
 # 定义多个handler
@@ -181,7 +181,7 @@ handler_3 = lambda ctx: ctx.next()  # 无效
 # 注册多个handler
 app.get("/hello", handler_1, handler_2, handler_3)
 
-# 通过next链式调用实现同等替换的效果
+# 通过next嵌套调用实现同等替换的效果
 ctx.next() -> handler_1(ctx)  # 第一次调用等同于handler_1(ctx)
 ctx.next() -> handler_2(ctx)  # 第二次调用等同于handler_2(ctx)
 ctx.next() -> handler_3(ctx)  # 第三次调用等同于handler_3(ctx)
@@ -204,7 +204,7 @@ def next(self) -> None:
 
 ### 使用方法
 
-基于 **`ctx.next`** 链式调用的特性，我们可以顺序的选择 **执行/不执行** 后面的handler，因此我们可以非常容易的实现**中间件拓展**。
+基于 **`ctx.next`** 嵌套调用的特性，我们可以顺序的选择 **执行/不执行** 后面的handler，因此我们可以非常容易的实现**中间件拓展**。
 
 在 pywss 中，提供了两种方式来拓展中间件能力：
 
@@ -213,7 +213,7 @@ def next(self) -> None:
 
 下面通过一个`logHandler`来实战演示下如何通过`next`快速实现一个日志中间件~
 
-```python title="全局注册" showLineNumbers {6,12}
+```python title="全局注册" showLineNumbers {7,12}
 import pywss
 import time
 import random
@@ -231,7 +231,7 @@ app.post("/hello", lambda ctx: time.sleep(random.randint(1, 3)) or ctx.write("He
 app.run()
 ```
 
-```python title="局部注册" showLineNumbers {6,13}
+```python title="局部注册" showLineNumbers {7,13}
 import pywss
 import time
 import random

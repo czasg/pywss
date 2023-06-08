@@ -1,5 +1,5 @@
 ---
-title: 文件路由
+title: 拓展-文件路由
 hide_title: true
 hide_table_of_contents: false
 slug: file-route
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 ```
 
   </TabItem>
-  <TabItem value="user.py" label="/api/v1/user.py（类视图）">
+  <TabItem value="user.py" label="user.py(类视图)">
 
 ```python showLineNumbers
 import pywss
@@ -98,7 +98,7 @@ class View:
 ```
 
   </TabItem>
-  <TabItem value="user_role.py" label="/api/v1/user_role.py（类app视图）">
+  <TabItem value="user_role.py" label="user_role.py(类app视图)">
 
 ```python showLineNumbers
 import pywss
@@ -137,7 +137,7 @@ class View:
 ```
 
   </TabItem>
-  <TabItem value="permission.py" label="/api/v2/permission.py（函数视图）">
+  <TabItem value="permission.py" label="permission.py(函数视图)">
 
 ```python showLineNumbers {7}
 import pywss
@@ -184,7 +184,7 @@ def http_delete(ctx: pywss.Context):
 当模块只有一级的时候看不出区别，当我们指定二级模块时就可以很好的区别了，比如我们需要指定 **/view/api/v1**，
 这时我们应该使用 `app.view_modules("view.api.v1")` 而不是 `app.view_modules("view/api/v1")`。
 
-为了避免不同路由模块之间的冲突，`view_modules` 仅且支持指定当前调用模块下的子模块。
+为了避免不同路由模块之间的冲突，`view_modules` 仅且支持指定当前模块下的子模块。
 
 `view_modules` 会遍历指定**路由模块**，并读取子模块下的两个特定属性 `__view__` 和 `__route__`，然后通过这两个属性来加载视图模块。
 

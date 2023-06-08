@@ -33,7 +33,7 @@ export const Highlight = ({children}) => (
 下面我们通过案例来说明 **查询参数** 的使用。
 
 ```shell title="案例"
->>> curl http://127.0.0.1:8080/query?pageSize=10&pageNum=1&name=pywss
+>>> curl "http://127.0.0.1:8080/query?pageSize=10&pageNum=1&name=pywss"
 ```
 以上请求中，包含的**查询参数**有：
 - **pageSize**：对应值为 10
@@ -41,6 +41,8 @@ export const Highlight = ({children}) => (
 - **name**：对应值为 pywss
 
 对于 Pywss 应用来说，它们将转化为**键值对数据**并存储在字典 `ctx.url_params` 中。
+
+
 ```shell title="读取查询参数"
 >>> print(ctx.url_params)
 {
@@ -49,6 +51,8 @@ export const Highlight = ({children}) => (
   "name": "pywss"
 }
 ```
+
+
 需要注意的是，Pywss 并没有做任何 **类型转化** 的操作，你获取到的数据是最原始的 **字符串** 类型。
 
 但在大多数场景中，我们更希望对他们做类型转化。
@@ -77,7 +81,7 @@ app.run()
 ## 查询参数-重复值
 在某些场景下，查询参数可能会存在重复 **key** 值的情况。比如：
 ```shell title="案例"
-curl http://127.0.0.1:8080/query?name=pywss&version=v0.1.18&version=v0.1.17
+>>> curl "http://127.0.0.1:8080/query?name=pywss&version=v0.1.18&version=v0.1.17"
 ```
 以上请求中，我们可以看到指定了两个 version 参数。
 

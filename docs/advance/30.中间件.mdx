@@ -1,5 +1,5 @@
 ---
-title: 中间件
+title: 拓展-中间件
 hide_title: true
 hide_table_of_contents: false
 slug: middleware
@@ -54,6 +54,12 @@ app.run()
 
 ## 中间件开发
 
+:::caution 前提说明
+
+本节源代码取自 **v0.1.18** 版本，最新代码请参考 [Github-Pywss](https://github.com/czasg/pywss)
+
+:::
+
 本节举例 cors 和 jwt 中间件
 
 ```python title="服务端" showLineNumbers {6,7}
@@ -72,7 +78,7 @@ if __name__ == '__main__':
 ```
 
 ### CORS
-```python title="https://github.com/czasg/pywss/blob/master/pywss/middleware/cors.py" showLineNumbers
+```python title="https://github.com/czasg/pywss/blob/master/pywss/handler/cors.py" showLineNumbers
 import pywss
 
 from pywss.constant import *
@@ -102,7 +108,7 @@ def NewCORSHandler(
 ```
 
 ### JWT
-```python title="https://github.com/czasg/pywss/blob/master/pywss/middleware/jwt.py" showLineNumbers
+```python title="https://github.com/czasg/pywss/blob/master/pywss/handler/jwt.py" showLineNumbers
 import json
 import time
 import pywss

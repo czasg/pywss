@@ -79,7 +79,7 @@ def hello(ctx: pywss.Context):
     ctx.write({"hello": name})
 
 app = pywss.App()
-app.get("/hello/{name}", hello)
+app.any("/hello/{name}", hello)
 app.run()
 ```
 
@@ -109,7 +109,7 @@ def hello(ctx: pywss.Context):
     ctx.write({"hello": name})
 
 app = pywss.App()
-app.get("/hello/*", hello)
+app.any("/hello/*", hello)
 app.run()
 ```
 在此模式下，任意以 `/route/` 开头的路由均可以命中此路由。
