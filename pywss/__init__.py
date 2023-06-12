@@ -479,9 +479,16 @@ class App:
         self.patch(route, *handlers)
         self.options(route, *handlers)
 
-    def callme(self, *handlers):
-        for handler in handlers:
-            handler(self)
+    def mount_apps(self, *modules):
+        for modulename in modules:
+            py_module = import_module(modulename)
+            appname = getattr(py_module, "__app__", "App")
+            mount_app = getattr(py_module, appname, None)
+            if callable(mount_app):
+                mount_app(self)
+                self.log.update(module=modulename).info(f"mounted")
+                continue
+            self.log.update(module=modulename).warning(f"app mounted failed")
 
     def view(self, route, *handlers):
         if len(handlers) < 1:

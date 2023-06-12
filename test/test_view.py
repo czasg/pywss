@@ -37,12 +37,14 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.body, "test-view-func")
 
-    def test_callme(self):
-        def call(_):
-            pass
-
+    def test_mount_apps(self):
         app = pywss.App()
-        app.callme(call)
+        app.mount_apps("app.test")
+
+        resp = pywss.HttpTestRequest(app).get("/test")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.body, "test")
+        self.assertEqual(int(resp.headers.get("Content-Length")), 4)
 
 
 if __name__ == '__main__':
