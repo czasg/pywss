@@ -479,21 +479,43 @@ class App:
         self.patch(route, *handlers)
         self.options(route, *handlers)
 
+    def ins(self, obj):
+        if type(obj) not in (type, FunctionType):
+            return obj
+        signature = inspect.signature(obj)
+        parameters = signature.parameters
+        if not parameters:
+            return obj()
+        args = []
+        for parameter in parameters.values():
+            if parameter.kind not in (parameter.POSITIONAL_OR_KEYWORD, parameter.POSITIONAL_ONLY):
+                break
+            if parameter.default is not parameter.empty:
+                args.append(parameter.default)
+                continue
+            if parameter.annotation is parameter.empty:
+                args.append(None)
+                continue
+            if getattr(parameter.annotation, "__module__", None) == "builtins":
+                args.append(parameter.annotation())
+                continue
+            if parameter.annotation is App:
+                args.append(self)
+                continue
+            args.append(self.ins(parameter.annotation))
+        return obj(*args)
+
     def mount_apps(self, *modules):
         for modulename in modules:
             py_module = import_module(modulename)
             appname = getattr(py_module, "__app__", "App")
             mount_app = getattr(py_module, appname, None)
-            if callable(mount_app):
-                mount_app(self)
-                self.log.update(module=modulename).info(f"mounted")
-                continue
-            self.log.update(module=modulename).warning(f"app mounted failed")
+            self.ins(mount_app)
 
     def view(self, route, *handlers):
         if len(handlers) < 1:
             raise Exception("not found handlers")
-        view = handlers[-1]
+        view = self.ins(handlers[-1])
         handlers = list(handlers[:-1])
         if hasattr(view, "use"):
             handlers += list(getattr(view, "use"))
@@ -549,11 +571,6 @@ class App:
                 if type(view_handler) is FunctionType:
                     view_handler(self.party(f"{child_module_route}/{view_route}", *handlers))
                     continue
-                if type(view_handler) is type:
-                    if len(inspect.signature(view_handler.__init__).parameters) == 2:
-                        view_handler = view_handler(self)
-                    else:
-                        view_handler = view_handler()
                 self.view(f"{child_module_route}/{view_route}", *handlers, view_handler)
 
     def openapi(
