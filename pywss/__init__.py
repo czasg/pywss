@@ -520,10 +520,11 @@ class App:
         if hasattr(view, "use"):
             handlers += list(getattr(view, "use"))
         for method in ("get", "post", "head", "put", "delete", "patch", "options", "any"):
+            method_handlers = handlers[:]
             if hasattr(view, f"http_{method}_use"):
-                handlers += list(getattr(view, f"http_{method}_use"))
+                method_handlers += list(getattr(view, f"http_{method}_use"))
             if hasattr(view, f"http_{method}"):
-                getattr(self, method)(route, *handlers, getattr(view, f"http_{method}"))
+                getattr(self, method)(route, *method_handlers, getattr(view, f"http_{method}"))
 
     def view_modules(
             self,
