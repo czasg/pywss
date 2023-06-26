@@ -78,6 +78,51 @@ if __name__ == '__main__':
 
 不过也正因为如此，你想要的功能它基本都没有😂😂😂
 
-需要注意的是，在案例28行，`app.view` 注册了一个用户视图 **实例**。这里需要特别区分基于 **`@classmethod`** 实现的视图类。理论二者无显著差异。
-
 此外，视图内部是**非线程安全的**，这意味在操作公共资源的时候，需要加锁。
+
+
+## 依赖注入
+
+在现代Web框架中，有不少框架都是支持**依赖注入**能力的。但不同技术框架之间的实现方式则不尽相同。
+
+Pywss 在视图机制基础上，引入了**原生体验**的依赖注入能力。
+
+通过对参数的类型注解，可以轻易的实现依赖注入能力。下面通过一个案例来说明：
+
+```python
+import pywss
+
+class Repo1:
+    def get(self):
+        return "repo1"
+
+class Repo2:
+    def get(self):
+        return "repo2"
+
+class Service:
+
+    def __init__(self, repo1: Repo1, repo2: Repo2):  # Service 依赖 Repo1 和 Respo2
+        self.repo1 = repo1
+        self.repo2 = repo2
+
+    def get(self):
+        return "power by " + self.repo1.get() + self.repo2.get()
+
+class UserView:
+
+    def __init__(self, service: Service):  # UserView 依赖 Service
+        self.srv = service
+
+    def http_get(self, ctx):
+        ctx.write(self.srv.get())
+
+app = pywss.App()
+app.view("/user", UserView)  # 注册视图路由->自动注入依赖
+app.run()
+```
+
+在此案例中，我们可以看到 UserView 依赖 Service，而 Service 依赖 Repo1 和 Repo2。
+
+在整个代码中，我们没有做任何的初始化操作，仅仅是类型注释中指定了数据类型。通过这种方式，Pywss就可以实现依赖注入。
+
