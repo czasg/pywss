@@ -66,3 +66,56 @@ python3 main.py
 至此，一个简单的 web 应用服务就完成了。
 
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
+
+<br/>
+
+## 特性速览
+
+### 轻巧的中间件机制
+```python
+import time
+import pywss
+
+# 请求日志中间件
+def logHandler(ctx: pywss.Context):
+    startTime = time.time()
+    ctx.next()
+    cost = time.time() - startTime
+    print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
+
+app = pywss.App()
+app.use(logHandler)  # 注册全局日志中间件
+app.run()
+```
+
+### 原生的依赖注入体验
+```python
+import pywss
+
+class Repo:
+    def get(self):
+        return "repo"
+
+class Service:
+
+    def __init__(self, repo: Repo):  # Service 依赖 Repo
+        self.repo = repo
+
+    def get(self):
+        return "power by " + self.repo.get()
+
+class UserView:
+
+    def __init__(self, service: Service):  # UserView 依赖 Service
+        self.srv = service
+
+    def http_get(self, ctx):
+        ctx.write(self.srv.get())
+
+app = pywss.App()
+app.view("/user", UserView)  # 注册视图路由->自动注入依赖
+app.run()
+```
+
+### 强大的文件路由机制
+见 [文件路由](https://czasg.github.io/pywss/advance/file-route)
