@@ -9,7 +9,7 @@ def hello(ctx: pywss.Context):
     })
 
 
-if __name__ == '__main__':
+def main():
     # 初始化 app
     app = pywss.App()
     # 注册路由并绑定匿名函数
@@ -18,6 +18,10 @@ if __name__ == '__main__':
     app.get("/hello/{name}", hello)
     # 启动服务
     app.run()
+
+
+if __name__ == '__main__':
+    main()
     """ 浏览器访问 ctrl+左键
     http://localhost:8080/hello
     http://localhost:8080/hello/world

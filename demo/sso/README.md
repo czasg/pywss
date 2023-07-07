@@ -15,18 +15,12 @@
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### 1.2.启动mysql服务
-docker启动参考：
-```shell script
-docker run -itd -p 3306:3306 -e MYSQL_ROOT_PASSWORD="123456" -e MYSQL_DATABASE="sso" mysql:latest
-```
-
-### 1.3.启动服务
+### 1.2.启动服务
 ```shell script
 python3 app.py
 ```
 
-### 1.4.单点登录说明
+### 1.3.单点登录说明
 - `http://sso`：单点登录系统
 - `http://living`：模拟的直播系统
 - `http://shopping`：模拟的购物系统
@@ -41,5 +35,3 @@ docker-compose启动：
 ```shell script
 docker-compose up
 ```
-需要注意：
-- mysql启动会有较长的检测时间

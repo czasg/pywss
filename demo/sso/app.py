@@ -1,6 +1,5 @@
 # coding: utf-8
 import pywss
-import api
 
 
 def index(ctx: pywss.Context):
@@ -17,7 +16,7 @@ def main(port=8080):
     app = pywss.App()
     app.get("/", index)
     app.static("/static", rootDir="./static")
-    api.register(app)
+    app.view_modules("view")
     app.run(port=port)
 
 
