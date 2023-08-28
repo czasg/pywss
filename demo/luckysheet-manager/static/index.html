@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="/static/css/full.css" rel="stylesheet" type="text/css"/>
+    <script src="/static/js/vue.min.js"></script>
+    <style>
+        #app {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="navbar bg-base-300" style="border-radius: 10px;">
+        <div class="navbar-start">
+            <a class="btn btn-ghost normal-case text-xl" @click="new_luckysheet">新建Excel</a>
+        </div>
+    </div>
+    <div class="overflow-x-auto" style="margin-top: 10px;">
+        <table class="table" style="width: 100%;">
+            <!-- head -->
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- row 1 -->
+            <tr class="hover" v-for="item of data">
+                <th>{{item.id}}</th>
+                <th>{{item.created_at}}</th>
+                <td>
+                    <a class="btn btn-active btn-link" :href="'/static/luckysheet.html?id=' + item.id" target="_blank">在线编辑</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                data: [],
+            }
+        },
+        mounted() {
+            this.get_luckysheet();
+        },
+        methods: {
+            get_luckysheet(){
+                fetch('/luckysheet').then(response => {
+                    if (!response.ok) {
+                        alert("Server Unknown Error 1")
+                        return
+                    }
+                    return response.json()
+                }).then(data => {
+                    this.data = data.data;
+                }).catch(error => {
+                    alert("Server Unknown Error 2")
+                });
+            },
+            new_luckysheet(){
+                fetch('/luckysheet', {method: 'POST'}).then(response => {
+                    if (!response.ok) {
+                        alert("Server Unknown Error 1")
+                        return
+                    }
+                    this.get_luckysheet();
+                }).catch(error => {
+                    alert("Server Unknown Error 2")
+                });
+            }
+        },
+    })
+</script>
+</body>
+</html>
