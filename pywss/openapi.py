@@ -1,114 +1,7 @@
 # coding: utf-8
-def transfer(object) -> dict:
-    if isinstance(object, dict):
-        return transfer_dict(object)
-    if isinstance(object, list):
-        return transfer_list(object)
-    return {}
+import json
 
-
-def transfer_dict(object: dict):
-    data = {}
-    for k, v in object.items():
-        description = None
-        if isinstance(v, tuple):
-            v, description, = v
-        if not v:
-            data[k] = {
-                "example": v
-            }
-        elif isinstance(v, dict):
-            data[k] = transfer_dict(v)
-        elif isinstance(v, list):
-            data[k] = transfer_list(v)
-        else:
-            data[k] = {
-                "example": v
-            }
-        if description:
-            data[k]["description"] = description
-    return {"properties": data}
-
-
-def transfer_list(object: list):
-    if not object:
-        return {"example": object}
-    if isinstance(object[0], tuple):
-        object0, description, = object[0]
-        items = transfer(object0)
-        items["description"] = description
-        return {"items": items}
-    if isinstance(object[0], list):
-        return {"items": transfer_list(object[0])}
-    elif isinstance(object[0], dict):
-        return {"items": transfer_dict(object[0])}
-    else:
-        return {"example": object}
-
-
-def get_object_content_type(request_type, object):
-    if not request_type and not object:
-        return {}
-    if not request_type:
-        if isinstance(object, (dict, list)):
-            request_type = "application/json"
-        elif isinstance(object, str):
-            request_type = "text/html"
-        else:
-            request_type = "application/octet-stream"
-    return {
-        request_type: {
-            "schema": get_schema(object),
-        }
-    }
-
-
-def get_object_type(object):
-    if isinstance(object, dict):
-        return "object"
-    if isinstance(object, list):
-        return "array"
-    return "string"
-
-
-def get_schema(object):
-    resp = transfer(object)
-    resp["type"] = get_object_type(object)
-    return resp
-
-
-def get_parameters(object):
-    if not object:
-        return []
-    resp = []
-    for param, desc in object.items():
-        params = {
-            "name": param,
-            "description": desc,
-            "in": "query",
-            "required": False
-        }
-        if ":" not in param:
-            resp.append(params)
-            continue
-        pars = param.split(":", 1)
-        params["name"] = pars[0]
-        for par in pars[1].split(","):
-            if par in ("query", "header", "path", "cookie"):
-                params["in"] = par
-            elif par == "required":
-                params["required"] = True
-        resp.append(params)
-    return resp
-
-
-def parameters_filter(path, object):
-    if not object:
-        return False
-    for param in object:
-        if param["name"] == path and param["in"] == "path":
-            return True
-    return False
+from pywss.utils import safe_encoder
 
 
 def docs(
@@ -123,19 +16,18 @@ def docs(
         responses: dict = None,
 ):
     if not responses:
-        responses = {"200:Response OK": response}
+        responses = {"200": response}
     path = {
         "summary": summary,
         "description": description,
         "tags": tags,
-        "parameters": get_parameters(params),
+        "parameters": transfer_parameters(params),
         "requestBody": {
-            "content": get_object_content_type(request_type, request),
+            "content": transfer_schema(request, request_type),
         },
         "responses": {
-            f"{code.split(':', 1)[0]}": {
-                "description": code[code.index(':') + 1:] if ":" in code else "No Response Description",
-                "content": get_object_content_type(responses_type, resp),
+            f"{code}": {
+                "content": transfer_schema(resp, responses_type),
             }
             for code, resp in responses.items()
         },
@@ -153,30 +45,66 @@ def docs(
     }
 
     def wrap(func):
-        func.__openapi_path__ = path
+        func.__openapi_path__ = json.loads(json.dumps(path, default=safe_encoder))
         return func
 
     return wrap
 
 
-def merge_dict(dict1: dict, dict2: dict):
-    resp = {}
-    for k, v in dict1.items():
-        if k not in dict2:
-            resp[k] = v
+def transfer_parameters(object: dict):
+    params = []
+    for key, desc in (object or {}).items():
+        param = {
+            "name": key,
+            "description": desc,
+            "in": "query",
+            "required": False
+        }
+        if ":" not in key:
+            params.append(param)
             continue
-        if isinstance(v, dict) and isinstance(dict2[k], dict):
-            resp[k] = merge_dict(v, dict2[k])
-            continue
-        resp[k] = v
-    for k, v in dict2.items():
-        if k not in dict1:
-            resp[k] = v
-            continue
-        if isinstance(v, dict) and isinstance(dict1[k], dict):
-            resp[k] = merge_dict(v, dict1[k])
-            continue
-    return resp
+        keys = key.split(":", 1)
+        param["name"] = keys[0]
+        for par in keys[1].split(","):
+            if par in ("query", "header", "path", "cookie"):
+                param["in"] = par
+            elif par == "required":
+                param["required"] = True
+        params.append(param)
+    return params
+
+
+def transfer_content_type(object):
+    return ({
+        dict: "application/json",
+        list: "application/json",
+        str: "text/html"
+    }).get(type(object), "application/octet-stream")
+
+
+def transfer_schema(object, objectType):
+    if hasattr(object, "__fields__"):
+        object = transfer_fields(object)
+    return {
+        objectType or transfer_content_type(object): {
+            "schema": {
+                "example": object
+            }
+        }
+    }
+
+
+def transfer_fields(object):
+    return {
+        key: filed.default or ({
+            str: "string",
+            int: "integer",
+            list: "array",
+            dict: "object",
+            bool: "boolean",
+        }).get(filed.type_, "string")
+        for key, filed in object.__fields__.items()
+    }
 
 
 def openapi_ui_template(

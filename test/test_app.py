@@ -206,7 +206,7 @@ class TestBase(unittest.TestCase):
             summary="test",
             description="test",
             params={
-                "test": "test",
+                "test:path": "test",
                 "test1:query": "test",
                 "test2:query,required": "test",
                 "test3:header": "test",

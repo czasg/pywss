@@ -22,7 +22,8 @@ from pywss.websocket import WebSocketUpgrade
 from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.closing import Closing
 from pywss.routing import Route
-from pywss.openapi import openapi_ui_template, merge_dict, parameters_filter
+from pywss.openapi import openapi_ui_template
+from pywss.utils import split_method_route, merge_dict
 
 __version__ = '0.1.22'
 
@@ -369,12 +370,6 @@ class App:
                 self.parse_match_routes += v.parse_match_routes
                 self.openapi_data = merge_dict(self.openapi_data, v.openapi_data)
 
-        def split_method_route(route):
-            if "/" not in route:
-                return route, "/"
-            m, r = route.split("/", 1)
-            return m, "/" + r.strip("/")
-
         for route, v in self.full_match_routes.items():
             if isinstance(v, App):
                 continue
@@ -386,18 +381,20 @@ class App:
                 if hasattr(v[-1], "__openapi_path__"):
                     _method, _route = split_method_route(route)
                     path = v[-1].__openapi_path__
+                    parameters = [
+                        f"{parameter['name']}:{parameter['in']}"
+                        for parameter in path["parameters"]
+                    ]
                     for node in r.route_list:
                         if not node.name:
                             continue
-                        if parameters_filter(node.name, path["parameters"]):
+                        if f"{node.name}:path" in parameters:
                             continue
                         path["parameters"].append({
                             "name": node.name,
                             "in": "path",
                             "required": True,
                         })
-                    if _route not in self.openapi_data["paths"]:
-                        self.openapi_data["paths"][_route] = {}
                     self.openapi_data["paths"][_route][_method.lower()] = path
                 self.log.update({
                     "type": "parsermatch",
@@ -578,12 +575,12 @@ class App:
             self,
             enable=True,
             title="OpenAPI",
+            description="Power By Pywss",
             version="0.0.1",
             openapi_json_route="/docs/openapi.json",
             openapi_ui_route="/docs",
             openapi_ui_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui-bundle.js",
             openapi_ui_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/4.14.0/swagger-ui.css",
-
     ) -> None:
         if not enable:
             return
@@ -591,6 +588,7 @@ class App:
             "openapi": "3.0.2",
             "info": {
                 "title": title,
+                "description": description,
                 "version": version
             },
             "paths": defaultdict(dict),
