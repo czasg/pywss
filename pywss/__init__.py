@@ -689,9 +689,12 @@ class App:
         self.running = False
 
     def run(
-            self, host="0.0.0.0", port=8080, grace=0,
-            request_queue_size=5,
-            poll_interval=0.5,
+            self,
+            host="0.0.0.0",
+            port=int(os.environ.get("PYWSS_SERVER_PORT", 8080)),
+            grace=int(os.environ.get("PYWSS_SERVER_GRACE", 0)),
+            select_size=int(os.environ.get("PYWSS_SERVER_SELECT_SIZE", 5)),
+            select_timeout=float(os.environ.get("PYWSS_SERVER_SELECT_TIMEOUT", 0.5)),
             log_json=False,
     ) -> None:
         if log_json:
@@ -700,7 +703,7 @@ class App:
         self.build()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
-            sock.listen(request_queue_size)
+            sock.listen(select_size)
             selector = selectors.PollSelector if hasattr(selectors, 'PollSelector') else selectors.SelectSelector
             with self.log.trycache():
                 with selector() as _selector:
@@ -712,7 +715,7 @@ class App:
                         grace=grace
                     ).info("server start")
                     while self.running:
-                        ready = _selector.select(poll_interval)
+                        ready = _selector.select(select_timeout)
                         if not ready:
                             continue
                         request, address = sock.accept()
