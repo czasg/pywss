@@ -1,0 +1,14 @@
+version: '2'
+services:
+  apache:
+    image: httpd:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+  server:
+    image: python:3.6.8
+    command: sh -c "pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple && python app.py"
+    working_dir: /app
+    volumes:
+      - ./:/app
