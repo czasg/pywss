@@ -4,6 +4,8 @@ import pywss
 import threading
 import service.update
 
+from middleware.jwt import NewJWTHandler
+
 
 def start_update_worker():
     threading.Thread(
@@ -15,6 +17,11 @@ def start_update_worker():
 def main():
     # 初始化 app
     app = pywss.App()
+    # 注册中间件
+    app.use(NewJWTHandler(
+        ignore_route=("/", "/api/v1/user/login", "/api/v1/user/register"),
+        ignore_startswith=("/static",),
+    ))
     # 注册静态资源
     app.static("/static", "./static")
     app.get("/", lambda ctx: ctx.redirect("/static/index.html"))

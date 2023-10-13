@@ -1,13 +1,15 @@
 # coding: utf-8
 import pywss
 
-from . import load
 from . import luckysheet
-from . import update
+from . import manager
+from . import user
 
 
 def register(app: pywss.App):
-    app.get("/luckysheet", luckysheet.page)
-    app.post("/luckysheet", luckysheet.new)
-    app.post("/luckysheet/api/loadUrl", load.load)
-    app.get("/luckysheet/api/updateUrl", update.prepare, update.loop)
+    app.post("/api/v1/user/login", user.login)
+    app.post("/api/v1/user/register", user.register)
+    app.get("/api/v1/luckysheet", manager.page)
+    app.post("/api/v1/luckysheet", manager.new)
+    app.post("/api/v1/luckysheet/loadUrl", luckysheet.load)
+    app.get("/api/v1/luckysheet/updateUrl", luckysheet.prepare, luckysheet.loop)

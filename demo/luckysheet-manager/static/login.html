@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSO登录页面</title>
+    <script src="./js/vue.min.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <style>
+        :root {
+            --box-radius: 30px;
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .container {
+            height: 100vh;
+            width: 100vw;
+            background: #f1f1f1;
+            overflow: hidden;
+            position: relative;
+            z-index: 0;
+        }
+
+        .background-color {
+            position: absolute;
+            height: 100vh;
+            width: 200vw;
+            transform: translateX(0);
+            background: linear-gradient(45deg, #678f90, #8da797, #75ac89);
+            animation: 5s linear 0s infinite alternate background-color;
+            z-index: 1;
+        }
+
+        @keyframes background-color {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100vw);
+            }
+        }
+
+        .box {
+            z-index: 2;
+            position: relative;
+            height: 420px;
+            width: 758px;
+            top: 50%;
+            left: 50%;
+            background: #000000;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+            border-radius: var(--box-radius);
+            box-shadow: 0 0.7rem 2rem rgba(0, 0, 0, 0.2);
+        }
+
+        .register-box {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            left: 0;
+        }
+
+        .register-box-form {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: all 0.6s;
+        }
+
+        .login-box {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            left: 50%;
+        }
+
+        .login-box-form {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.6s;
+        }
+
+        .sso-h2 {
+            color: #ffffff;
+            padding: 1.2rem 0.9rem;
+            font-weight: bold;
+        }
+
+        .input {
+            border: none;
+            border-radius: 10px;
+            padding: 0.9rem 0.9rem;
+            margin: 1rem 0;
+            width: 70%;
+        }
+
+        .button {
+            height: 60px;
+            width: 150px;
+            border-radius: var(--box-radius);
+            margin: 1rem 0;
+            font-family: sans-serif;
+            font-weight: bold;
+            font-size: large;
+            transition: all 0.1s ease-in;
+        }
+
+        .button:hover {
+            background: #75ac89;
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+        .button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 8px 6px #ffffff;
+        }
+
+        .switch-box-child {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s;
+        }
+
+        .switch-box-btn {
+            height: 60px;
+            width: 200px;
+            border-radius: var(--box-radius);
+            font-family: sans-serif;
+            font-weight: bold;
+            font-size: large;
+            transition: background 0.1s ease-in;
+        }
+
+        .switch-box-btn:hover {
+            background: #75ac89;
+            cursor: pointer;
+        }
+
+        .switch-box {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            left: 50%;
+            background: #f1f1f1;
+            border-radius: var(--box-radius);
+            transition: left 0.7s;
+        }
+
+        .switch-box-register {
+            opacity: 0;
+            left: 40%;
+            z-index: 0;
+        }
+
+        .switch-box-login {
+            opacity: 1;
+            left: 50%;
+            z-index: 3;
+        }
+
+        .box.right-panel-active .switch-box {
+            left: 0;
+        }
+
+        .box.right-panel-active .switch-box-register {
+            opacity: 1;
+            left: 50%;
+            z-index: 3;
+        }
+
+        .box.right-panel-active .switch-box-login {
+            opacity: 0;
+            left: 60%;
+            z-index: 0;
+        }
+
+        .box.right-panel-active .register-box-form {
+            opacity: 0;
+        }
+
+        .box.right-panel-active .login-box-form {
+            opacity: 1;
+        }
+
+        .message-box {
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+        .message {
+            width: 350px;
+            height: 50px;
+            background: #e3efd7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            animation: message-enter 1s;
+        }
+        @keyframes message-enter {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .v-enter-active, .v-leave-active {
+            transition: all 1s ease;
+        }
+        .v-enter-from, .v-leave-to {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <div class="background-color"></div>
+    <div class="box" :class="{'right-panel-active': panel_active}">
+        <div class="register-box">
+            <form action="#" class="register-box-form">
+                <input type="text" class="input" placeholder="Alias" v-model="register_alias">
+                <input type="text" class="input" placeholder="Account" v-model="register_username">
+                <input type="password" class="input" placeholder="Password" v-model="register_password">
+                <button type="button" class="button" @click="register">Register</button>
+            </form>
+        </div>
+        <div class="login-box">
+            <form action="#" class="login-box-form">
+                <h2 class="sso-h2">SSO单点登录系统</h2>
+                <input type="text" class="input" placeholder="Account" v-model="login_username">
+                <input type="password" class="input" placeholder="Password" v-model="login_password">
+                <button type="button" class="button" @click="login">Login</button>
+            </form>
+        </div>
+        <div class="switch-box">
+            <div class="switch-box-child switch-box-register">
+                <button type="button" class="switch-box-btn" @click="panel_active = false">Register</button>
+            </div>
+            <div class="switch-box-child switch-box-login">
+                <button type="button" class="switch-box-btn" @click="panel_active = true">Login</button>
+            </div>
+        </div>
+    </div>
+    <transition-group class="message-box" tag="div">
+        <div class="message" :key="message" v-for="message in messages">
+            {{ message }}
+        </div>
+    </transition-group>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                login_username: '',
+                login_password: '',
+                register_alias: '',
+                register_username: '',
+                register_password: '',
+                panel_active: true,
+
+                messages: [],
+
+                jwt_token: '',
+            }
+        },
+        mounted(){
+            if (this.fillToken()) {
+                this.locationHref();
+            }
+        },
+        methods: {
+            register() {
+                axios.post('/api/v1/user/register', {
+                    alias: this.register_alias,
+                    username: this.register_username,
+                    password: this.register_password,
+                }).then(resp => {
+                    this.info(resp.data.msg);
+                    setTimeout(() => {
+                        this.panel_active = true;
+                    }, 500);
+                })
+            },
+            login() {
+                axios.post('/api/v1/user/login', {
+                    username: this.login_username,
+                    password: this.login_password,
+                }).then(resp => {
+                    this.info(resp.data.msg);
+                    this.fillToken();
+                    if (resp.data.code === 0) {
+                        setTimeout(() => {
+                            this.locationHref();
+                        }, 1500)
+                    }
+                })
+            },
+            info(msg){
+                this.messages.push(msg);
+                setTimeout(() => {
+                    this.messages.shift();
+                }, 1500)
+            },
+            fillToken(){
+                this.jwt_token = this.getCookie('jwt_token');
+                return this.jwt_token;
+            },
+            locationHref(){
+                location.href = `/static/index.html`;
+            },
+            setCookie(name, value, timestamp) {
+                const expires = new Date(timestamp * 1000); // 将时间戳转换为毫秒
+                const cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+                document.cookie = cookie;
+            },
+            getCookie(name) {
+              const cookieName = `${name}=`;
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                  return cookie.substring(cookieName.length, cookie.length);
+                }
+              }
+              return null;
+            }
+        }
+    });
+</script>
+</html>
