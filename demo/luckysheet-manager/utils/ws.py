@@ -23,7 +23,7 @@ class WebSocketManager:
 
     def notify(self, data, by, excel_id):
         with self.lock:
-            for uid, ctx in self.pool[excel_id].items():  # type: pywss.Context
+            for uid, ctx in self.pool[excel_id].items():  # type: str, pywss.Context
                 if uid == by:
                     continue
                 try:

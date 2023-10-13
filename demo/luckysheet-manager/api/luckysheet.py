@@ -1,57 +1,74 @@
 # coding: utf-8
 import json
-import uuid
 import pywss
+import zlib
 
-from pymongo.collection import ReturnDocument
-from db.mongo import collection as mongodb, db
-from datetime import datetime
-
-
-def page(ctx: pywss.Context):
-    page_size = int(ctx.url_params.get("page_size", 10))
-    page = int(ctx.url_params.get("page", 0))
-    skip_count = page * page_size
-    documents = mongodb.find().skip(skip_count).limit(page_size).sort("_id", -1)
-    return ctx.write({
-        "code": 0,
-        "message": "ok",
-        "data": json.loads(json.dumps(list(documents), default=str)),
-    })
+from db.mongo import collection as mongodb
+from service.update import lucky_sheet_queue
+from urllib.parse import unquote
+from utils.ws import manager
 
 
-def new(ctx: pywss.Context):
-    # 创建自增序列
-    sequence_doc = db.counters.find_one_and_update(
-        {"_id": "luckysheet"},
-        {"$inc": {"seq": 1}},
-        upsert=True,
-        return_document=ReturnDocument.AFTER
-    )
-    # 创建新文档
-    document = {
-        "id": sequence_doc['seq'],
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "data": [
-            {
-                "name": "Sheet1",
-                "index": f"{uuid.uuid4()}",
-                "order": 0,
-                "status": "1",
-                "column": 60,
-                "row": 84,
-                "config": {},
-                "pivotTable": None,
-                "isPivotTable": False,
-                "data": [[None for _ in range(60)] for _ in range(84)],
-                "celldata": [],
-                "color": "",
-            }
-        ]
-    }
-    mongodb.insert_one(document)
-    ctx.write({
-        "code": 0,
-        "message": "ok",
-        "data": json.loads(json.dumps(list(document), default=str)),
-    })
+def load(ctx: pywss.Context):
+    try:
+        excel_id = int(ctx.url_params.get("id"))
+    except:
+        ctx.set_status_code(pywss.StatusBadRequest)
+        return
+    document = mongodb.find_one({"id": excel_id})
+    if not document:
+        ctx.set_status_code(pywss.StatusBadRequest)
+        return
+    data = document["data"]
+    ctx.write(json.dumps(data))
+
+
+def prepare(ctx: pywss.Context):
+    try:
+        excel_id = int(ctx.url_params.get("id"))
+    except:
+        ctx.set_status_code(pywss.StatusBadRequest)
+        return
+    # 升级 WebSocket
+    err = pywss.WebSocketUpgrade(ctx)
+    if err:
+        ctx.log.error(err)
+        ctx.set_status_code(pywss.StatusBadRequest)
+        return
+    # 注册并获取用户ID
+    ctx.data.excel_id = excel_id
+    ctx.data.uid = manager.register(ctx, excel_id)
+    try:
+        ctx.next()
+    except:
+        pass
+    finally:
+        ctx.log.warning(f"{ctx.data.uid} exit")
+        manager.delete(ctx.data.uid, excel_id)
+
+
+def loop(ctx: pywss.Context):
+    excel_id = ctx.data.excel_id
+    uid = ctx.data.uid
+    username = ctx.data.jwt_payload.get('alias', uid)
+    # 轮询获取消息
+    while True:
+        data = ctx.ws_read()
+        if data == b"rub":  # 心跳检测
+            continue
+        data_raw = data.decode().encode('iso-8859-1')  # 转编码
+        data_unzip = unquote(zlib.decompress(data_raw, 16).decode())  # 解压缩
+        json_data = json.loads(data_unzip)
+        resp_data = {
+            "data": data_unzip,
+            "id": ctx.data.uid,
+            "returnMessage": "success",
+            "status": 0,
+            "type": 3,
+            "username": username,
+        }
+        if json_data.get("t") != "mv":
+            resp_data["type"] = 2
+            lucky_sheet_queue.put((excel_id, json_data))  # luckysheet数据存储至数据库
+        resp = json.dumps(resp_data).encode()
+        manager.notify(resp, uid, excel_id)

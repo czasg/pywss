@@ -19,8 +19,8 @@ options = {
   title: "Pywss",
   lang: 'zh',
   allowUpdate: true,
-  loadUrl: `/luckysheet/api/loadUrl${window.location.search}`,
-  updateUrl: `ws://${document.location.host}/luckysheet/api/updateUrl${window.location.search}`,
+  loadUrl: `/api/v1/luckysheet/loadUrl${window.location.search}`,
+  updateUrl: `ws://${document.location.host}/api/v1/luckysheet/updateUrl${window.location.search}`,
 }
 window.luckysheet.create(options);
 </script>

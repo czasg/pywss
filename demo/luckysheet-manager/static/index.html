@@ -9,14 +9,59 @@
         #app {
             padding: 20px;
         }
+        .message-box {
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+        .message {
+            width: 350px;
+            height: 50px;
+            background: #e3efd7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            animation: message-enter 1s;
+        }
+        @keyframes message-enter {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .v-enter-active, .v-leave-active {
+            transition: all 1s ease;
+        }
+        .v-enter-from, .v-leave-to {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
     </style>
 </head>
 <body>
 <div id="app">
     <div class="navbar bg-base-300" style="border-radius: 10px;">
-        <div class="navbar-start">
-            <a class="btn btn-ghost normal-case text-xl" @click="new_luckysheet">新建Excel</a>
-        </div>
+      <div class="navbar-start">
+        <a class="btn btn-ghost normal-case text-xl" style="text-transform: none;">LuckySheet Manager System</a>
+      </div>
+        <div class="navbar-center hidden lg:flex">
+            <ul class="menu menu-horizontal px-1">
+              <li><a>hello {{ this.jwt_payload.alias }}</a></li>
+            </ul>
+          </div>
+  <div class="navbar-end">
+    <a class="btn" style="text-transform: none;" @click="new_luckysheet">NewDocument</a>
+  </div>
     </div>
     <div class="overflow-x-auto" style="margin-top: 10px;">
         <table class="table" style="width: 100%;">
@@ -25,6 +70,7 @@
             <tr>
                 <th>ID</th>
                 <th>创建时间</th>
+                <th>创建人</th>
                 <th>操作</th>
             </tr>
             </thead>
@@ -33,6 +79,7 @@
             <tr class="hover" v-for="item of data">
                 <th>{{item.id}}</th>
                 <th>{{item.created_at}}</th>
+                <th>{{item.created_by}}</th>
                 <td>
                     <a class="btn btn-active btn-link" :href="'/static/luckysheet.html?id=' + item.id" target="_blank">在线编辑</a>
                 </td>
@@ -40,6 +87,11 @@
             </tbody>
         </table>
     </div>
+    <transition-group class="message-box" tag="div">
+        <div class="message" :key="message" v-for="message in messages">
+            {{ message }}
+        </div>
+    </transition-group>
 </div>
 <script>
     new Vue({
@@ -47,14 +99,25 @@
         data() {
             return {
                 data: [],
+                messages: [],
+                jwt_token: '',
+                jwt_payload: {},
             }
         },
         mounted() {
+            if (!this.fillToken()) {
+                this.locationHref();
+                return
+            }
+            this.parseToken();
+            console.log(this.jwt_payload)
             this.get_luckysheet();
         },
         methods: {
             get_luckysheet(){
-                fetch('/luckysheet').then(response => {
+                fetch('/api/v1/luckysheet', {
+                    headers: {'Authorization': this.jwt_token},
+                }).then(response => {
                     if (!response.ok) {
                         alert("Server Unknown Error 1")
                         return
@@ -67,7 +130,10 @@
                 });
             },
             new_luckysheet(){
-                fetch('/luckysheet', {method: 'POST'}).then(response => {
+                fetch('/api/v1/luckysheet', {
+                    method: 'POST',
+                    headers: {'Authorization': this.jwt_token},
+                }).then(response => {
                     if (!response.ok) {
                         alert("Server Unknown Error 1")
                         return
@@ -76,6 +142,42 @@
                 }).catch(error => {
                     alert("Server Unknown Error 2")
                 });
+            },
+            info(msg){
+                this.messages.push(msg);
+                setTimeout(() => {
+                    this.messages.shift();
+                }, 1500)
+            },
+            parseToken(){
+                const [header, payload, signature] = this.jwt_token.split('.');
+                // Base64解码头部和负载
+                const decodedPayload = decodeURIComponent(escape(atob(payload)));
+                // 解析JSON字符串
+                this.jwt_payload = JSON.parse(decodedPayload);
+            },
+            fillToken(){
+                this.jwt_token = this.getCookie('jwt_token');
+                return this.jwt_token;
+            },
+            locationHref(){
+                location.href = `/static/login.html`;
+            },
+            setCookie(name, value, timestamp) {
+                const expires = new Date(timestamp * 1000); // 将时间戳转换为毫秒
+                const cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+                document.cookie = cookie;
+            },
+            getCookie(name) {
+              const cookieName = `${name}=`;
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                  return cookie.substring(cookieName.length, cookie.length);
+                }
+              }
+              return null;
             }
         },
     })
