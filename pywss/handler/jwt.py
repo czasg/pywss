@@ -16,6 +16,7 @@ def NewJWTHandler(
         ignore_startswith: tuple = (),
         ignore_endswith: tuple = (),
         ignore_method_route: Union[list, tuple] = (),
+        session_key: str = "token",
 ):
     jwt = JWT(secret, expire)
 
@@ -35,7 +36,7 @@ def NewJWTHandler(
                 ctx.next()
                 return
         try:
-            token = ctx.headers.get(HeaderAuthorization)
+            token = ctx.headers.get(HeaderAuthorization) or ctx.cookies.get(session_key)
             ctx.data.jwt_payload = jwt.decrypt(token)
         except:
             ctx.set_status_code(StatusForbidden)
