@@ -8,7 +8,7 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### 1.2. Start a mongodb
 docker startup reference:
 ```shell script
-docker run -itd --rm -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo:latest
+docker run -itd --rm -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo:latest
 ```
 Note:
 - Program default enable account password, if you modify the account information, you need to synchronize to update the code, see 'db/mongo.py' file
