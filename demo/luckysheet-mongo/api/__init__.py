@@ -6,5 +6,5 @@ from . import update
 
 
 def register(app: pywss.App):
-    app.post("/loadUrl", load.load)
-    app.get("/updateUrl", update.prepare, update.loop)
+    app.post("/luckysheet/api/loadUrl", load.load)
+    app.get("/luckysheet/api/updateUrl", update.prepare, update.loop)

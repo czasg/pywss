@@ -19,7 +19,7 @@ def main():
     app.static("/static", "./static")
     app.get("/", lambda ctx: ctx.redirect("/static/luckysheet.html"))
     # 注册 luckysheet 路由
-    api.register(app.party("/luckysheet/api"))
+    api.register(app)
     # 启动更新线程
     start_update_worker()
     # 启动服务

@@ -10,10 +10,10 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### 1.2.启动mongodb服务
 docker启动参考：
 ```shell script
-docker run -itd -p 27017:27017 mongo:latest
+docker run -itd --rm -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo:latest
 ```
 需要注意：
-- 程序默认无账号密码，如果配置了账户信息，需要同步更新代码，见`db/mongo.py`文件
+- 程序默认账号密码，如果修改了账户信息，需要同步更新代码，见`db/mongo.py`文件
 
 ### 1.3.服务启动
 ```shell script
