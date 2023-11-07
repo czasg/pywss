@@ -183,11 +183,8 @@ class Context:
             yield data
             cl -= len(data)
 
-    def set_header(self, k, v) -> None:
-        header = []
-        for key in k.split("-"):
-            header.append(key[0].upper() + key[1:].lower())
-        self.response_headers["-".join(header)] = v
+    def set_header(self, k: str, v: str) -> None:
+        self.response_headers[k.title()] = v
 
     def set_content_length(self, size: int, inherit=True) -> None:
         if inherit:
