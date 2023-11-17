@@ -15,6 +15,7 @@ from types import FunctionType
 from datetime import timedelta
 from importlib import import_module
 from collections import defaultdict
+from concurrent.futures.thread import ThreadPoolExecutor
 from pywss.headers import *
 from pywss.constant import *
 from pywss.handler import *
@@ -78,8 +79,14 @@ class Context:
         self._handler_index += 1
         self._handlers[index](self)
 
-    def close(self):
+    def close(self) -> None:
         self.fd.close()
+
+    def is_closed(self) -> bool:
+        try:
+            return self.fd.send(b"") != 0
+        except:
+            return True
 
     def json(self):
         return json.loads(self.body().decode())  # not check Content-Type: application/json
@@ -673,6 +680,8 @@ class App:
             log.error("connect abort")
         except ConnectionResetError:
             log.error("connect reset")
+        except BrokenPipeError:
+            log.error("broken pipe")
         except:
             log.traceback()
         finally:
@@ -692,13 +701,13 @@ class App:
             grace=int(os.environ.get("PYWSS_SERVER_GRACE", 0)),
             select_size=int(os.environ.get("PYWSS_SERVER_SELECT_SIZE", 5)),
             select_timeout=float(os.environ.get("PYWSS_SERVER_SELECT_TIMEOUT", 0.5)),
-            log_json=False,
+            thread_pool_enable=os.environ.get("PYWSS_THREAD_POOL_ENABLE", "false").lower() == "true",
+            thread_pool_size=int(os.environ.get("PYWSS_THREAD_POOL_SIZE", 0)) or None,
     ) -> None:
-        if log_json:
-            loggus.SetFormatter(loggus.JsonFormatter)
         Closing.add_close(self.close)
         self.build()
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock, \
+                ThreadPoolExecutor(max_workers=thread_pool_size) as executor:
             sock.bind((host, port))
             sock.listen(select_size)
             selector = selectors.PollSelector if hasattr(selectors, 'PollSelector') else selectors.SelectSelector
@@ -709,13 +718,20 @@ class App:
                         version=__version__,
                         host=host,
                         port=port,
-                        grace=grace
+                        grace=grace,
+                        select_size=select_size,
+                        select_timeout=select_timeout,
+                        thread_pool_enable=thread_pool_enable,
+                        thread_pool_size=thread_pool_size,
                     ).info("server start")
                     while self.running:
                         ready = _selector.select(select_timeout)
                         if not ready:
                             continue
                         request, address = sock.accept()
+                        if thread_pool_enable:
+                            executor.submit(self.handler_request, request, address)
+                            continue
                         threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
