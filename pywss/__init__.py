@@ -78,8 +78,14 @@ class Context:
         self._handler_index += 1
         self._handlers[index](self)
 
-    def close(self):
+    def close(self) -> None:
         self.fd.close()
+
+    def is_closed(self) -> bool:
+        try:
+            return self.fd.send(b"") != 0
+        except:
+            return True
 
     def json(self):
         return json.loads(self.body().decode())  # not check Content-Type: application/json
@@ -673,6 +679,8 @@ class App:
             log.error("connect abort")
         except ConnectionResetError:
             log.error("connect reset")
+        except BrokenPipeError:
+            log.error("broken pipe")
         except:
             log.traceback()
         finally:
