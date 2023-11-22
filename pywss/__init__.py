@@ -710,7 +710,9 @@ class App:
                 ThreadPoolExecutor(max_workers=thread_pool_size) as executor:
             sock.bind((host, port))
             sock.listen(select_size)
-            selector = selectors.PollSelector if hasattr(selectors, 'PollSelector') else selectors.SelectSelector
+            selector = getattr(selectors, "EpollSelector", None) or \
+                       getattr(selectors, "PollSelector", None) or \
+                       selectors.SelectSelector
             with self.log.trycache():
                 with selector() as _selector:
                     _selector.register(sock.fileno(), selectors.EVENT_READ)
