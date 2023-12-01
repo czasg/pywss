@@ -9,6 +9,9 @@ class Route:
         if route[0] == "{" and route[-1] == "}":
             self.route = self.name = route[1:-1]
 
+    def __str__(self):
+        return self.route
+
     @staticmethod
     def from_route(route: str):
         node = Route(route)

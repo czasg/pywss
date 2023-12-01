@@ -13,7 +13,7 @@ from typing import Dict, Union
 from _io import BufferedReader
 from types import FunctionType
 from datetime import timedelta
-from importlib import import_module
+from importlib import import_module, reload
 from collections import defaultdict
 from concurrent.futures.thread import ThreadPoolExecutor
 from pywss.headers import *
@@ -694,18 +694,57 @@ class App:
     def close(self) -> None:
         self.running = False
 
+    def watchdog(self, interval: float = float(os.environ.get("PYWSS_WATCHDOG_INTERVAL", 1))):
+        log = self.log.update(role="watchdog")
+        log.info("watching...")
+        stat = {}
+        allroutes = (self.full_match_routes.items(), self.parse_match_routes, self.head_match_routes)
+        while self.running:
+            module_detected = set()
+            for routes in allroutes:
+                for route, handlers in routes:
+                    key = f"{route}"
+                    handler = handlers[-1]
+                    module = inspect.getmodule(handler)
+                    sourcefile = inspect.getsourcefile(module)
+                    mtime = int(os.path.getmtime(sourcefile))
+                    if key not in stat:
+                        stat[key] = mtime
+                        continue
+                    if stat[key] == mtime:
+                        continue
+                    stat[key] = mtime
+                    try:
+                        if module.__name__ not in module_detected:
+                            module_detected.add(module.__name__)
+                            log.update(module=module.__name__).info(f"detect module change")
+                        if inspect.isfunction(handler):
+                            handlers[-1] = getattr(reload(module), handler.__name__)
+                        elif inspect.ismethod(handler):
+                            cls = getattr(reload(module), handler.__self__.__class__.__name__)
+                            handlers[-1] = getattr(self.ins(cls), handler.__name__)
+                        else:
+                            raise Exception(f"unsupport [{type(handler)}]")
+                        log.update(route=key, module=module.__name__).info(f"update")
+                    except:
+                        log.traceback()
+            time.sleep(interval)
+        log.warning("exit")
+
     def run(
             self,
-            host="0.0.0.0",
-            port=int(os.environ.get("PYWSS_SERVER_PORT", 8080)),
-            grace=int(os.environ.get("PYWSS_SERVER_GRACE", 0)),
-            select_size=int(os.environ.get("PYWSS_SERVER_SELECT_SIZE", 5)),
-            select_timeout=float(os.environ.get("PYWSS_SERVER_SELECT_TIMEOUT", 0.5)),
-            thread_pool_enable=os.environ.get("PYWSS_THREAD_POOL_ENABLE", "false").lower() == "true",
-            thread_pool_size=int(os.environ.get("PYWSS_THREAD_POOL_SIZE", 0)) or None,
+            host: str = "0.0.0.0",
+            port: int = int(os.environ.get("PYWSS_SERVER_PORT", 8080)),
+            grace: int = int(os.environ.get("PYWSS_SERVER_GRACE", 0)),
+            select_size: int = int(os.environ.get("PYWSS_SERVER_SELECT_SIZE", 5)),
+            select_timeout: float = float(os.environ.get("PYWSS_SERVER_SELECT_TIMEOUT", 0.5)),
+            thread_pool_enable: bool = os.environ.get("PYWSS_THREAD_POOL_ENABLE", "false").lower() == "true",
+            thread_pool_size: int = int(os.environ.get("PYWSS_THREAD_POOL_SIZE", 0)) or None,
+            watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
     ) -> None:
         Closing.add_close(self.close)
         self.build()
+        watch and threading.Thread(target=self.watchdog, daemon=True).start()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock, \
                 ThreadPoolExecutor(max_workers=thread_pool_size) as executor:
             sock.bind((host, port))
@@ -721,10 +760,7 @@ class App:
                         host=host,
                         port=port,
                         grace=grace,
-                        select_size=select_size,
-                        select_timeout=select_timeout,
                         thread_pool_enable=thread_pool_enable,
-                        thread_pool_size=thread_pool_size,
                     ).info("server start")
                     while self.running:
                         ready = _selector.select(select_timeout)
