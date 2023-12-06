@@ -411,7 +411,7 @@ class App:
                     self.openapi_data["paths"][_route][_method.lower()] = path
                 self.log.update({
                     "type": "parsermatch",
-                    "route": route,
+                    "route": _pretty_route(route),
                     "handlers": [handler.__name__ for handler in v],
                 }).info(f"bind route")
             elif route.endswith("*"):
@@ -419,7 +419,7 @@ class App:
                 self.head_match_routes.append((match, v))
                 self.log.update({
                     "type": "headmatch",
-                    "route": route,
+                    "route": _pretty_route(route),
                     "handlers": [handler.__name__ for handler in v],
                 }).info(f"bind route")
             else:
@@ -431,7 +431,7 @@ class App:
                     self.openapi_data["paths"][_route][_method.lower()] = v[-1].__openapi_path__
                 self.log.update({
                     "type": "fullmatch",
-                    "route": route,
+                    "route": _pretty_route(route),
                     "handlers": [handler.__name__ for handler in v],
                 }).info(f"bind route")
         self.full_match_routes = routes
@@ -771,7 +771,8 @@ class App:
                         host=host,
                         port=port,
                         grace=grace,
-                        thread_pool_enable=thread_pool_enable,
+                        threadpool=thread_pool_enable,
+                        ipaddress=get_ipaddress(),
                     ).info("server start")
                     while self.running:
                         ready = _selector.select(select_timeout)
@@ -814,3 +815,17 @@ def once(func):
 
     wrapper.__done__ = False
     return wrapper
+
+
+def get_ipaddress():
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except:
+        return None
+
+
+def _pretty_route(route: str):
+    if "/" not in route:
+        return f"{route}:/"
+    _method, _route = route.split("/", 1)
+    return f"{_method}:/{_route}"
