@@ -339,6 +339,15 @@ class Context:
                     chunk = body.read(8192)
                 body.close()
 
+    def __str__(self):
+        firstline = f"{self.method} {self.route} {self.version}"
+        header = '\r\n'.join([f"{k}: {v}" for k, v in self.headers.items()])
+        body = self.body().decode()
+        return f"{firstline}\r\n{header}\r\n\r\n{body}"
+
+    def __bytes__(self):
+        return self.body()
+
 
 class App:
 
@@ -706,6 +715,8 @@ class App:
                     key = f"{route}"
                     handler = handlers[-1]
                     module = inspect.getmodule(handler)
+                    if module.__name__ == "__main__":  # only restart
+                        continue
                     sourcefile = inspect.getsourcefile(module)
                     mtime = int(os.path.getmtime(sourcefile))
                     if key not in stat:
