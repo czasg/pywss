@@ -3,12 +3,12 @@ import os
 import re
 import json
 import time
+import queue
 import loggus
 import socket
 import inspect
 import threading
 import selectors
-from queue import SimpleQueue, Empty as QueueTimeout
 from typing import Dict, Union
 from _io import BufferedReader
 from types import FunctionType
@@ -758,8 +758,9 @@ class App:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
             sock.listen(select_size)
-            stat_queue = SimpleQueue()
-            reqs_queue = SimpleQueue()
+            QueueIns = getattr(queue, "SimpleQueue", None) or queue.Queue
+            stat_queue = QueueIns()
+            reqs_queue = QueueIns()
             thread_ident_pool = set()
 
             def thread_pool_worker():
@@ -771,7 +772,7 @@ class App:
                         request, address = reqs_queue.get(block=True, timeout=thread_pool_idle_time)
                         self.handler_request(request, address)
                         stat_queue.get(block=False)
-                    except QueueTimeout:
+                    except queue.Empty:
                         break
                     except:
                         log.traceback()
