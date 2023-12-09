@@ -8,14 +8,13 @@ import socket
 import inspect
 import threading
 import selectors
-
+from queue import SimpleQueue, Empty as QueueTimeout
 from typing import Dict, Union
 from _io import BufferedReader
 from types import FunctionType
 from datetime import timedelta
 from importlib import import_module, reload
 from collections import defaultdict
-from concurrent.futures.thread import ThreadPoolExecutor
 from pywss.headers import *
 from pywss.constant import *
 from pywss.handler import *
@@ -749,17 +748,42 @@ class App:
             grace: int = int(os.environ.get("PYWSS_SERVER_GRACE", 0)),
             select_size: int = int(os.environ.get("PYWSS_SERVER_SELECT_SIZE", 5)),
             select_timeout: float = float(os.environ.get("PYWSS_SERVER_SELECT_TIMEOUT", 0.5)),
-            thread_pool_enable: bool = os.environ.get("PYWSS_THREAD_POOL_ENABLE", "false").lower() == "true",
-            thread_pool_size: int = int(os.environ.get("PYWSS_THREAD_POOL_SIZE", 0)) or None,
+            thread_pool_size: int = int(os.environ.get("PYWSS_THREAD_POOL_SIZE", min(30, (os.cpu_count() or 1) * 5))),
+            thread_pool_idle_time: int = int(os.environ.get("PYWSS_THREAD_POOL_IDLE_TIME", 300)),
             watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
     ) -> None:
         Closing.add_close(self.close)
         self.build()
         watch and threading.Thread(target=self.watchdog, daemon=True).start()
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock, \
-                ThreadPoolExecutor(max_workers=thread_pool_size) as executor:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
             sock.listen(select_size)
+            stat_queue = SimpleQueue()
+            reqs_queue = SimpleQueue()
+            thread_ident_pool = set()
+
+            def thread_pool_worker():
+                ident = threading.get_ident()
+                log = self.log.update(thread=f"thread-{ident}")
+                log.debug("use thread pool")
+                while self.running:
+                    try:
+                        request, address = reqs_queue.get(block=True, timeout=thread_pool_idle_time)
+                        self.handler_request(request, address)
+                        stat_queue.get(block=False)
+                    except QueueTimeout:
+                        break
+                    except:
+                        log.traceback()
+                while self.running:
+                    try:
+                        thread_ident_pool.remove(ident)
+                    except:
+                        pass
+                    if ident not in thread_ident_pool:
+                        break
+                log.warning(f"thread pool recycle - remain {len(thread_ident_pool)}")
+
             selector = getattr(selectors, "EpollSelector", None) or \
                        getattr(selectors, "PollSelector", None) or \
                        selectors.SelectSelector
@@ -771,7 +795,7 @@ class App:
                         host=host,
                         port=port,
                         grace=grace,
-                        threadpool=thread_pool_enable,
+                        threadpool=thread_pool_size,
                         ipaddress=get_ipaddress(),
                     ).info("server start")
                     while self.running:
@@ -779,10 +803,17 @@ class App:
                         if not ready:
                             continue
                         request, address = sock.accept()
-                        if thread_pool_enable:
-                            executor.submit(self.handler_request, request, address)
-                            continue
-                        threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
+                        current_stat_queue_size = stat_queue.qsize()
+                        if current_stat_queue_size < thread_pool_size:
+                            stat_queue.put(None)
+                            reqs_queue.put((request, address))
+                            current_stat_queue_size += 1
+                            if current_stat_queue_size > len(thread_ident_pool):
+                                t = threading.Thread(target=thread_pool_worker, daemon=True)
+                                t.start()
+                                thread_ident_pool.add(t.ident)
+                        else:
+                            threading.Thread(target=self.handler_request, args=(request, address), daemon=True).start()
             for i in range(grace):
                 self.log.update(hit=i + 1, grace=grace).warning("server closing")
                 time.sleep(1)
