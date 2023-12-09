@@ -25,7 +25,7 @@ from pywss.routing import Route
 from pywss.openapi import openapi_ui_template
 from pywss.utils import split_method_route, merge_dict
 
-__version__ = '0.1.24'
+__version__ = '0.1.25'
 
 
 class Context:
@@ -794,8 +794,6 @@ class App:
                         version=__version__,
                         host=host,
                         port=port,
-                        grace=grace,
-                        threadpool=thread_pool_size,
                         ipaddress=get_ipaddress(),
                     ).info("server start")
                     while self.running:
