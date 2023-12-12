@@ -632,9 +632,10 @@ class App:
 
     def handler_request(self, request: socket.socket, address: tuple) -> None:
         log = self.log
+        keepalive = True
         try:
             rfd = request.makefile("rb", -1)
-            while True:
+            while keepalive:
                 http_method, http_url, http_version, err = parse_request_line(rfd)
                 if err:
                     request.sendall(b"HTTP/1.1 400 BadRequest\r\n")
@@ -650,7 +651,7 @@ class App:
                     return
                 # check keep alive
                 if http_headers.get(HeaderConnection, "").lower() == "close":
-                    break
+                    keepalive = False
                 # full match
                 handlers = self.full_match_routes.get(method_route, None)
                 # parser match

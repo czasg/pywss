@@ -39,13 +39,15 @@ class HttpTestRequest:
         self.method = None
         self.path = None
         self.body = None
-        self.headers = dict()
+        self.headers = {
+            "Pywss-Http-Test": "0.0.1",
+            "Connection": "close",
+        }
         self.app.build()
 
     def request(self, method, route, headers=None, json=None, data=""):
         self.method = method
         self.path = route
-        self.set_header("Pywss-Http-Test", "0.0.1")
         self.set_headers(headers or {})
         if json:
             self.set_headers({"Content-Type": "application/json"})
@@ -58,10 +60,7 @@ class HttpTestRequest:
         return self.build()
 
     def set_header(self, k, v):
-        header = []
-        for key in k.split("-"):
-            header.append(key[0].upper() + key[1:].lower())
-        self.headers["-".join(header)] = v
+        self.headers[k.title()] = v
         return self
 
     def set_headers(self, headers):
@@ -81,7 +80,6 @@ class HttpTestRequest:
         s, c = socket.socketpair()
         with s, c:
             c.sendall(req_message.encode())
-            c.sendall("GET / HTTP/1.1\r\nConnection: close\r\n\r\n".encode())
             self.app.handler_request(s, None)
             resp = c.makefile("rb", -1)
             return HttpTestResponse(resp.readlines())
