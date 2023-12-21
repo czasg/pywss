@@ -3,6 +3,7 @@ import os
 import re
 import json
 import time
+import gzip
 import queue
 import loggus
 import socket
@@ -88,12 +89,12 @@ class Context:
             return True
 
     def json(self):
-        return json.loads(self.body().decode())  # not check Content-Type: application/json
+        return json.loads(self.text())  # not check Content-Type: application/json
 
     def form(self) -> dict:
         resp = {}
         ct = self.headers.get(HeaderContentType, "").strip()
-        body = unquote(self.body().decode()).strip()
+        body = unquote(self.text()).strip()
 
         if ct == "application/x-www-form-urlencoded":
             for value in body.split("&"):
@@ -173,6 +174,11 @@ class Context:
                 size = int(self.rfd.readline(), 16)
             assert self.rfd.read(2) == b"\r\n"
         return self.content
+
+    def text(self) -> str:
+        if "gzip" in self.headers.get(HeaderContentEncoding, ""):
+            return gzip.decompress(self.body()).decode()
+        return self.body().decode()
 
     def stream(self, size=65536, readline=False):
         if self.headers.get(HeaderTransferEncoding, "").lower() == "chunked":
@@ -341,11 +347,12 @@ class Context:
     def __str__(self):
         firstline = f"{self.method} {self.route} {self.version}"
         header = '\r\n'.join([f"{k}: {v}" for k, v in self.headers.items()])
-        body = self.body().decode()
-        return f"{firstline}\r\n{header}\r\n\r\n{body}"
+        return f"{firstline}\r\n{header}\r\n\r\n{self.text()}"
 
     def __bytes__(self):
-        return self.body()
+        firstline = f"{self.method} {self.route} {self.version}"
+        header = '\r\n'.join([f"{k}: {v}" for k, v in self.headers.items()])
+        return f"{firstline}\r\n{header}\r\n\r\n".encode() + self.body()
 
 
 class App:
@@ -753,17 +760,21 @@ class App:
             thread_pool_idle_time: int = int(os.environ.get("PYWSS_THREAD_POOL_IDLE_TIME", 300)),
             watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
     ) -> None:
+        # global closing manager
         Closing.add_close(self.close)
+        # build app with [route:handler]
         self.build()
+        # watchdog
         watch and threading.Thread(target=self.watchdog, daemon=True).start()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
             sock.listen(select_size)
+            # queue of threading pool
             QueueIns = getattr(queue, "SimpleQueue", None) or queue.Queue
             stat_queue = QueueIns()
             reqs_queue = QueueIns()
             thread_ident_pool = set()
-
+            # worker of threading pool
             def thread_pool_worker():
                 ident = threading.get_ident()
                 log = self.log.update(thread=f"thread-{ident}")
@@ -785,7 +796,7 @@ class App:
                     if ident not in thread_ident_pool:
                         break
                 log.warning(f"thread pool recycle - remain {len(thread_ident_pool)}")
-
+            # selectors priority: epoll->poll->select
             selector = getattr(selectors, "EpollSelector", None) or \
                        getattr(selectors, "PollSelector", None) or \
                        selectors.SelectSelector
