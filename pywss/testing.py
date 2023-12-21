@@ -1,5 +1,6 @@
 # coding: utf-8
-import socket, json as _json
+import socket
+import json as _json
 
 
 class HttpTestResponse:
@@ -24,6 +25,9 @@ class HttpTestResponse:
                 k, v = msg.strip().split(":", 1)
                 self.headers[k] = v.strip()
 
+    def json(self):
+        return _json.loads(self.body)
+
     def __str__(self):
         headers = []
         for k, v in self.headers.items():
@@ -45,18 +49,41 @@ class HttpTestRequest:
         }
         self.app.build()
 
-    def request(self, method, route, headers=None, json=None, data=""):
+    def request(self, method, route,
+                params=None, cookies=None, headers=None,
+                json=None, data=None, files=None):
+        data = data or ""
         self.method = method
-        self.path = route
-        self.set_headers(headers or {})
+        self.path = route.strip("?")
+        if params:
+            if "?" not in self.path:
+                self.path = self.path + "?"
+            self.path = self.path + "&".join([f"{k}={v}" for k, v in params.items()])
+        if cookies:
+            self.set_headers({"Cookie": " ".join([f"{k}={v};" for k, v in cookies.items()])})
         if json:
             self.set_headers({"Content-Type": "application/json"})
             data = _json.dumps(json, ensure_ascii=False)
+        elif files:
+            boundary = "------------------------boundary"
+            self.set_headers({"Content-Type": f"multipart/form-data; boundary={boundary[2:]}"})
+            for k, v in files.items():
+                if isinstance(v, str):
+                    v = open(v, "rb")
+                if not hasattr(v, "read") and not hasattr(v, "close"):
+                    raise Exception("Unsupport File Type")
+                data += boundary + "\r\n"
+                data += f'Content-Disposition: form-data; name="{k}"; filename="{getattr(v, "name", "")}"' + "\r\n"
+                data += 'Content-Type: application/octet-stream' + "\r\n\r\n"
+                data += v.read().decode() + "\r\n"
+                v.close()
+            data += boundary + "--\r\n"
         if isinstance(data, str):
-            self.body = data
+            self.body = data or ""
         elif isinstance(data, dict):
             self.set_headers({"Content-Type": "application/x-www-form-urlencoded"})
             self.body = "&".join([f"{k}={v}" for k, v in data.items()])
+        self.set_headers(headers or {})
         return self.build()
 
     def set_header(self, k, v):
@@ -84,23 +111,23 @@ class HttpTestRequest:
             resp = c.makefile("rb", -1)
             return HttpTestResponse(resp.readlines())
 
-    def get(self, route, headers=None, json=None, data=""):
-        return self.request("GET", route, headers, json, data)
+    def get(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("GET", route, headers=headers, json=json, data=data, **kwargs)
 
-    def post(self, route, headers=None, json=None, data=""):
-        return self.request("POST", route, headers, json, data)
+    def post(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("POST", route, headers=headers, json=json, data=data, **kwargs)
 
-    def head(self, route, headers=None, json=None, data=""):
-        return self.request("HEAD", route, headers, json, data)
+    def head(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("HEAD", route, headers=headers, json=json, data=data, **kwargs)
 
-    def put(self, route, headers=None, json=None, data=""):
-        return self.request("PUT", route, headers, json, data)
+    def put(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("PUT", route, headers=headers, json=json, data=data, **kwargs)
 
-    def delete(self, route, headers=None, json=None, data=""):
-        return self.request("DELETE", route, headers, json, data)
+    def delete(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("DELETE", route, headers=headers, json=json, data=data, **kwargs)
 
-    def patch(self, route, headers=None, json=None, data=""):
-        return self.request("PATCH", route, headers, json, data)
+    def patch(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("PATCH", route, headers=headers, json=json, data=data, **kwargs)
 
-    def options(self, route, headers=None, json=None, data=""):
-        return self.request("OPTIONS", route, headers, json, data)
+    def options(self, route, headers=None, json=None, data=None, **kwargs):
+        return self.request("OPTIONS", route, headers=headers, json=json, data=data, **kwargs)
