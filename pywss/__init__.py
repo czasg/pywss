@@ -774,6 +774,7 @@ class App:
             stat_queue = QueueIns()
             reqs_queue = QueueIns()
             thread_ident_pool = set()
+
             # worker of threading pool
             def thread_pool_worker():
                 ident = threading.get_ident()
@@ -796,6 +797,7 @@ class App:
                     if ident not in thread_ident_pool:
                         break
                 log.warning(f"thread pool recycle - remain {len(thread_ident_pool)}")
+
             # selectors priority: epoll->poll->select
             selector = getattr(selectors, "EpollSelector", None) or \
                        getattr(selectors, "PollSelector", None) or \
@@ -846,6 +848,9 @@ class File:
         self.name: str = name
         self.filename: str = filename
         self.content: bytes = content
+
+    def __str__(self):
+        return self.content.decode()
 
 
 def once(func):
