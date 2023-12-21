@@ -760,17 +760,21 @@ class App:
             thread_pool_idle_time: int = int(os.environ.get("PYWSS_THREAD_POOL_IDLE_TIME", 300)),
             watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
     ) -> None:
+        # global closing manager
         Closing.add_close(self.close)
+        # build app with [route:handler]
         self.build()
+        # watchdog
         watch and threading.Thread(target=self.watchdog, daemon=True).start()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
             sock.listen(select_size)
+            # queue of threading pool
             QueueIns = getattr(queue, "SimpleQueue", None) or queue.Queue
             stat_queue = QueueIns()
             reqs_queue = QueueIns()
             thread_ident_pool = set()
-
+            # worker of threading pool
             def thread_pool_worker():
                 ident = threading.get_ident()
                 log = self.log.update(thread=f"thread-{ident}")
@@ -792,7 +796,7 @@ class App:
                     if ident not in thread_ident_pool:
                         break
                 log.warning(f"thread pool recycle - remain {len(thread_ident_pool)}")
-
+            # selectors priority: epoll->poll->select
             selector = getattr(selectors, "EpollSelector", None) or \
                        getattr(selectors, "PollSelector", None) or \
                        selectors.SelectSelector
