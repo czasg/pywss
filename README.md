@@ -44,16 +44,27 @@ pip3 install pywss
 ### 2、搭建 web 应用    
 首先创建 `main.py` 文件，并写入以下代码：
 ```python
+import time
 import pywss
+
+def log_handler(ctx: pywss.Context):
+    start_time = time.time()
+    ctx.next()
+    print(
+        f"Route: {ctx.route}, "
+        f"Method: {ctx.method}, "
+        f"Status: {ctx.response_status_code}, "
+        f"Time: {time.time() - start_time:.3f}s"
+    )
 
 def handler(ctx: pywss.Context):
   ctx.write("hello~")
 
-def main(port = 8080):
+def main():
     app = pywss.App()
-    app.get("/hi", lambda ctx: ctx.write("hi~"))  # curl localhost:8080/hi
-    app.post("/hello", handler)  # curl -X POST localhost:8080/hello
-    app.run(port=port)
+    app.get("/hello", handler)  # curl localhost:8080/hello
+    app.any("*", log_handler, handler)  # curl -X POST localhost:8080/hello
+    app.run()
 
 if __name__ == '__main__':
     main()
@@ -66,56 +77,3 @@ python3 main.py
 至此，一个简单的 web 应用服务就完成了。
 
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
-
-<br/>
-
-## 特性速览
-
-### 轻巧的中间件机制
-```python
-import time
-import pywss
-
-# 请求日志中间件
-def logHandler(ctx: pywss.Context):
-    startTime = time.time()
-    ctx.next()
-    cost = time.time() - startTime
-    print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
-
-app = pywss.App()
-app.use(logHandler)  # 注册全局日志中间件
-app.run()
-```
-
-### 原生的依赖注入体验
-```python
-import pywss
-
-class Repo:
-    def get(self):
-        return "repo"
-
-class Service:
-
-    def __init__(self, repo: Repo):  # Service 依赖 Repo
-        self.repo = repo
-
-    def get(self):
-        return "power by " + self.repo.get()
-
-class UserView:
-
-    def __init__(self, service: Service):  # UserView 依赖 Service
-        self.srv = service
-
-    def http_get(self, ctx):
-        ctx.write(self.srv.get())
-
-app = pywss.App()
-app.view("/user", UserView)  # 注册视图路由->自动注入依赖
-app.run()
-```
-
-### 强大的文件路由机制
-见 [文件路由](https://czasg.github.io/pywss/advance/file-route)
