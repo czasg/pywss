@@ -5,6 +5,7 @@ import json
 import time
 import gzip
 import queue
+import signal
 import loggus
 import socket
 import inspect
@@ -21,7 +22,6 @@ from pywss.constant import *
 from pywss.handler import *
 from pywss.websocket import WebSocketUpgrade
 from pywss.testing import HttpTestRequest, HttpTestResponse
-from pywss.closing import Closing
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template
 from pywss.utils import split_method_route, merge_dict
@@ -760,12 +760,14 @@ class App:
             thread_pool_idle_time: int = int(os.environ.get("PYWSS_THREAD_POOL_IDLE_TIME", 300)),
             watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
     ) -> None:
-        # global closing manager
-        Closing.add_close(self.close)
         # build app with [route:handler]
         self.build()
         # watchdog
         watch and threading.Thread(target=self.watchdog, daemon=True).start()
+        # rigister signal closing
+        for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGILL):
+            signal.signal(sig, lambda *args: self.close())
+        # socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((host, port))
             sock.listen(select_size)
