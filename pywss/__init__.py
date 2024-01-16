@@ -338,10 +338,7 @@ class Context:
             elif isinstance(body, str):
                 self.fd.sendall(body.encode())
             elif isinstance(body, BufferedReader):
-                chunk = body.read(8192)
-                while chunk:
-                    self.fd.sendall(chunk)
-                    chunk = body.read(8192)
+                self.fd.sendfile(body)
                 body.close()
 
     def __str__(self):
