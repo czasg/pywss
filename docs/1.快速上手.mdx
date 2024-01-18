@@ -6,19 +6,7 @@ slug: /start
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-
-export const Highlight = ({children}) => (
-  <span
-    style={{
-      backgroundColor: '#f1f0d8',
-      borderRadius: '10px',
-      color: '#000',
-      padding: '0.4rem',
-      fontWeight: 700,
-    }}>
-    {children}
-  </span>
-);
+import Highlight from '@site/src/components/Highlight';
 
 ## 安装
 Pywss 依赖 python 3.6+ 版本的部分特性。
@@ -46,13 +34,18 @@ Pywss 依赖 python 3.6+ 版本的部分特性。
 </TabItem>
 </Tabs>
 
-Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)，该库是作者对结构化日志库的探索成果，暂时够用😅。
+:::note 依赖说明
 
-后续会考虑切回原生日志库 logging，减少心智负担😅。
+Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)，该库是作者对结构化日志库的探索成果，暂时够用😅
+后续会考虑切回原生日志库 logging，减少心智负担😅
+
+:::
 
 
-## 创建应用
-本节继续以 hello world 为例，从零开始快速搭建一个 web 应用。
+## 快速开始
+本节以 hello world 为例，从零开始快速搭建一个 web 应用。
+
+### 准备程序
 
 首先，在本地创建 **main.py** 文件并写入以下源码。
 
@@ -62,14 +55,14 @@ Pywss 目前仅依赖一个日志库 [loggus](https://github.com/czasg/loggus)�
 ```python showLineNumbers title="源码"
 import pywss
 
-def helloHandler(ctx: pywss.Context):
+def helloHandler(ctx: pywss.Context): # 处理函数仅 pywss.Context 一个参数哦~
     ctx.write({"hello": "world"})
 
-def main(defaultPort = 8080):
+def main():
     app = pywss.App()
-    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 匿名函数也是不错的选择
+    app.get("/hi", lambda ctx: ctx.write("hi~"))  # 匿名函数也是不错的选择~
     app.post("/hello", helloHandler)
-    app.run(port=defaultPort)
+    app.run(port=8080)  # 默认端口为8080
 
 if __name__ == '__main__':
     """
@@ -97,6 +90,27 @@ hi~
   </TabItem>
 </Tabs>
 
+### 快速启动
+1. 准备好 python3 环境，并正常安装 pywss 库
+2. 准备好上述程序文件
+3. 在一切准备都完成之后，我们通过`python3 main.py`快速启动服务。当看到类似日志时，则表示服务已经正常启动
+```text
+time="2024-01-18 15:54:32.497093" level=info msg="bind route" type=fullmatch route="GET:/hi" handlers="['<lambda>']"
+time="2024-01-18 15:54:32.497093" level=info msg="bind route" type=fullmatch route="POST:/hello" handlers="['helloHandler']"
+time="2024-01-18 15:54:32.513093" level=info msg="server start" version="0.1.27" host="0.0.0.0" port=8080
+```
+4. 我们可以通过`curl`快速请求服务
+```bash
+>>> curl localhost:8080/hi
+hi~
+>>> curl -X POST localhost:8080/hello
+{"hello": "world"}
+```
+
+至此，一个简单的 hello world 应用就已经完成了😏
+
+### 程序说明
+
 在 **`main.py`** 中我们可以看到：
 
 #### 1.首先是初始化模块
@@ -109,19 +123,14 @@ hi~
 #### 2.其次是路由注册模块
 
 - 第8行 **`app.get()`** 表示 **注册 Http Get** 方法，其参数分别表示：
-    - **绑定路由** `/hi`
-    - **绑定业务处理逻辑** `lambda ctx: ctx.write("hi~")`
+    - 绑定路由 `/hi`
+    - 绑定业务处理逻辑 `lambda ctx: ctx.write("hi~")`
 - 第9行 **`app.post()`** 表示 **注册 Http Post** 方法，其参数分别表示：
-    - **绑定路由** `/hello`
-    - **绑定业务处理逻辑** `helloHandler`
-
-通过 `python3 main.py` 启动服务后，我们可以通过 `curl` 来验证服务。结果见上。
-
-至此，一个简单的 hello world 应用就搭建完成了。
+    - 绑定路由 `/hello`
+    - 绑定业务处理逻辑 `helloHandler`
 
 
-
-## 上下文 **Context**
+## 什么是Context
 在 Pywss 中，**`pywss.Context`**（后文均使用 ctx 代替） **贯穿于单次请求的整个生命周期**，是 Pywss 用于管理请求的上下文对象。
 
 对于 Pywss 的 **Handler**（业务逻辑处理模块） 来说，仅且支持 **ctx** 这一个参数。
@@ -160,7 +169,40 @@ hi~
 |**`ctx.flush()`**|`func`|**发送HTTP响应报文**，一般不需要自己调用。`flush`仅且只能调用一次，多次调用仅第一次生效~|
 
 
-## 优雅的使用 **Next**
+## 什么是Next
+
+Next 本质是一个链式调用。
+
+Pywss 允许路由关联一组 **Handler**，并通过 **next** 实现链式调用。下面我们通过一个**日志中间件**用例来快速上手 **next** 机制。
+
+```python title="日志中间件服务" showLineNumbers {7,15}
+import pywss
+import time
+import random
+
+def logHandler(ctx: pywss.Context):
+    startTime = time.time()
+    ctx.next()
+    cost = time.time() - startTime
+    print(f"{ctx.method} - {ctx.route} - cost: {cost: .2f}")
+
+def helloHandler(ctx: pywss.Context):
+    ctx.write({"hello": "world"})
+
+app = pywss.App()
+app.post("/hello", logHandler, helloHandler)
+app.run()
+```
+
+在这个用例中，`logHandler`和`helloHandler`就是一组关联的Handler，注册一组关联的 Handler 的方式和注册单个 Handler 的方式是一样的，
+其调用顺序就是从左至右。
+
+<Highlight bgColor="#FFA07A">注意！</Highlight> 需要前一个 Handler 执行 ctx.next() 才会触发链式调用进入到下一个 Handler😵
+
+为了方便理解，对于一组关联的 Handler，除了最后一个 Handler 之外，前面的我们都称之为**中间件**。
+
+
+### 原理简介
 
 :::caution 前提说明
 
@@ -168,27 +210,7 @@ hi~
 
 :::
 
-### 原理简介
-
-**`ctx.next`** 本质是一个**嵌套调用**。
-
-```python showLineNumbers title="示例"
-# 定义多个handler
-handler_1 = lambda ctx: ctx.next()  # 触发handler_2
-handler_2 = lambda ctx: ctx.next()  # 触发handler_3
-handler_3 = lambda ctx: ctx.next()  # 无效
-
-# 注册多个handler
-app.get("/hello", handler_1, handler_2, handler_3)
-
-# 通过next嵌套调用实现同等替换的效果
-ctx.next() -> handler_1(ctx)  # 第一次调用等同于handler_1(ctx)
-ctx.next() -> handler_2(ctx)  # 第二次调用等同于handler_2(ctx)
-ctx.next() -> handler_3(ctx)  # 第三次调用等同于handler_3(ctx)
-ctx.next() -> None            # 第四次调用，无效
-```
-
-其源码也是非常的简洁，核心逻辑仅由几行代码实现：
+`next` 源码非常的简洁，核心逻辑仅由几行代码实现：
 
 ```python showLineNumbers title="ctx.next 源码"
 def next(self) -> None:
@@ -204,9 +226,7 @@ def next(self) -> None:
 
 ### 使用方法
 
-基于 **`ctx.next`** 嵌套调用的特性，我们可以顺序的选择 **执行/不执行** 后面的handler，因此我们可以非常容易的实现**中间件拓展**。
-
-在 pywss 中，提供了两种方式来拓展中间件能力：
+在 pywss 中，提供了两种方式来注册中间件：
 
 - **app use 全局注册** ，针对全部路由生效
 - **route bind 局部注册** ，针对指定路由生效

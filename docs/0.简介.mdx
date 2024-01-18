@@ -5,27 +5,19 @@ hide_table_of_contents: false
 slug: /
 ---
 
-export const Highlight = ({children}) => (
-  <span
-    style={{
-      backgroundColor: '#f1f0d8',
-      borderRadius: '10px',
-      color: '#000',
-      padding: '0.4rem',
-      fontWeight: 700,
-    }}>
-    {children}
-  </span>
-);
+import Highlight from '@site/src/components/Highlight';
+import AutoImage from '@site/src/components/AutoImage';
+import ArchPywssImageUrl from '@site/static/img/arch-pywss.png';
 
-:::note 当前最新版本
+:::note version
 
 ![PyPI](https://img.shields.io/pypi/v/pywss?color=green)
 ![Codecov](https://img.shields.io/codecov/c/github/czasg/pywss?token=JSXIQXY1EQ)
 
 :::
 
-## Pywss
+### 什么是Pywss
+
 Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python Web 框架，它基于 Python3.6+ 特性构建。
 
 与 Flask、Django 等主流框架不同的是，Pywss 的底层并没有实现 WSGI 接口协议。
@@ -33,13 +25,25 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 
 其关键特性有：
 - **简单**：拒绝海量参数，减少心智负担。了解上下文 <Highlight>pywss.Context</Highlight> 即刻启程。
-- **快速**：独特的实现了线程池机制，并能够在空闲时主动回收多余的线程池资源。
+- **快速**：引入线程池机制，减少并发场景下线程创建/销毁开销。
 - **优雅**：<Highlight>next</Highlight> 设计真的太优雅了。如果你也和我一样喜欢，那我觉得这件事情，**泰裤辣！！**
 - **标准**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
 - **工具链**：开箱即用的工具库，提供 **WebSocket** 等能力。
 
+### 为什么要写Pywss
 
+Pywss 是作者在Web后端领域多年学习的经验总结与结晶，早期的 Pywss 更偏向于 Python WebSocket Server 领域，
+同时也受到作者早期技术栈的影响，它是一个充斥着浓厚 Flask、Django 风格的框架。
+随着工作逐渐往 Go 转型之后，作者又接触到了不少令人眼前一亮的优秀后端框架。因此，在一次一次尝试中，诞生了如今的 Pywss。
+
+下面是作者对当前框架版本(v0.1.27)的应用生命周期架构图
+
+<AutoImage src={ArchPywssImageUrl} />
+
+
+
+<!--
 ## Example
 以下展示了一些最基本的用例，如果你有一定后端编程基础，相信你看完这些用例，大概就知道 Pywss 做了什么事情了。
 
@@ -122,7 +126,9 @@ assert resp.status_code == 200
 assert resp.body == "HelloWorld"
 ```
 
-<!--
+
+
+
 
 ## Why
 可能大部分会同学对 Python Web 框架感觉到厌烦...

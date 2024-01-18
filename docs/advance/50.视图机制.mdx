@@ -89,7 +89,7 @@ Pywss 在视图机制基础上，引入了**原生体验**的依赖注入能力�
 
 通过对参数的类型注解，可以轻易的实现依赖注入能力。下面通过一个案例来说明：
 
-```python
+```python showLineNumbers {1}
 import pywss
 
 class Repo1:
@@ -118,9 +118,11 @@ class UserView:
         ctx.write(self.srv.get())
 
 app = pywss.App()
-app.view("/user", UserView)  # 注册视图路由->自动注入依赖
+app.view("/user", UserView)  # 注意此处不能是实例，需要由 pywss 自动创建实例
 app.run()
 ```
+
+在注册视图类时，如果不是实例，**那么 Pywss 会自动帮你创建实例**。在创建实例的过程中，就实现了依赖注入。
 
 在此案例中，我们可以看到 UserView 依赖 Service，而 Service 依赖 Repo1 和 Repo2。
 
