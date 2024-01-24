@@ -16,6 +16,7 @@ class TestBase(unittest.TestCase):
         app.get("/200", pywss.NewCacheHandler(maxCache=1), lambda ctx: ctx.write([time.time()]))
         app.get("/400", pywss.NewCacheHandler(), lambda ctx: ctx.set_status_code(400) or ctx.write([time.time()]))
         app.get("/file", pywss.NewCacheHandler(), lambda ctx: ctx.write_file(__file__))
+        app.get("/clear", pywss.NewCacheHandler(0, 0), lambda ctx: ctx.write([time.time()]))
 
         resp = pywss.HttpTestRequest(app).get("/200").body
         time.sleep(0.01)
@@ -36,6 +37,24 @@ class TestBase(unittest.TestCase):
         self.assertEqual(resp, pywss.HttpTestRequest(app).get("/file").body)
         time.sleep(0.01)
         self.assertEqual(resp, pywss.HttpTestRequest(app).get("/file").body)
+
+        resp = pywss.HttpTestRequest(app).get("/clear").body
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get("/clear").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get("/clear").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get("/clear").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get("/clear").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get(f"/clear?timestamp={time.time()}").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get(f"/clear?timestamp={time.time()}").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get(f"/clear?timestamp={time.time()}").body)
+        time.sleep(0.01)
+        self.assertNotEqual(resp, pywss.HttpTestRequest(app).get(f"/clear?timestamp={time.time()}").body)
 
     def test_cors(self):
         app = pywss.App()
@@ -88,6 +107,15 @@ class TestBase(unittest.TestCase):
         app.get("/register", lambda ctx: ctx.set_header("Authorization", ctx.data.jwt.encrypt(name="pywss")))
         app.get("/login", lambda ctx: ctx.write("ok"))
         resp = pywss.HttpTestRequest(app).get("/register")
+        self.assertEqual(resp.status_code, 200)
+        authorization = resp.headers.get("Authorization")
+        self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
+
+        # ignore_method_route
+        app = pywss.App()
+        app.use(pywss.NewJWTHandler(secret=secret, ignore_method_route=[("GET", "/")]))
+        app.get("/", lambda ctx: ctx.set_header("Authorization", ctx.data.jwt.encrypt(name="pywss")))
+        resp = pywss.HttpTestRequest(app).get("/")
         self.assertEqual(resp.status_code, 200)
         authorization = resp.headers.get("Authorization")
         self.assertEqual(pywss.JWT(secret).decrypt(authorization)["name"], "pywss")
