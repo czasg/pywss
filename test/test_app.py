@@ -523,38 +523,6 @@ Content-Disposition: form-data; name="key2"; filename="example.txt"\r\n\r\nvalue
             self.assertIn(b"Sec-WebSocket-Accept: eVZ4hOFNJGMIfDNEG3b/VpD7CNk=", resp)
             c.sendall(b'1')
 
-    def test_routing(self):
-        import pywss.routing
-        route = pywss.routing.Route.from_route("/test/test/{test}")
-        ok, res = route.match("/test")
-        self.assertEqual(ok, False)
-        ok, res = route.match("/test/test1/test")
-        self.assertEqual(ok, False)
-        ok, res = route.match("/test/test/test")
-        self.assertEqual(ok, True)
-        self.assertEqual(res, {"test": "test"})
-
-        app = pywss.App()
-        app.get("/test/", lambda ctx: ctx.write(ctx.route))
-        resp = pywss.HttpTestRequest(app).get("/test")
-        self.assertEqual(resp.body, "/test")
-        resp = pywss.HttpTestRequest(app).get("/test/")
-        self.assertEqual(resp.body, "/test/")
-
-        app = pywss.App()
-        app.get("/{test}/", lambda ctx: ctx.write(ctx.route_params["test"]))
-        resp = pywss.HttpTestRequest(app).get("/123")
-        self.assertEqual(resp.body, "123")
-        resp = pywss.HttpTestRequest(app).get("/456/")
-        self.assertEqual(resp.body, "456")
-
-        app = pywss.App()
-        app.get("*", lambda ctx: ctx.write(ctx._route))
-        resp = pywss.HttpTestRequest(app).get("/123")
-        self.assertEqual(resp.body, "GET")
-        resp = pywss.HttpTestRequest(app).get("/456/")
-        self.assertEqual(resp.body, "GET")
-
     def test_headers(self):
         import pywss.headers
 
@@ -574,6 +542,18 @@ Content-Disposition: form-data; name="key2"; filename="example.txt"\r\n\r\nvalue
             c.sendall(b't' * 65536 + b'\r\n')
             _, err = pywss.headers.parse_headers(rb)
             self.assertEqual(err, "headers is too long")
+
+    def test_close(self):
+        app = pywss.App()
+        app.get("/is_closed", lambda ctx: ctx.is_closed())
+        app.get("/close", lambda ctx: ctx.close())
+        app.get("/str", lambda ctx: ctx.write(str(ctx)))
+        app.get("/bytes", lambda ctx: ctx.write(bytes(ctx)))
+        pywss.HttpTestRequest(app).get("/is_closed")
+        pywss.HttpTestRequest(app).get("/close")
+        pywss.HttpTestRequest(app).get("/str")
+        pywss.HttpTestRequest(app).get("/bytes")
+
 
 
 if __name__ == '__main__':

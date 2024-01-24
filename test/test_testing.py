@@ -45,6 +45,19 @@ class TestBase(unittest.TestCase):
         app.any("/", lambda ctx: ctx.write(ctx.cookies))
         self.assertEqual(pywss.HttpTestRequest(app).post("/", cookies=body).json(), body)
 
+    def test_files(self):
+        app = pywss.App()
+        app.post("/", lambda ctx: ctx.write("ok" if "file" in ctx.file() else "fail"))
+        self.assertEqual(pywss.HttpTestRequest(app).post("/", files={"file": __file__}).body, "ok")
+        self.assertEqual(pywss.HttpTestRequest(app).post("/", files={"files": __file__}).body, "fail")
+        # except
+        errMsg = ""
+        try:
+            pywss.HttpTestRequest(app).post("/", files={None: None})
+        except Exception as e:
+            errMsg = str(e)
+        self.assertEqual(errMsg, "Unsupport File Type")
+
 
 if __name__ == '__main__':
     unittest.main()

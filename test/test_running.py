@@ -17,7 +17,7 @@ class TestBase(unittest.TestCase):
 
     def test_app_run(self):
         app = pywss.App()
-        threading.Thread(target=lambda: time.sleep(0.5) or app.close() or pywss.Closing.close()).start()
+        threading.Thread(target=lambda: time.sleep(0.5) or app.close()).start()
         app.run(port=0, grace=1)
         self.assertEqual(app.running, False)
 
@@ -25,7 +25,7 @@ class TestBase(unittest.TestCase):
         app = pywss.App()
         threads = [
             threading.Thread(target=app.run),
-            threading.Thread(target=lambda: time.sleep(0.5) or app.close() or pywss.Closing.close())
+            threading.Thread(target=lambda: time.sleep(0.5) or app.close())
         ]
         for thread in threads:
             thread.start()
