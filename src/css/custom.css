@@ -15,6 +15,7 @@
     --ifm-color-primary-lightest: #3cad6e;
     --ifm-code-font-size: 95%;
     --docusaurus-highlighted-code-line-bg: rgba(166, 217, 255, 0.2);
+    --image-bg-color: white;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -27,6 +28,7 @@
     --ifm-color-primary-lighter: #32d8b4;
     --ifm-color-primary-lightest: #4fddbf;
     --docusaurus-highlighted-code-line-bg: rgba(166, 217, 255, 0.2);
+    --image-bg-color: black;
 }
 
 .header-github-link {
