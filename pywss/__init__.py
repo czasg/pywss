@@ -690,11 +690,13 @@ class App:
                 if ctx.content_length != len(ctx.content):  # sock should be close
                     return
         except ConnectionAbortedError:
-            log.error("connect abort")
+            log.warning("connect abort")
         except ConnectionResetError:
-            log.error("connect reset")
+            log.warning("connect reset")
         except BrokenPipeError:
-            log.error("broken pipe")
+            log.warning("broken pipe")
+        except socket.timeout:
+            log.warning("connect timeout")
         except:
             log.traceback()
         finally:
