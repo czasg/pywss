@@ -77,3 +77,9 @@ python3 main.py
 至此，一个简单的 web 应用服务就完成了。
 
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
+  
+<br/>
+
+## Activity
+
+![Alt](https://repobeats.axiom.co/api/embed/0647dce0c169ba858b3592938376e41d20dc3e6f.svg "Repobeats analytics image")
