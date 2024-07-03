@@ -152,15 +152,24 @@ class Context:
             h = unquote(h.decode()).strip()
             name = ""
             filename = ""
-            for k in h.split(";"):
-                k = k.strip()
-                if k.startswith("name="):
-                    name = k[5:].strip('"')
-                elif k.startswith("filename="):
-                    filename = k[9:].strip('"')
+            headers = {}
+            for line in h.split("\r\n"):
+                lines = line.split(":", 1)
+                if len(lines) != 2:
+                    continue
+                headerKey = lines[0].strip()
+                headerVal = lines[1].strip()
+                headers[headerKey] = headerVal
+                if headerKey.startswith(HeaderContentDisposition):
+                    for val in headerVal.split(";"):
+                        val = val.strip()
+                        if val.startswith("name="):
+                            name = val[5:].strip('"')
+                        elif val.startswith("filename="):
+                            filename = val[9:].strip('"')
             if not name:
                 raise Exception("invalid form-data, without name")
-            resp[name] = File(name, filename, v)
+            resp[name] = File(name, filename, headers, v)
         return resp
 
     def body(self) -> bytes:
@@ -843,10 +852,11 @@ class Data(dict):
 
 class File:
 
-    def __init__(self, name, filename, content):
+    def __init__(self, name, filename, headers, content):
         self.name: str = name
         self.filename: str = filename
         self.content: bytes = content
+        self.headers: dict = headers
 
     def __str__(self):
         return self.content.decode()
