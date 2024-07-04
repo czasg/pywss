@@ -46,10 +46,10 @@ def _websocketRead(sock) -> bytes:
     if len(response) != 2:
         return b""
     length = response[1] & 0b1111111
-    if length is 0b1111110:
+    if length == 0b1111110:
         response += sock.read(2)
         _, data_length = struct.unpack('!BH', response[1:4])
-    elif length is 0b1111111:
+    elif length == 0b1111111:
         response += sock.read(8)
         _, data_length = struct.unpack('!BQ', response[1:10])
     else:
@@ -66,10 +66,10 @@ def _websocketRead(sock) -> bytes:
 
 def _websocketDecodeMsg(data) -> bytes:
     payload_len = data[1] & 0b1111111
-    if payload_len is 0b1111110:
+    if payload_len == 0b1111110:
         mask = data[4:8]
         decoded = data[8:]
-    elif payload_len is 0b1111111:
+    elif payload_len == 0b1111111:
         mask = data[10:14]
         decoded = data[14:]
     else:
