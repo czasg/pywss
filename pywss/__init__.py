@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import re
+import sys
 import json
 import time
 import gzip
@@ -757,6 +758,25 @@ class App:
             time.sleep(interval)
         log.warning("exit")
 
+    def fork_processes(self, num_processes: int):
+        if sys.platform == "win32":
+            raise Exception("fork not available on windows")
+        pids = {}
+        num_processes = num_processes if num_processes > 0 else os.cpu_count()
+        for i in range(num_processes):
+            pid = os.fork()
+            if pid == 0:  # child process
+                return pid
+            else:
+                pids[pid] = i
+        # main process
+        while pids:
+            pid, status = os.wait()
+            if pid not in pids:
+                continue
+            pids.pop(pid)
+        return None
+
     def run(
             self,
             host: str = "0.0.0.0",
@@ -767,6 +787,8 @@ class App:
             thread_pool_size: int = int(os.environ.get("PYWSS_THREAD_POOL_SIZE", min(30, (os.cpu_count() or 1) * 5))),
             thread_pool_idle_time: int = int(os.environ.get("PYWSS_THREAD_POOL_IDLE_TIME", 300)),
             watch: bool = os.environ.get("PYWSS_WATCHDOG_ENABLE", "false").lower() == "true",
+            fork: bool = False,
+            num_processes: int = 0,
     ) -> None:
         # build app with [route:handler]
         self.build()
@@ -775,8 +797,15 @@ class App:
         # rigister signal closing
         for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGILL):
             signal.signal(sig, lambda *args: self.close())
+        # use os.fork
+        if fork:
+            pid = self.fork_processes(num_processes)
+            if pid is None:
+                return
         # socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            if fork:  # child
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             sock.bind((host, port))
             sock.listen(select_size)
             # queue of threading pool
