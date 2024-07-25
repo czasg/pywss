@@ -24,7 +24,7 @@ from pywss.websocket import WebSocketUpgrade
 from pywss.testing import HttpTestRequest, HttpTestResponse
 from pywss.routing import Route
 from pywss.openapi import openapi_ui_template
-from pywss.utils import split_method_route, merge_dict
+from pywss.utils import split_method_route, merge_dict, Query
 
 __version__ = '0.1.28'
 
@@ -49,8 +49,10 @@ class Context:
         self.method: str = http_method
         self.url: str = http_url  # /route?key=value
         self.url_params: dict = parse_params(http_url)
+        self.query: Query = Query(parse_params(http_url))
         self.route: str = route  # /route
         self.route_params: dict = route_params
+        self.params: Query = Query(route_params)
         self.version: str = http_version
         self.headers: dict = http_headers
         self.cookies: dict = parse_cookies(http_headers)
