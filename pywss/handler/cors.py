@@ -16,7 +16,11 @@ def NewCORSHandler(
     allowCredentials = "true" if allow_credentials else "false"
 
     def corsHandler(ctx: pywss.Context):
-        ctx.set_header(HeaderAccessControlAllowOrigin, allowOrigins)
+        origin = allowOrigins
+        headerOrigin = ctx.headers.get(HeaderOrigin, "")
+        if "localhost" in headerOrigin:
+            origin = headerOrigin
+        ctx.set_header(HeaderAccessControlAllowOrigin, origin)
         ctx.set_header(HeaderAccessControlAllowMethods, allowMethods)
         ctx.set_header(HeaderAccessControlAllowHeaders, allowHeaders)
         ctx.set_header(HeaderAccessControlAllowCredentials, allowCredentials)
