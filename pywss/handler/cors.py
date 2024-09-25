@@ -6,7 +6,7 @@ from pywss.constant import *
 
 def NewCORSHandler(
         allow_origins: tuple = ("*",),
-        allow_methods: tuple = ("*",),
+        allow_methods: tuple = ("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
         allow_headers: tuple = ("*",),
         allow_credentials: bool = True,
 ):
@@ -16,10 +16,9 @@ def NewCORSHandler(
     allowCredentials = "true" if allow_credentials else "false"
 
     def corsHandler(ctx: pywss.Context):
-        origin = allowOrigins
         headerOrigin = ctx.headers.get(HeaderOrigin, "")
-        if "localhost" in headerOrigin:
-            origin = headerOrigin
+        useLocal = "localhost" in headerOrigin
+        origin = headerOrigin if useLocal else allowOrigins
         ctx.set_header(HeaderAccessControlAllowOrigin, origin)
         ctx.set_header(HeaderAccessControlAllowMethods, allowMethods)
         ctx.set_header(HeaderAccessControlAllowHeaders, allowHeaders)
