@@ -30,11 +30,6 @@ class ServerCommand(cc.Command):
         debug = cc.FlagBool(flags=["-d", "--debug"],
                             description="don't start server, just debug pywss.")
 
-    def descriptions(self) -> str:
-        return """
-        Web Server By Pywss
-        """
-
     def run(self, *args, **flags):
         flags = cc.Flag.parse_value(self.flags)
         app = pywss.App()
