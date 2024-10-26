@@ -1,5 +1,6 @@
 # coding: utf-8
 import cc
+import entrypoint.init
 import entrypoint.server
 
 
@@ -21,6 +22,7 @@ class PywssCommand(cc.Command):
 def main():
     cmd = PywssCommand()
     cmd.add(
+        entrypoint.init.InitCommand(),
         entrypoint.server.ServerCommand(),
     )
     cc.Execute(cmd)
