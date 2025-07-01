@@ -83,11 +83,16 @@ class Context:
         self._handlers[index](self)
 
     def close(self) -> None:
+        try:
+            self.fd.shutdown(socket.SHUT_WR)
+        except:
+            pass
         self.fd.close()
 
     def is_closed(self) -> bool:
         try:
-            return self.fd.send(b"") != 0
+            self.fd.recv(0)
+            return False
         except:
             return True
 
@@ -281,6 +286,18 @@ class Context:
         self.set_status_code(status_code)
         self.set_header(HeaderLocation, url)
 
+    def sse_event(self, data, event="message", id=None, retry=None):
+        self.flush_header(type="sse")
+        if event:
+            self.fd.sendall(f"event: {event}\n".encode())
+        if data:
+            self.fd.sendall(f"data: {data}\n".encode())
+        if id:
+            self.fd.sendall(f"id: {id}\n".encode())
+        if retry:
+            self.fd.sendall(f"retry: {retry}\n".encode())
+        self.fd.sendall(b"\n")
+
     def write(self, body) -> None:
         if isinstance(body, (str, bytes)):
             self.write_text(body)
@@ -334,6 +351,12 @@ class Context:
             self.response_headers.pop(HeaderContentLength, None)
             self.response_headers.setdefault(HeaderContentType, "text/html; charset=utf-8")
             self.response_headers.setdefault(HeaderTransferEncoding, "chunked")
+        if type == "sse":
+            self.response_headers.pop(HeaderContentLength, None)
+            self.response_headers.setdefault(HeaderContentType, "text/event-stream")
+            self.response_headers.setdefault(HeaderCacheControl, "no-cache")
+            self.response_headers.setdefault(HeaderConnection, "keep-alive")
+            self.response_headers.setdefault(HeaderAccessControlAllowOrigin, "*")
         data = [f"{self.version} {self.response_status_code} Pywss"]
         for k, v in self.response_headers.items():
             data.append(f"{k}: {v}")

@@ -1,59 +1,39 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: Python CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
   pull_request:
-    branches: [ "master" ]
-
-permissions:
-  contents: read
+    branches: [ "master", "main" ]
 
 jobs:
-  checks:
-    if: github.event_name != 'push'
-    runs-on: ubuntu-20.04
+  test:
+    runs-on: ubuntu-latest  # 使用最新稳定版而不是具体版本号
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]  # 简化为主要版本号
     steps:
     - uses: actions/checkout@v3
+    
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4  # 使用更新的v4版本
       with:
         python-version: ${{ matrix.python-version }}
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest coverage==3.6
-        python setup.py install
-    - name: Test with pytest
+        pip install pytest pytest-cov  # 合并coverage和pytest安装
+        pip install -e .  # 使用可编辑安装替代setup.py install
+    
+    - name: Run tests with coverage
       run: |
-        pytest
-  build:
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+        pytest --cov=./ --cov-report=xml  # 生成XML格式的覆盖率报告
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3  # 使用官方Codecov action
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cover
-        python setup.py install
-    - name: Test with pytest
-      run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest --cov=pywss
-    - name: Codecov
-      run: bash <(curl -s https://codecov.io/bash)       
+        token: ${{ secrets.CODECOV_TOKEN }}  # 可选，如果需要的话
+        file: ./coverage.xml
+        flags: unittests
