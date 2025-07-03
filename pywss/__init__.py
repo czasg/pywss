@@ -92,6 +92,7 @@ class Context:
     def is_closed(self) -> bool:
         try:
             self.fd.recv(0)
+            self.fd.send(b"")
             return False
         except:
             return True
@@ -313,8 +314,9 @@ class Context:
         self.set_content_type("text/html; charset=utf-8")
         self.response_body.append(data)
 
-    def write_json(self, data) -> None:
-        data = json.dumps(data, ensure_ascii=False).encode()
+    def write_json(self, data, **kwargs) -> None:
+        if not isinstance(data, str):
+            data = json.dumps(data, ensure_ascii=False, **kwargs).encode()
         self.set_content_length(len(data))
         self.set_content_type("application/json")
         self.response_body.append(data)
@@ -397,6 +399,9 @@ class App:
         self.full_match_routes: dict = {}
         self.openapi_data: dict = {
             "paths": defaultdict(dict),
+            "components": {
+                "schemas": {},
+            }
         }
         self.running: bool = False
         self.data: Data = Data()
@@ -658,7 +663,8 @@ class App:
                         "in": "header",
                         "name": "X-API-KEY",
                     }
-                }
+                },
+                "schemas": {},
             }
         }
         self.get(openapi_json_route, lambda ctx: ctx.write(self.openapi_data))
@@ -725,11 +731,11 @@ class App:
                 if ctx.content_length != len(ctx.content):  # sock should be close
                     return
         except ConnectionAbortedError:
-            log.error("connect abort")
+            log.debug("connect abort")
         except ConnectionResetError:
-            log.error("connect reset")
+            log.debug("connect reset")
         except BrokenPipeError:
-            log.error("broken pipe")
+            log.debug("broken pipe")
         except:
             log.traceback()
         finally:

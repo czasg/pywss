@@ -1,7 +1,8 @@
 # coding: utf-8
 import json
 
-from pywss.utils import safe_encoder
+from pydantic import BaseModel
+from pywss.utils import safe_encoder, resolve_refs
 
 
 def docs(
@@ -46,6 +47,8 @@ def docs(
 
     def wrap(func):
         func.__openapi_path__ = json.loads(json.dumps(path, default=safe_encoder))
+        if issubclass(request, BaseModel):
+            func.__openapi_request__ = request
         return func
 
     return wrap
@@ -83,6 +86,14 @@ def transfer_content_type(object):
 
 
 def transfer_schema(object, objectType):
+    if isinstance(object, BaseModel) or issubclass(object, BaseModel):
+        schema = object.model_json_schema()
+        definitions = schema.pop("$defs", {})
+        return {
+            "application/json": {
+                "schema": resolve_refs(schema, definitions)
+            }
+        }
     if hasattr(object, "__fields__"):
         object = transfer_fields(object)
     return {

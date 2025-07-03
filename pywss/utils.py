@@ -38,3 +38,15 @@ class Query(dict):
             if arg in self:
                 ret[index] = typ(self[arg])
         return ret
+
+
+def resolve_refs(schema, definitions):
+    if isinstance(schema, dict):
+        if "$ref" in schema:
+            ref = schema["$ref"].split("/")[-1]
+            return resolve_refs(definitions[ref], definitions)
+        return {k: resolve_refs(v, definitions) for k, v in schema.items()}
+    elif isinstance(schema, list):
+        return [resolve_refs(item, definitions) for item in schema]
+    else:
+        return schema
