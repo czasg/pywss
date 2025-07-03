@@ -60,5 +60,6 @@ setup(
     ],
     install_requires=[
         "loggus>=0.1.1",
+        "pydantic",
     ],
 )
