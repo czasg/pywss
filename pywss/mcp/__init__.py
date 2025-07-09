@@ -140,6 +140,11 @@ class MCPServer:
             self.handle_error(ctx, METHOD_NOT_FOUND, f"Method {method} not found")
 
     def handle_success(self, ctx: pywss.Context, result):
+        uid = ctx.query.get("session_id")
+        q = self.queueMap.get(uid)
+        if not q:
+            ctx.write(result)
+            return
         method = ctx.data.method
         if method == MethodToolsCall:
             if not isinstance(result, str):
@@ -152,10 +157,6 @@ class MCPServer:
                     }
                 ]
             }
-        uid = ctx.query.get("session_id")
-        q = self.queueMap.get(uid)
-        if not q:
-            return
         ret = {
             "id": ctx.json().get("id"),
             "jsonrpc": "2.0",
@@ -169,6 +170,7 @@ class MCPServer:
         uid = ctx.query.get("session_id")
         q = self.queueMap.get(uid)
         if not q:
+            ctx.write({"code": code, "message": message})
             return
         ret = {
             "id": ctx.json().get("id"),
