@@ -22,7 +22,7 @@ class DomainsReq(BaseModel):
 
 class DomainMCPServer(MCPServer):
 
-    @pywss.openapi.docs(request=DomainReq)  # required
+    @pywss.openapi.docs(description="获取单个域名服务", request=DomainReq)  # required
     def tool_get_domain(self, ctx: pywss.Context):
         req: DomainReq = ctx.data.req
         self.handle_success(ctx, {
@@ -30,12 +30,16 @@ class DomainMCPServer(MCPServer):
             "color": req.color
         })
 
-    @pywss.openapi.docs(request=DomainsReq)  # required
+    @pywss.openapi.docs(description="获取批量域名服务", request=DomainsReq)  # required
     def tool_get_domains(self, ctx: pywss.Context):
         req: DomainsReq = ctx.data.req
         self.handle_success(ctx, {
             "domains": req.domains,
         })
+
+    @pywss.openapi.docs(description="获取http域名服务", request=DomainsReq)  # required
+    def tool_http_get_domains(self, ctx: pywss.Context):
+        print(ctx)
 
 
 mcpServer = DomainMCPServer()
