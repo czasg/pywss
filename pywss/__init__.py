@@ -488,6 +488,9 @@ class App:
             self.full_match_routes[route] = app
         return self.full_match_routes[route]
 
+    def group(self, route, *handlers) -> 'App':
+        return self.party(route, *handlers)
+
     def use(self, *handlers) -> None:
         self.base_handlers += list(handlers)
 
