@@ -54,5 +54,8 @@ def parse_headers(fp):
         lines = str(line, 'iso-8859-1').rstrip("\r\n").split(":", maxsplit=1)
         if len(lines) != 2:
             return headers, f"bad request header {line}"
-        headers[lines[0].strip()] = unquote(lines[1].strip())
+        key = lines[0].strip()
+        if key[0].islower():
+            key = key.title()
+        headers[key] = unquote(lines[1].strip())
     return headers, None
