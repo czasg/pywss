@@ -47,7 +47,10 @@ class MCPTool:
 
 class MCPServer:
 
-    def __init__(self, sse_endpoint="sse", message_endpoint="message"):
+    def __init__(self, name="pywss-mcp-server", version=pywss.__version__,
+                 sse_endpoint="sse", message_endpoint="message"):
+        self.name = name
+        self.version = version
         self.lock = threading.Lock()
         self.sse_endpoint = sse_endpoint
         self.message_endpoint = message_endpoint
@@ -71,9 +74,26 @@ class MCPServer:
     def mount(self, app: pywss.App):
         app.get(self.sse_endpoint, self.handle_sse)
         app.post(self.message_endpoint, self.handle_message)
+
         for tool in self.tools:
-            app.post(f"/tools/{tool.name}", getattr(self, f"tool_{tool.name}"))
+            handler = getattr(self, f"tool_{tool.name}")
+            app.post(f"/tools/{tool.name}", self.register_http_handler(handler), handler)
         app.get("/tools", self.handler_tools)
+
+    def register_http_handler(self, tool):
+        baseModel = tool.__openapi_request__
+        if not baseModel:
+            loggus.panic(f"tool[{tool.name}] must be register by `@pywss.openapi.docs`")
+
+        def handler(ctx: pywss.Context):
+            try:
+                ctx.data.req = baseModel.model_validate(ctx.json())
+            except Exception as e:
+                self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
+            else:
+                ctx.next()
+
+        return handler
 
     @pywss.openapi.docs()
     def handler_tools(self, ctx: pywss.Context):
@@ -85,61 +105,83 @@ class MCPServer:
         with self.lock:
             self.queueMap[uid] = q
         ctx.sse_event(self.message_endpoint + f"?session_id={uid}", "endpoint")
+        log = ctx.log.update(session_id=uid)
+        log.info(f"sse session opened")
+        tolerance = 30
         while not ctx.is_closed():
             try:
                 message = q.get(timeout=10)
                 if message:
                     ctx.sse_event(message)
+                    tolerance = 30
             except queue.Empty:
-                pass
+                tolerance -= 1
+                if tolerance <= 0:
+                    log.warning(f"session tolerance reached")
+                    break
             except:
                 loggus.traceback()
                 break
         with self.lock:
             del self.queueMap[uid]
-            loggus.info(f"session {uid} closed")
+            log.info(f"session closed")
 
     def handle_message(self, ctx: pywss.Context):
         uid = ctx.query.get("session_id")
         if not uid:
             self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
             return
+        log = ctx.log.update(session_id=uid)
         base_message = ctx.json()
-        if not base_message.get("id"):
+        if base_message.get("id", None) is None:
+            # handle notification
+            log.info(f"notification received")
             return
         method = base_message.get("method")
+        log = log.update(method=method)
         ctx.data.method = method
         if base_message.get("jsonrpc", None) != "2.0":
             self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
             return
-        if not base_message.get("id"):
-            # handle notification
-            return
         if base_message.get("result"):
+            log.info("result received")
             return
         if method == MethodInitialize:
-            self.handle_success(ctx, None)
+            params = base_message.get("params", {})
+            params["serverInfo"] = {"name": self.name, "version": self.version}
+            self.handle_success(ctx, params)
+            log.info("initialize received")
         elif method == MethodPing:
-            self.handle_success(ctx, None)
+            self.handle_success(ctx, {})
+            log.info("ping received")
         elif method == MethodToolsList:
             self.handle_success(ctx, {"tools": self.tools})
+            log.info("tools list received")
         elif method == MethodToolsCall:
             params = base_message.get("params", {})
             tool_name = params.get("name")
             arguments = params.get("arguments", {})
-            for tool in self.tools:
-                if tool.name == tool_name:
-                    try:
-                        ctx.data.req = tool.req_cls.model_validate(arguments)
-                    except Exception as e:
-                        self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
-                    else:
-                        tool_call = getattr(self, f"tool_{tool_name}")
-                        tool_call(ctx)
+            tools = [tool for tool in self.tools if tool.name == tool_name]
+            if not tools:
+                self.handle_error(ctx, METHOD_NOT_FOUND, f"Tool {tool_name} not found")
+                return
+            try:
+                ctx.data.req = tools[0].req_cls.model_validate(arguments)
+            except Exception as e:
+                self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
+            else:
+                tool_call = getattr(self, f"tool_{tool_name}")
+                tool_call(ctx)
+                log.info("tool call received")
         else:
             self.handle_error(ctx, METHOD_NOT_FOUND, f"Method {method} not found")
 
     def handle_success(self, ctx: pywss.Context, result):
+        uid = ctx.query.get("session_id")
+        q = self.queueMap.get(uid)
+        if not q:
+            ctx.write(result)
+            return
         method = ctx.data.method
         if method == MethodToolsCall:
             if not isinstance(result, str):
@@ -152,10 +194,6 @@ class MCPServer:
                     }
                 ]
             }
-        uid = ctx.query.get("session_id")
-        q = self.queueMap.get(uid)
-        if not q:
-            return
         ret = {
             "id": ctx.json().get("id"),
             "jsonrpc": "2.0",
@@ -169,6 +207,7 @@ class MCPServer:
         uid = ctx.query.get("session_id")
         q = self.queueMap.get(uid)
         if not q:
+            ctx.write({"code": code, "message": message})
             return
         ret = {
             "id": ctx.json().get("id"),
