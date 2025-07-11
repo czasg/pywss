@@ -181,6 +181,11 @@ class MCPServer:
             self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
             return
 
+        # parse method
+        method = base_message.get("method")
+        ctx.data.method = method
+        log = log.update(method=method)
+
         # handle result
         if base_message.get("result"):
             log.info("result received")
@@ -188,13 +193,13 @@ class MCPServer:
 
         # handle notification
         if base_message.get("id", None) is None:
+            method = method.replace("notifications", "notification", 1)
+            method = method.replace("/", "_")
+            caller = getattr(self, method)
+            if caller and callable(caller):
+                caller(ctx)
             log.info(f"notification received")
             return
-
-        # parse method
-        method = base_message.get("method")
-        ctx.data.method = method
-        log = log.update(method=method)
 
         # handle message by method
         if method == MethodInitialize:

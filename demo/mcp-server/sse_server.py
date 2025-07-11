@@ -41,6 +41,10 @@ class DomainMCPServer(MCPServer):
     def tool_http_get_domains(self, ctx: pywss.Context):
         print(ctx)
 
+    def notification_initialized(self, ctx: pywss.Context):
+        print("notification_initialized")
+        print(ctx)
+
 
 mcpServer = DomainMCPServer()
 
