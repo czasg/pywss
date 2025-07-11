@@ -48,10 +48,11 @@ class MCPTool:
 class MCPServer:
 
     def __init__(self, name="pywss-mcp-server", version=pywss.__version__,
-                 sse_endpoint="sse", message_endpoint="message"):
+                 mcp_endpoint="mcp", sse_endpoint="sse", message_endpoint="message"):
         self.name = name
         self.version = version
         self.lock = threading.Lock()
+        self.mcp_endpoint = mcp_endpoint
         self.sse_endpoint = sse_endpoint
         self.message_endpoint = message_endpoint
         self.queueMap = {}
@@ -72,41 +73,61 @@ class MCPServer:
         self.tools.sort(key=lambda x: x.name)
 
     def mount(self, app: pywss.App):
+        # use handler
+        def session_handler(ctx: pywss.Context):
+            ctx.data.session_id = ctx.query.get("session_id") or ctx.query.get("session")
+            ctx.next()
+
+        app.use(session_handler)
+
+        # sse transport
         app.get(self.sse_endpoint, self.handle_sse)
         app.post(self.message_endpoint, self.handle_message)
 
-        for tool in self.tools:
-            handler = getattr(self, f"tool_{tool.name}")
-            app.post(f"/tools/{tool.name}", self.register_http_handler(handler), handler)
-        app.get("/tools", self.handler_tools)
+        # http stream transport
+        app.get(self.mcp_endpoint, self.handle_sse)
+        app.post(self.mcp_endpoint, self.handle_mcp_post)
+        app.delete(self.mcp_endpoint, self.handle_mcp_delete)
+        app.options(self.mcp_endpoint, lambda ctx: ctx.next())  # use cors before mount
 
-    def register_http_handler(self, tool):
-        baseModel = tool.__openapi_request__
+        # http api pure
+        for tool in self.tools:
+            self.register_http_handler(app, tool)
+        app.get("/tools", self.handle_tools)
+
+    def register_http_handler(self, app, tool):
+        handler = getattr(self, f"tool_{tool.name}")
+        baseModel = handler.__openapi_request__
         if not baseModel:
             loggus.panic(f"tool[{tool.name}] must be register by `@pywss.openapi.docs`")
 
-        def handler(ctx: pywss.Context):
+        def request_handler(ctx: pywss.Context):
             try:
-                ctx.data.req = baseModel.model_validate(ctx.json())
+                ctx.data.req = handler.req_cls.model_validate(ctx.json())
             except Exception as e:
                 self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
             else:
                 ctx.next()
 
-        return handler
+        app.post(f"/tools/{tool.name}", request_handler, handler)
 
     @pywss.openapi.docs()
-    def handler_tools(self, ctx: pywss.Context):
+    def handle_tools(self, ctx: pywss.Context):
         ctx.write_json(self.tools, cls=CustomJSONEncoder)
 
     def handle_sse(self, ctx: pywss.Context):
-        uid = str(uuid.uuid4())
+        session_id = ctx.data.session_id
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            ctx.sse_event(self.message_endpoint + f"?session_id={session_id}", "endpoint")
+
         q = queue.Queue()
         with self.lock:
-            self.queueMap[uid] = q
-        ctx.sse_event(self.message_endpoint + f"?session_id={uid}", "endpoint")
-        log = ctx.log.update(session_id=uid)
+            self.queueMap[session_id] = q
+
+        log = ctx.log.update(session_id=session_id)
         log.info(f"sse session opened")
+
         tolerance = 30
         while not ctx.is_closed():
             try:
@@ -123,29 +144,64 @@ class MCPServer:
                 loggus.traceback()
                 break
         with self.lock:
-            del self.queueMap[uid]
+            del self.queueMap[session_id]
             log.info(f"session closed")
 
+    def handle_mcp_post(self, ctx: pywss.Context):
+        # parse session id
+        session_id = ctx.data.session_id
+        if not session_id:
+            ctx.data.session_id = str(uuid.uuid4())
+        ctx.set_header("Mcp-Session-Id", ctx.data.session_id)
+
+        # handle message
+        self.handle_message(ctx)
+
+    def handle_mcp_delete(self, ctx: pywss.Context):
+        # parse session id
+        session_id = ctx.data.session_id
+        if not session_id:
+            return
+
     def handle_message(self, ctx: pywss.Context):
-        uid = ctx.query.get("session_id")
-        if not uid:
+        # parse base_message
+        base_message = ctx.json()
+        ctx.data.message_id = base_message.get("id")
+        log = ctx.log.update(message_id=ctx.data.message_id)
+
+        # parse session id
+        session_id = ctx.data.session_id
+        if not session_id:
             self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
             return
-        log = ctx.log.update(session_id=uid)
-        base_message = ctx.json()
-        if base_message.get("id", None) is None:
-            # handle notification
-            log.info(f"notification received")
-            return
-        method = base_message.get("method")
-        log = log.update(method=method)
-        ctx.data.method = method
+        log = log.update(session_id=session_id)
+
+        # parse jsonrpc
         if base_message.get("jsonrpc", None) != "2.0":
             self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
             return
+
+        # parse method
+        method = base_message.get("method")
+        ctx.data.method = method
+        log = log.update(method=method)
+
+        # handle result
         if base_message.get("result"):
             log.info("result received")
             return
+
+        # handle notification
+        if base_message.get("id", None) is None:
+            method = method.replace("notifications", "notification", 1)
+            method = method.replace("/", "_")
+            caller = getattr(self, method)
+            if caller and callable(caller):
+                caller(ctx)
+            log.info(f"notification received")
+            return
+
+        # handle message by method
         if method == MethodInitialize:
             params = base_message.get("params", {})
             params["serverInfo"] = {"name": self.name, "version": self.version}
@@ -163,27 +219,21 @@ class MCPServer:
             arguments = params.get("arguments", {})
             tools = [tool for tool in self.tools if tool.name == tool_name]
             if not tools:
-                self.handle_error(ctx, METHOD_NOT_FOUND, f"Tool {tool_name} not found")
+                self.handle_error(ctx, METHOD_NOT_FOUND, f"tool {tool_name} not found")
                 return
             try:
                 ctx.data.req = tools[0].req_cls.model_validate(arguments)
             except Exception as e:
-                self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
+                self.handle_error(ctx, PARSE_ERROR, f"parse error: {e}")
             else:
                 tool_call = getattr(self, f"tool_{tool_name}")
                 tool_call(ctx)
                 log.info("tool call received")
         else:
-            self.handle_error(ctx, METHOD_NOT_FOUND, f"Method {method} not found")
+            self.handle_error(ctx, METHOD_NOT_FOUND, f"method {method} not supported")
 
     def handle_success(self, ctx: pywss.Context, result):
-        uid = ctx.query.get("session_id")
-        q = self.queueMap.get(uid)
-        if not q:
-            ctx.write(result)
-            return
-        method = ctx.data.method
-        if method == MethodToolsCall:
+        if ctx.data.method == MethodToolsCall:
             if not isinstance(result, str):
                 result = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
             result = {
@@ -195,22 +245,19 @@ class MCPServer:
                 ]
             }
         ret = {
-            "id": ctx.json().get("id"),
+            "id": ctx.data.message_id,
             "jsonrpc": "2.0",
             "result": result
         }
         ret = json.dumps(ret, ensure_ascii=False, cls=CustomJSONEncoder)
-        q.put(ret)
         ctx.write_json(ret)
+        q = self.queueMap.get(ctx.data.session_id)
+        if q:
+            q.put(ret)
 
-    def handle_error(self, ctx: pywss.Context, code: int, message: str):
-        uid = ctx.query.get("session_id")
-        q = self.queueMap.get(uid)
-        if not q:
-            ctx.write({"code": code, "message": message})
-            return
+    def handle_error(self, ctx: pywss.Context, code: int = INTERNAL_ERROR, message: str = "INTERNAL ERROR"):
         ret = {
-            "id": ctx.json().get("id"),
+            "id": ctx.data.message_id,
             "jsonrpc": "2.0",
             "error": {
                 "code": code,
@@ -218,5 +265,7 @@ class MCPServer:
             }
         }
         ret = json.dumps(ret, ensure_ascii=False, cls=CustomJSONEncoder)
-        q.put(ret)
         ctx.write_json(ret)
+        q = self.queueMap.get(ctx.data.session_id)
+        if q:
+            q.put(ret)
