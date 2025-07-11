@@ -250,7 +250,7 @@ class MCPServer:
         if q:
             q.put(ret)
 
-    def handle_error(self, ctx: pywss.Context, code: int, message: str):
+    def handle_error(self, ctx: pywss.Context, code: int = INTERNAL_ERROR, message: str = "INTERNAL ERROR"):
         ret = {
             "id": ctx.data.message_id,
             "jsonrpc": "2.0",
