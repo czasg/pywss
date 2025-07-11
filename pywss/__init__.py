@@ -317,6 +317,7 @@ class Context:
     def write_json(self, data, **kwargs) -> None:
         if not isinstance(data, str):
             data = json.dumps(data, ensure_ascii=False, **kwargs).encode()
+        data = data.encode()
         self.set_content_length(len(data))
         self.set_content_type("application/json")
         self.response_body.append(data)
