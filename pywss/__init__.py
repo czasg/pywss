@@ -91,11 +91,17 @@ class Context:
 
     def is_closed(self) -> bool:
         try:
-            self.fd.recv(0)
-            self.fd.send(b"")
+            if self.fd.fileno() < 0:
+                return True
+            self.fd.setblocking(False)  # set non-blocking
+            data = self.fd.recv(1, socket.MSG_PEEK)
+            return data == b''  # empty data mean closed
+        except BlockingIOError:  # blocked mean not closed
             return False
         except:
             return True
+        finally:
+            self.fd.setblocking(True)  # recover blocking
 
     def json(self):
         return json.loads(self.text())  # not check Content-Type: application/json
