@@ -48,13 +48,15 @@ class MCPTool:
 class MCPServer:
 
     def __init__(self, name="pywss-mcp-server", version=pywss.__version__,
-                 mcp_endpoint="mcp", sse_endpoint="sse", message_endpoint="message"):
+                 mcp_endpoint="mcp", sse_endpoint="sse", message_endpoint="message",
+                 tolerance=60):
         self.name = name
         self.version = version
         self.lock = threading.Lock()
         self.mcp_endpoint = mcp_endpoint
         self.sse_endpoint = sse_endpoint
         self.message_endpoint = message_endpoint
+        self.tolerance = tolerance
         self.queueMap = {}
         # init mcp tools
         self.init_tools()
@@ -128,13 +130,13 @@ class MCPServer:
         log = ctx.log.update(session_id=session_id)
         log.info(f"sse session opened")
 
-        tolerance = 30
+        tolerance = self.tolerance
         while not ctx.is_closed():
             try:
                 message = q.get(timeout=10)
                 if message:
                     ctx.sse_event(message)
-                    tolerance = 30
+                tolerance = self.tolerance
             except queue.Empty:
                 tolerance -= 1
                 if tolerance <= 0:
