@@ -27,7 +27,7 @@ from pywss.routing import Route
 from pywss.openapi import openapi_ui_template
 from pywss.utils import split_method_route, merge_dict, Query
 
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 
 
 class Context:
