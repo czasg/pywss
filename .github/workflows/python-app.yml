@@ -29,11 +29,32 @@ jobs:
     
     - name: Run tests with coverage
       run: |
-        pytest --cov=./ --cov-report=xml  # 生成XML格式的覆盖率报告
+        pytest --cov=./ --cov-report=xml
+        # 将覆盖率数据转换为通用格式
+        python -m coverage xml -i
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3  # 使用官方Codecov action
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v3
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}  # 可选，如果需要的话
-        file: ./coverage.xml
-        flags: unittests
+        name: coverage-${{ matrix.python-version }}
+        path: coverage.xml
+
+  upload-coverage:
+    needs: test  # 等待所有test任务完成
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: coverage-artifacts
+
+      - name: Combine coverage reports
+        run: |
+          pip install coverage
+          # 合并所有覆盖率文件
+          python -m coverage combine coverage-artifacts/coverage-*
+          # 生成最终报告
+          python -m coverage xml
+
+      - name: Codecov
+        run: bash <(curl -s https://codecov.io/bash)
