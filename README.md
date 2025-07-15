@@ -29,6 +29,7 @@ Pywss（发音 /piːwaɪz/，类似 **p~whys**）是一个轻量级的 Python We
 - **标准化**：集成了部分 OpenAPI（Swagger）能力，方便开发者快速生成 API 文档并进行调试。
 - **支持WebSocket**：开箱即用的 **WebSocket** 能力。
 - **接口测试**：开箱即用的 **API 测试模块**，不启动服务也能测试接口功能辣！
+- **MCP PRO**：一站式集成 **SSE、StreamHTTP 和 MCPO 协议**，助你轻松构建多 MCP 工具🔥
 
 **_在线文档_** [**_https://czasg.github.io/pywss/_**](https://czasg.github.io/pywss/)
 
@@ -76,7 +77,7 @@ python3 main.py
 
 至此，一个简单的 web 应用服务就完成了。
 
-### 2、搭建 MCP 应用
+### 3、搭建 MCP 应用
 为简化 MCP 工具开发，Pywss 一站式集成 SSE、StreamHTTP 和 MCPO 协议，助你轻松构建全功能服务。
 ```python
 # coding: utf-8
@@ -90,26 +91,26 @@ class Color(str, Enum):
     GREEN = "green"
     BLUE = "blue"
 
-class DomainReq(BaseModel):  # 定义 DomainReq 请求，必须从 BaseModel 继承
+class DomainReq(BaseModel):  # 定义 DomainReq 请求，必须从 pydantic.BaseModel 继承
     domain: str
     color: Color
 
-class DomainsReq(BaseModel):  # 定义 DomainsReq 请求，必须从 BaseModel 继承
+class DomainsReq(BaseModel):  # 定义 DomainsReq 请求，必须从 pydantic.BaseModel 继承
     domains: list[str]
 
-class DomainMCPServer(MCPServer):  # 定义 DomainMCPServer 服务，必须从 MCPServer 继承
+class DomainMCPServer(MCPServer):  # 定义 DomainMCPServer 服务，必须从 pywss.mcp.MCPServer 继承
 
-    @pywss.openapi.docs(description="获取单个域名服务", request=DomainReq)  # required
+    @pywss.openapi.docs(description="获取单个域名服务", request=DomainReq)  # required，工具及其参数说明
     def tool_get_domain(self, ctx: pywss.Context):
-        req: DomainReq = ctx.data.req  # 从 ctx.data.req 获取请求，异常请求会被拦截
+        req: DomainReq = ctx.data.req  # 框架已经封装好了请求，可以从 ctx.data.req 直接获取使用，异常请求会被拦截
         self.handle_success(ctx, {  # handle_success 封装了 jsonrpc2.0 输出规范
             "domain": req.domain,
             "color": req.color
         })
 
-    @pywss.openapi.docs(description="获取批量域名服务", request=DomainsReq)  # required
+    @pywss.openapi.docs(description="获取批量域名服务", request=DomainsReq)  # required，工具及其参数说明
     def tool_get_domains(self, ctx: pywss.Context):
-        req: DomainsReq = ctx.data.req  # 从 ctx.data.req 获取请求，异常请求会被拦截
+        req: DomainsReq = ctx.data.req  # 框架已经封装好了请求，可以从 ctx.data.req 直接获取使用，异常请求会被拦截
         self.handle_error(ctx, message="test error")  # handle_error 封装了 jsonrpc2.0 输出规范
 
 
@@ -117,18 +118,18 @@ mcpServer = DomainMCPServer()
 
 app = pywss.App()
 app.openapi()
-mcpServer.mount(app.group("/api/v1/mcp"))  # 挂载 mcp 服务，同时指定路由
+mcpServer.mount(app.group("/api/v1/domain"))  # 挂载 mcp 服务，同时指定路由
 app.run()
 ```
 接着启动服务:
 ```shell
 python3 main.py
 ```
-- SSE 默认端点 sse：`GET:/api/v1/mcp/sse`
-- StreamHttp 默认端点 mcp：`POST:/api/v1/mcp/mcp`
-- MCPO 默认端点 tools：
-  - `POST:/api/v1/mcp/tools/get_domain` (最后为工具名称)
-  - `POST:/api/v1/mcp/tools/get_domains`
+- SSE 默认端点 sse：`GET:/api/v1/domain/sse`
+- StreamHTTP 默认端点 mcp：`POST:/api/v1/domain/mcp`
+- MCPO 默认端点 tools+{tool_name}：
+  - `POST:/api/v1/domain/tools/get_domain`
+  - `POST:/api/v1/domain/tools/get_domains`
 
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
   
