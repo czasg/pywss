@@ -131,15 +131,15 @@ app.run()
 ```shell
 python3 main.py
 ```
-- SSE 默认端点 sse：
-  - domainMCPServer: `GET:/api/v1/domain/sse`
-  - logMCPServer: `GET:/api/v1/log/sse`
-- StreamHTTP 默认端点 mcp：
-  - domainMCPServer: `POST:/api/v1/domain/mcp`
-  - logMCPServer: `POST:/api/v1/log/mcp`
-- MCPO 默认端点 tools+{tool_name}：
-  - domainMCPServer: `POST:/api/v1/domain/tools/get_domain`
-  - logMCPServer: `POST:/api/v1/log/tools/get_trace_log`
+| 协议类型   | 服务类               | 请求方法 | 端点路径格式                          | 示例路径                              |
+|------------|----------------------|----------|---------------------------------------|---------------------------------------|
+| **SSE**    | `domainMCPServer`    | `GET`    | `/api/v1/domain/sse`                  | `GET /api/v1/domain/sse`              |
+|            | `logMCPServer`       | `GET`    | `/api/v1/log/sse`                     | `GET /api/v1/log/sse`                 |
+| **StreamHTTP** | `domainMCPServer` | `POST`   | `/api/v1/domain/mcp`                  | `POST /api/v1/domain/mcp`             |
+|            | `logMCPServer`       | `POST`   | `/api/v1/log/mcp`                     | `POST /api/v1/log/mcp`                |
+| **MCPO**   | `domainMCPServer`    | `POST`   | `/api/v1/domain/tools/{tool_name}`    | `POST /api/v1/domain/tools/get_domain` |
+|            | `logMCPServer`       | `POST`   | `/api/v1/log/tools/{tool_name}`       | `POST /api/v1/log/tools/get_trace_log` |
+
 
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
   
