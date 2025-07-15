@@ -174,13 +174,13 @@ class MCPServer:
         # parse session id
         session_id = ctx.data.session_id
         if not session_id:
-            self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
+            self.handle_error(ctx, INVALID_REQUEST, "Invalid Request Without Session")
             return
         log = log.update(session_id=session_id)
 
         # parse jsonrpc
         if base_message.get("jsonrpc", None) != "2.0":
-            self.handle_error(ctx, INVALID_REQUEST, "Invalid Request")
+            self.handle_error(ctx, INVALID_REQUEST, "Invalid Request Without Jsonrpc2.0")
             return
 
         # parse method
