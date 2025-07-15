@@ -52,11 +52,10 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest --cov=pywss
+        pytest --cov=./ --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }} # 可选，如果需要的话
-        file: .coverage
+        file: coverage.xml
         flags: unittests
