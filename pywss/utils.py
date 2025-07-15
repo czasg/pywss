@@ -32,11 +32,13 @@ def merge_dict(dict1: dict, dict2: dict):
 
 class Query(dict):
 
-    def fetch(self, *args, typ: Any = str):
-        ret = [typ()] * len(args)
+    def fetch(self, *args):
+        ret = [None] * len(args)
         for index, arg in enumerate(args):
             if arg in self:
-                ret[index] = typ(self[arg])
+                ret[index] = self[arg]
+        if len(ret) == 1:
+            return ret[0]
         return ret
 
 

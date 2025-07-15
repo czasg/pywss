@@ -20,6 +20,22 @@ class LogMCPServer(pywss.mcp.MCPServer):
 
 class TestBase(unittest.TestCase):
 
+    def test_mcp_sse(self):
+        app = pywss.App()
+
+        LogMCPServer().mount(app.group("/api/v1/log"))
+
+        req = {
+            "id": 1,
+            "jsonrpc": "2.0",
+            "method": "initialize"
+        }
+        resp = pywss.HttpTestRequest(app).post("/api/v1/log/message", json=req)
+        data = json.loads(resp.body)
+        self.assertEqual(data, {'error': {'code': -32600, 'message': 'Invalid Request Without Session'},
+                                'id': 1,
+                                'jsonrpc': '2.0'})
+
     def test_mcp_stream_http(self):
         app = pywss.App()
 
@@ -115,6 +131,17 @@ class TestBase(unittest.TestCase):
                          {'id': 4,
                           'jsonrpc': '2.0',
                           'result': {'content': [{'text': '{"traceId": "123456"}', 'type': 'text'}]}})
+
+        req = {
+            "id": 1,
+            "jsonrpc": "2.0",
+            "method": "initialize"
+        }
+        resp = pywss.HttpTestRequest(app).post("/api/v1/log/message", json=req)
+        data = json.loads(resp.body)
+        self.assertEqual(data, {'error': {'code': -32600, 'message': 'Invalid Request Without Session'},
+                                'id': 1,
+                                'jsonrpc': '2.0'})
 
     def test_mcpo(self):
         app = pywss.App()
