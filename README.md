@@ -76,6 +76,60 @@ python3 main.py
 
 至此，一个简单的 web 应用服务就完成了。
 
+### 2、搭建 MCP 应用
+为简化 MCP 工具开发，Pywss 一站式集成 SSE、StreamHTTP 和 MCPO 协议，助你轻松构建全功能服务。
+```python
+# coding: utf-8
+import pywss
+from enum import Enum
+from pydantic import BaseModel
+from pywss.mcp import MCPServer
+
+class Color(str, Enum):
+    RED = "red"
+    GREEN = "green"
+    BLUE = "blue"
+
+class DomainReq(BaseModel):  # 定义 DomainReq 请求，必须从 BaseModel 继承
+    domain: str
+    color: Color
+
+class DomainsReq(BaseModel):  # 定义 DomainsReq 请求，必须从 BaseModel 继承
+    domains: list[str]
+
+class DomainMCPServer(MCPServer):  # 定义 DomainMCPServer 服务，必须从 MCPServer 继承
+
+    @pywss.openapi.docs(description="获取单个域名服务", request=DomainReq)  # required
+    def tool_get_domain(self, ctx: pywss.Context):
+        req: DomainReq = ctx.data.req  # 从 ctx.data.req 获取请求，异常请求会被拦截
+        self.handle_success(ctx, {  # handle_success 封装了 jsonrpc2.0 输出规范
+            "domain": req.domain,
+            "color": req.color
+        })
+
+    @pywss.openapi.docs(description="获取批量域名服务", request=DomainsReq)  # required
+    def tool_get_domains(self, ctx: pywss.Context):
+        req: DomainsReq = ctx.data.req  # 从 ctx.data.req 获取请求，异常请求会被拦截
+        self.handle_error(ctx, message="test error")  # handle_error 封装了 jsonrpc2.0 输出规范
+
+
+mcpServer = DomainMCPServer()
+
+app = pywss.App()
+app.openapi()
+mcpServer.mount(app.group("/api/v1/mcp"))  # 挂载 mcp 服务，同时指定路由
+app.run()
+```
+接着启动服务:
+```shell
+python3 main.py
+```
+- SSE 默认端点 sse：`GET:/api/v1/mcp/sse`
+- StreamHttp 默认端点 mcp：`POST:/api/v1/mcp/mcp`
+- MCPO 默认端点 tools：
+  - `POST:/api/v1/mcp/tools/get_domain` (最后为工具名称)
+  - `POST:/api/v1/mcp/tools/get_domains`
+
 更多功能见[在线文档](https://czasg.github.io/pywss/)。
   
 <br/>
