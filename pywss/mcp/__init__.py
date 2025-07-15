@@ -105,7 +105,7 @@ class MCPServer:
 
         def request_handler(ctx: pywss.Context):
             try:
-                ctx.data.req = handler.req_cls.model_validate(ctx.json())
+                ctx.data.req = baseModel.model_validate(ctx.json())
             except Exception as e:
                 self.handle_error(ctx, PARSE_ERROR, f"Parse Error: {e}")
             else:
