@@ -26,8 +26,7 @@ jobs:
         pip install -e .  # 使用可编辑安装替代setup.py install
     - name: Run tests with coverage
       run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest --cov=pywss
+        pytest --cov=./ --cov-report=xml
 
   upload-coverage:
     needs: test  # 等待所有test任务完成
@@ -59,3 +58,10 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }} # 可选，如果需要的话
         file: coverage.xml
         flags: unittests
+        fail_ci_if_error: false
+        verbose: true
+        ignore: |
+          **/entrypoint/*
+          **/test/*
+          **/tests/*
+          setup.py
