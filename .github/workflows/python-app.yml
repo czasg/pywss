@@ -15,25 +15,48 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]  # 简化为主要版本号
     steps:
     - uses: actions/checkout@v3
-    
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4  # 使用更新的v4版本
       with:
         python-version: ${{ matrix.python-version }}
-    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov  # 合并coverage和pytest安装
         pip install -e .  # 使用可编辑安装替代setup.py install
-    
     - name: Run tests with coverage
       run: |
-        pytest --cov=./ --cov-report=xml  # 生成XML格式的覆盖率报告
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3  # 使用官方Codecov action
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        pytest --cov=pywss
+
+  upload-coverage:
+    needs: test  # 等待所有test任务完成
+    runs-on: ubuntu-latest  # 使用最新稳定版而不是具体版本号
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]  # 简化为主要版本号
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4  # 使用更新的v4版本
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}  # 可选，如果需要的话
-        file: ./coverage.xml
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov  # 合并coverage和pytest安装
+        pip install -e .  # 使用可编辑安装替代setup.py install
+
+    - name: Run tests with coverage
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        pytest --cov=pywss
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }} # 可选，如果需要的话
+        file: .coverage
         flags: unittests
