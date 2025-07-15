@@ -197,7 +197,7 @@ class MCPServer:
         if base_message.get("id", None) is None:
             method = method.replace("notifications", "notification", 1)
             method = method.replace("/", "_")
-            caller = getattr(self, method)
+            caller = getattr(self, method, None)
             if caller and callable(caller):
                 caller(ctx)
             log.info(f"notification received")
