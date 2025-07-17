@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/czasg-pywss-badge.png)](https://mseep.ai/app/czasg-pywss)
+
 <div align='center'>
 
 ![pywss](./pywss.png)
